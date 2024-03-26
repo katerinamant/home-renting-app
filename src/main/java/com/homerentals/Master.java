@@ -51,20 +51,20 @@ public class Master {
             this.clientSocket = socket;
         }
 
-		private String readSocketInput() {
-			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
-				StringBuilder sb = new StringBuilder();
+        private String readSocketInput() {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
+                StringBuilder sb = new StringBuilder();
 
-				for (int chr = reader.read(); reader.ready(); chr = reader.read()) {
-					sb.append((char) chr);
-				}
-				return sb.toString();
+                for (int chr = reader.read(); reader.ready(); chr = reader.read()) {
+                    sb.append((char) chr);
+                }
+                return sb.toString();
 
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         @Override
         public void run() {

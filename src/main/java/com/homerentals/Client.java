@@ -1,12 +1,15 @@
 package com.homerentals;
 
-import java.io.*;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.json.JSONObject;
-import org.apache.commons.io.IOUtils;
 
 public class Client {
     private JSONObject json = null;

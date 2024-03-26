@@ -6,14 +6,17 @@ import java.util.Date;
 
 public class Rental {
     private Host host;
-    private String roomName, area;
-    private int numOfPersons;
-    private int numOfReviews, sumOfReviews;
+    private final String roomName;
+    private final String area;
+    private final int numOfPersons;
+    private final int numOfReviews;
+    private final int sumOfReviews;
 
     private static final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-    private Date startDate, endDate;
+    private final Date startDate;
+    private final Date endDate;
 
-    private String imagePath;
+    private final String imagePath;
 
     public Rental(String roomName, String area, int noOfPersons, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
         this.roomName = roomName;
@@ -34,7 +37,9 @@ public class Rental {
         this.host = host;
     }
 
-    public String getRoomName() { return roomName; }
+    public String getRoomName() {
+        return roomName;
+    }
 
     public double getStars() {
         return ((this.numOfReviews == 0) ? 0 : (double) this.sumOfReviews / this.numOfReviews);
