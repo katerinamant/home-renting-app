@@ -8,6 +8,7 @@ public class Rental {
     private Host host;
     private final String roomName;
     private final String area;
+    private final double pricePerNight;
     private final int numOfPersons;
     private final int numOfReviews;
     private final int sumOfReviews;
@@ -18,9 +19,10 @@ public class Rental {
 
     private final String imagePath;
 
-    public Rental(String roomName, String area, int noOfPersons, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
+    public Rental(String roomName, String area, double pricePerNight, int noOfPersons, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
         this.roomName = roomName;
         this.area = area;
+        this.pricePerNight = pricePerNight;
         this.numOfPersons = noOfPersons;
         this.numOfReviews = numOfReviews;
         this.sumOfReviews = sumOfReviews;
@@ -38,7 +40,7 @@ public class Rental {
     }
 
     public String getRoomName() {
-        return roomName;
+        return this.roomName;
     }
 
     public double getStars() {

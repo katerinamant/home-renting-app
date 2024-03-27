@@ -76,14 +76,15 @@ public class Master {
             JSONObject jsonObject = new JSONObject(input);
             String roomName = jsonObject.getString("roomName");
             String area = jsonObject.getString("area");
+            double pricePerNight = jsonObject.getDouble("pricePerNight");
             int numOfPersons = jsonObject.getInt("numOfPersons");
             int numOfReviews = jsonObject.getInt("numOfReviews");
             int sumOfReviews = jsonObject.getInt("sumOfReviews");
             String startDate = jsonObject.getString("startDate");
             String endDate = jsonObject.getString("endDate");
             String imagePath = jsonObject.getString("imagePath");
-            Rental rental = new Rental(roomName, area, numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
-//            System.out.println(rental.getRoomName());
+            Rental rental = new Rental(roomName, area, pricePerNight, numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
+//          System.out.println(rental.getRoomName());
 //			System.out.println(rental.getStars());
         }
     }

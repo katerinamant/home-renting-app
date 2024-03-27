@@ -1,6 +1,7 @@
 {
   "roomName": "Cozy Rental",
   "area": "Crete",
+  "pricePerNight": 70,
   "numOfPersons": 2,
   "numOfReviews": 0,
   "sumOfReviews": 0,
