@@ -1,6 +1,7 @@
 package com.homerentals;
 
 import com.homerentals.domain.Rental;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -33,6 +34,7 @@ public class Master {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+
         } finally {
             if (server != null) {
                 try {
@@ -66,26 +68,44 @@ public class Master {
             }
         }
 
+        private void jsonToObject(String input) {
+            try {
+                // Create Rental object from JSON
+                JSONObject jsonObject = new JSONObject(input);
+                String roomName = jsonObject.getString("roomName");
+                String area = jsonObject.getString("area");
+                double pricePerNight = jsonObject.getDouble("pricePerNight");
+                int numOfPersons = jsonObject.getInt("numOfPersons");
+                int numOfReviews = jsonObject.getInt("numOfReviews");
+                int sumOfReviews = jsonObject.getInt("sumOfReviews");
+                String startDate = jsonObject.getString("startDate");
+                String endDate = jsonObject.getString("endDate");
+                String imagePath = jsonObject.getString("imagePath");
+                Rental rental = new Rental(roomName, area, pricePerNight, numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
+//              System.out.println(rental.getRoomName());
+//			    System.out.println(rental.getStars());
+
+            } catch (JSONException e) {
+                // String is not valid JSON object
+                throw new RuntimeException(e);
+            }
+        }
+
         @Override
         public void run() {
             // Read data sent from client
-            String input = this.readSocketInput();
-            System.out.println(input);
+            String input = null;
+            try {
+                input = this.readSocketInput();
+                System.out.println(input);
 
-            // Create Rental object from JSON
-            JSONObject jsonObject = new JSONObject(input);
-            String roomName = jsonObject.getString("roomName");
-            String area = jsonObject.getString("area");
-            double pricePerNight = jsonObject.getDouble("pricePerNight");
-            int numOfPersons = jsonObject.getInt("numOfPersons");
-            int numOfReviews = jsonObject.getInt("numOfReviews");
-            int sumOfReviews = jsonObject.getInt("sumOfReviews");
-            String startDate = jsonObject.getString("startDate");
-            String endDate = jsonObject.getString("endDate");
-            String imagePath = jsonObject.getString("imagePath");
-            Rental rental = new Rental(roomName, area, pricePerNight, numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
-//          System.out.println(rental.getRoomName());
-//			System.out.println(rental.getStars());
+                // Create Rental object from JSON
+                this.jsonToObject(input);
+                
+            } catch (RuntimeException e) {
+                String msg = String.format("Was not able to process input from socket %s", this.clientSocket.getInetAddress().getHostAddress());
+                throw new RuntimeException(msg);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.homerentals;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -31,7 +32,10 @@ public class Client {
 
             System.out.println(jsonTxt);
             this.json = new JSONObject(jsonTxt);
-        } catch (IOException e) {
+
+        } catch (IOException | JSONException e) {
+            // Could not find file or
+            // File is not valid JSON Object
             throw new RuntimeException(e);
         }
     }
@@ -40,6 +44,7 @@ public class Client {
         try {
             PrintWriter writer = new PrintWriter(this.socket.getOutputStream(), true);
             writer.println(msg);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -73,6 +78,7 @@ public class Client {
 
         } catch (IOException e) {
             throw new RuntimeException(e);
+
         } finally {
             if (socket != null) {
                 try {
