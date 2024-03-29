@@ -4,7 +4,9 @@ import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -102,12 +104,27 @@ public class Master {
             // Read data sent from client
             String input = null;
             try {
-                input = this.readSocketInput();
-                System.out.println(input);
+                while (true) {
+                    input = this.readSocketInput();
+                    System.out.println(input);
 
-                // Create Rental object from JSON
-                this.jsonToObject(input);
-                
+                    // Handle JSON input
+                    JSONObject inputJson = new JSONObject(input);
+                    String inputType = inputJson.getString("type");
+                    String inputHeader = inputJson.getString("header");
+                    String inputBody = inputJson.getString("body");
+
+                    if (inputType.equals("request") && inputHeader.equals("close-connection")) {
+                        System.out.println(String.format("Stop accepting from client %s", this.clientSocket.getInetAddress().getHostAddress()));
+                        break;
+                    }
+
+                    if (inputType.equals("request") && inputHeader.equals("new-rental")) {
+                        // Create Rental object from JSON
+                        this.jsonToObject(inputBody);
+                    }
+                }
+
             } catch (RuntimeException e) {
                 String title = String.format("ERROR Client %s%n", this.clientSocket.getInetAddress().getHostAddress());
                 System.err.println(title);
@@ -115,6 +132,7 @@ public class Master {
 
             } finally {
                 try {
+                    // System.out.println("Closing thread");
                     in.close();
                     out.close();
 
