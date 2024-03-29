@@ -4,9 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,14 +12,25 @@ import java.nio.file.Paths;
 
 public class Client {
     private JSONObject json = null;
-    private Socket socket = null;
+    private Socket requestSocket = null;
+    private DataOutputStream out = null;
+    private DataInputStream in = null;
 
     public JSONObject getJson() {
         return json;
     }
 
-    public void setSocket(Socket socket) {
-        this.socket = socket;
+    public Socket getRequestSocket() { return this.requestSocket; }
+
+    public void setRequestSocket(Socket requestSocket) {
+        this.requestSocket = requestSocket;
+        try {
+            this.out = new DataOutputStream(this.requestSocket.getOutputStream());
+            this.in = new DataInputStream(this.requestSocket.getInputStream());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void readFile(String path) {
@@ -42,8 +51,19 @@ public class Client {
 
     private void sendSocketOutput(String msg) {
         try {
-            PrintWriter writer = new PrintWriter(this.socket.getOutputStream(), true);
-            writer.println(msg);
+            this.out.writeUTF(msg);
+            this.out.flush();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void close() {
+        try {
+            this.in.close();
+            this.out.close();
+            this.requestSocket.close();
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -55,37 +75,33 @@ public class Client {
 
         // Read JSON file
         try {
-            client.readFile("\\util\\demo_rental.json");
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+            client.readFile("src\\main\\java\\com\\homerentals\\util\\demo_rental.json");
 
-        // Establish a connection
-        Socket socket = null;
-        try {
-            System.out.println("Connecting to server...");
-            socket = new Socket("localhost", 8080);
-            client.setSocket(socket);
+            // Establish a connection
+            Socket requestSocket = null;
+                System.out.println("Connecting to server...");
+                requestSocket = new Socket("localhost", 8080);
+                client.setRequestSocket(requestSocket);
 
-            // Write to socket
-            System.out.println("Writing to server...");
-            String msg = client.getJson().toString();
-            client.sendSocketOutput(msg);
+                // Write to socket
+                System.out.println("Writing to server...");
+                String msg = client.getJson().toString();
+                client.sendSocketOutput(msg);
 
-            // Read response from server
-//            inputStream = new ObjectInputStream(socket.getInputStream());
-//            String msg = (String) inputStream.readObject();
+                // Read response from server
+                // inputStream = new ObjectInputStream(socket.getInputStream());
+                // String msg = (String) inputStream.readObject();
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (RuntimeException | IOException e) {
+            e.printStackTrace();
 
         } finally {
-            if (socket != null) {
+            if (client.getRequestSocket() != null) {
                 try {
                     System.out.println("Closing down connection...");
-                    socket.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    client.close();
+                } catch (RuntimeException e) {
+                    e.printStackTrace();
                 }
             }
         }
