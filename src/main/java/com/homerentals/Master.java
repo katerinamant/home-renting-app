@@ -1,7 +1,5 @@
 package com.homerentals;
 
-import com.homerentals.domain.Rental;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -13,11 +11,15 @@ import java.net.Socket;
 public class Master {
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
+        Socket workerSocket = null;
 
         try {
             // Server is listening on port 8080
             serverSocket = new ServerSocket(8080, 10);
             serverSocket.setReuseAddress(true);
+
+            // Connect to worker
+            workerSocket = new Socket("localhost", 1000);
 
             // Handle client requests
             while (true) {
@@ -29,7 +31,7 @@ public class Master {
 
                 // Create a new thread object
                 // to handle this client separately
-                ClientHandler clientThread = new ClientHandler(clientSocket);
+                ClientHandler clientThread = new ClientHandler(clientSocket, workerSocket);
                 new Thread(clientThread).start();
             }
 
@@ -41,6 +43,7 @@ public class Master {
             if (serverSocket != null) {
                 try {
                     serverSocket.close();
+                    workerSocket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -50,14 +53,16 @@ public class Master {
 
     private static class ClientHandler implements Runnable {
         private final Socket clientSocket;
-        private DataOutputStream out = null;
-        private DataInputStream in = null;
+        private final Socket workerSocket;
+        private DataOutputStream workerSocketOut = null;
+        private DataInputStream clientSocketIn = null;
 
-        public ClientHandler(Socket socket) {
-            this.clientSocket = socket;
+        public ClientHandler(Socket clientSocket, Socket workerSocket) {
+            this.clientSocket = clientSocket;
+            this.workerSocket = workerSocket;
             try {
-                this.out = new DataOutputStream(this.clientSocket.getOutputStream());
-                this.in = new DataInputStream(this.clientSocket.getInputStream());
+                this.workerSocketOut = new DataOutputStream(this.workerSocket.getOutputStream());
+                this.clientSocketIn = new DataInputStream(this.clientSocket.getInputStream());
 
             } catch (IOException e) {
                 String msg = String.format("\tClient %s | Error creating streams:%n", this.clientSocket.getInetAddress().getHostAddress());
@@ -65,9 +70,9 @@ public class Master {
             }
         }
 
-        private String readSocketInput() {
+        private String readClientSocketInput() {
             try {
-                return in.readUTF();
+                return clientSocketIn.readUTF();
 
             } catch (IOException e) {
                 String msg = String.format("\tClient %s | Error reading input%n", this.clientSocket.getInetAddress().getHostAddress());
@@ -75,27 +80,22 @@ public class Master {
             }
         }
 
-        private void jsonToObject(String input) {
-            try {
-                // Create Rental object from JSON
-                JSONObject jsonObject = new JSONObject(input);
-                String roomName = jsonObject.getString("roomName");
-                String area = jsonObject.getString("area");
-                double pricePerNight = jsonObject.getDouble("pricePerNight");
-                int numOfPersons = jsonObject.getInt("numOfPersons");
-                int numOfReviews = jsonObject.getInt("numOfReviews");
-                int sumOfReviews = jsonObject.getInt("sumOfReviews");
-                String startDate = jsonObject.getString("startDate");
-                String endDate = jsonObject.getString("endDate");
-                String imagePath = jsonObject.getString("imagePath");
-                Rental rental = new Rental(roomName, area, pricePerNight, numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
-//              System.out.println(rental.getRoomName());
-//			    System.out.println(rental.getStars());
+        private JSONObject createRequest(String header, String body) {
+            JSONObject request = new JSONObject();
+            request.put("type", "request");
+            request.put("header", header);
+            request.put("body", body);
 
-            } catch (JSONException e) {
-                // String is not valid JSON object
-                String msg = String.format("\tClient %s | Error creating JSON object%n", this.clientSocket.getInetAddress().getHostAddress());
-                throw new RuntimeException(msg, e.getCause());
+            return request;
+        }
+
+        private void sendWorkerSocketOutput(String msg) {
+            try {
+                this.workerSocketOut.writeUTF(msg);
+                this.workerSocketOut.flush();
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 
@@ -105,7 +105,7 @@ public class Master {
             String input = null;
             try {
                 while (true) {
-                    input = this.readSocketInput();
+                    input = this.readClientSocketInput();
                     System.out.println(input);
 
                     // Handle JSON input
@@ -115,13 +115,14 @@ public class Master {
                     String inputBody = inputJson.getString("body");
 
                     if (inputType.equals("request") && inputHeader.equals("close-connection")) {
-                        System.out.println(String.format("Stop accepting from client %s", this.clientSocket.getInetAddress().getHostAddress()));
+                        System.out.printf("Stop accepting from client %s%n", this.clientSocket.getInetAddress().getHostAddress());
                         break;
                     }
 
                     if (inputType.equals("request") && inputHeader.equals("new-rental")) {
-                        // Create Rental object from JSON
-                        this.jsonToObject(inputBody);
+                        // Send "new-rental" request
+                        // to worker
+                        this.sendWorkerSocketOutput(input);
                     }
                 }
 
@@ -133,8 +134,7 @@ public class Master {
             } finally {
                 try {
                     // System.out.println("Closing thread");
-                    in.close();
-                    out.close();
+                    clientSocketIn.close();
 
                 } catch (IOException e) {
                     e.printStackTrace();
