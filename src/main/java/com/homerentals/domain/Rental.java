@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Rental {
-    private Host host;
+    private final HostAccount host;
     private final String roomName;
     private final String area;
     private final double pricePerNight;
@@ -19,7 +19,8 @@ public class Rental {
 
     private final String imagePath;
 
-    public Rental(String roomName, String area, double pricePerNight, int noOfPersons, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
+    public Rental(HostAccount host, String roomName, String area, double pricePerNight, int noOfPersons, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
+        this.host = host;
         this.roomName = roomName;
         this.area = area;
         this.pricePerNight = pricePerNight;
@@ -35,15 +36,47 @@ public class Rental {
         this.imagePath = imagePath;
     }
 
-    public void setHost(Host host) {
-        this.host = host;
+    public HostAccount getHost() {
+        return this.host;
     }
 
     public String getRoomName() {
         return this.roomName;
     }
 
+    public String getArea() {
+        return this.area;
+    }
+
+    public double getPricePerNight() {
+        return this.pricePerNight;
+    }
+
+    public int getNumOfPersons() {
+        return this.numOfPersons;
+    }
+
+    public int getNumOfReviews() {
+        return this.numOfReviews;
+    }
+
+    public int getSumOfReviews() {
+        return this.sumOfReviews;
+    }
+
     public double getStars() {
         return ((this.numOfReviews == 0) ? 0 : (double) this.sumOfReviews / this.numOfReviews);
+    }
+
+    public Date getStartDate() {
+        return this.startDate;
+    }
+
+    public Date getEndDate() {
+        return this.endDate;
+    }
+
+    public String getImagePath() {
+        return this.imagePath;
     }
 }
