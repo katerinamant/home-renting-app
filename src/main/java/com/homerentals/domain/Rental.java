@@ -1,37 +1,58 @@
 package com.homerentals.domain;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class Rental {
     private final HostAccount host;
     private final String roomName;
     private final String area;
-    private final double pricePerNight;
-    private final int numOfPersons;
+    private final double nightlyRate;
+    private final int capacity;
     private final ReviewAggregator reviews;
 
-    private static final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-    private final Date startDate;
-    private final Date endDate;
+    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+    private final LocalDate startDate;
+    private final LocalDate endDate;
+    private final HashMap<Integer, Calendar> availability;
 
     private final String imagePath;
 
-    public Rental(HostAccount host, String roomName, String area, double pricePerNight, int noOfPersons, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
+    public Rental(HostAccount host, String roomName, String area, double nightlyRate, int capacity, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
         this.host = host;
         this.roomName = roomName;
         this.area = area;
-        this.pricePerNight = pricePerNight;
-        this.numOfPersons = noOfPersons;
+        this.nightlyRate = nightlyRate;
+        this.capacity = capacity;
         this.reviews = new ReviewAggregator(numOfReviews, sumOfReviews);
-        try {
-            this.startDate = df.parse(startDate);
-            this.endDate = df.parse(endDate);
-        } catch (java.text.ParseException e) {
-            throw new RuntimeException(e);
-        }
+        this.startDate = LocalDate.parse(startDate, df);
+        this.endDate = LocalDate.parse(endDate, df);
         this.imagePath = imagePath;
+
+        // All dates are initialised to unavailable.
+        // Dates spanning from startDate to endDate
+        // are toggled.
+        this.availability = new HashMap<Integer, Calendar>();
+        int key;
+        Calendar calendar;
+        for (LocalDate date = this.startDate; date.isBefore(this.endDate); date = date.plusDays(1)) {
+            key = date.getYear();
+            if (!availability.containsKey(key))
+                availability.put(key, new Calendar(key));
+
+            calendar = availability.get(key);
+            calendar.toggleAvailability(date);
+        }
+
+        // Toggling endDate
+        key = this.endDate.getYear();
+        if (!availability.containsKey(key))
+            availability.put(key, new Calendar(key));
+
+        calendar = availability.get(key);
+        calendar.toggleAvailability(this.endDate);
     }
 
     public HostAccount getHost() {
@@ -46,12 +67,12 @@ public class Rental {
         return this.area;
     }
 
-    public double getPricePerNight() {
-        return this.pricePerNight;
+    public double getNightlyRate() {
+        return this.nightlyRate;
     }
 
-    public int getNumOfPersons() {
-        return this.numOfPersons;
+    public int getCapacity() {
+        return this.capacity;
     }
 
     public void addReview(int review) {
@@ -62,15 +83,23 @@ public class Rental {
         return this.reviews.getStars();
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return this.startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return this.endDate;
     }
 
     public String getImagePath() {
         return this.imagePath;
+    }
+
+    public boolean getAvailability(LocalDate startDate, LocalDate endDate) {
+        return AvailabilitySearch.getAvailability(this.availability, startDate, endDate);
+    }
+
+    public void toggleAvailability(LocalDate startDate, LocalDate endDate) {
+        AvailabilitySearch.toggleAvailability(this.availability, startDate, endDate);
     }
 }

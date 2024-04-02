@@ -1,30 +1,25 @@
 package com.homerentals.domain;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class Booking {
     private final GuestAccount guest;
     private final Rental rental;
 
-    private static final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-    private final Date startDate;
-    private final Date endDate;
+    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+    private final LocalDate startDate;
+    private final LocalDate endDate;
 
     private final double totalCost;
 
     public Booking(GuestAccount guest, Rental rental, String startDate, String endDate) {
         this.guest = guest;
         this.rental = rental;
-        try {
-            this.startDate = df.parse(startDate);
-            this.endDate = df.parse(endDate);
-
-            this.totalCost = this.rental.getPricePerNight() * (this.endDate.getDay() - this.startDate.getDay());
-        } catch (java.text.ParseException e) {
-            throw new RuntimeException(e);
-        }
+        this.startDate = LocalDate.parse(startDate, df);
+        this.endDate = LocalDate.parse(endDate, df);
+        this.totalCost = this.rental.getNightlyRate() * (this.endDate.getDayOfMonth() - this.startDate.getDayOfMonth());
     }
 
     public GuestAccount getGuest() {
@@ -35,11 +30,11 @@ public class Booking {
         return this.rental;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return this.startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return this.endDate;
     }
 
