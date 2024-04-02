@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 public class PhoneNumber {
     private String phoneNumber;
 
+    public PhoneNumber() { }
+
     public PhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }

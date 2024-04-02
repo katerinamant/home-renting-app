@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 public class Password {
     private String password;
 
+    public Password() { }
+
     public Password(String password) {
         this.password = password;
     }

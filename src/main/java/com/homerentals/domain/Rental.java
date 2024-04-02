@@ -75,6 +75,10 @@ public class Rental {
         return this.capacity;
     }
 
+    public ReviewAggregator getReviewAggregator() {
+        return this.reviews;
+    }
+
     public void addReview(int review) {
         this.reviews.addReview(review);
     }

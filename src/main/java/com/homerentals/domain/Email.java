@@ -6,6 +6,8 @@ public class Email {
     private String username;
     private String domain;
 
+    public Email() { }
+
     public Email(String email) {
         String[] emailArr = email.split("@");
         this.username = emailArr[0];
