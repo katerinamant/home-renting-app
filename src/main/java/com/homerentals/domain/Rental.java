@@ -10,8 +10,7 @@ public class Rental {
     private final String area;
     private final double pricePerNight;
     private final int numOfPersons;
-    private final int numOfReviews;
-    private final int sumOfReviews;
+    private final ReviewAggregator reviews;
 
     private static final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
     private final Date startDate;
@@ -25,8 +24,7 @@ public class Rental {
         this.area = area;
         this.pricePerNight = pricePerNight;
         this.numOfPersons = noOfPersons;
-        this.numOfReviews = numOfReviews;
-        this.sumOfReviews = sumOfReviews;
+        this.reviews = new ReviewAggregator(numOfReviews, sumOfReviews);
         try {
             this.startDate = df.parse(startDate);
             this.endDate = df.parse(endDate);
@@ -56,16 +54,12 @@ public class Rental {
         return this.numOfPersons;
     }
 
-    public int getNumOfReviews() {
-        return this.numOfReviews;
-    }
-
-    public int getSumOfReviews() {
-        return this.sumOfReviews;
+    public void addReview(int review) {
+        this.reviews.addReview(review);
     }
 
     public double getStars() {
-        return ((this.numOfReviews == 0) ? 0 : (double) this.sumOfReviews / this.numOfReviews);
+        return this.reviews.getStars();
     }
 
     public Date getStartDate() {
