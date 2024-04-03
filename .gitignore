@@ -25,6 +25,7 @@ src.uml
 *.iws
 
 # Logs
+logs/
 *.log
 
 # Mac
