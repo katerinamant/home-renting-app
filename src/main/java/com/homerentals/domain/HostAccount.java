@@ -2,6 +2,7 @@ package com.homerentals.domain;
 
 public class HostAccount extends AbstractAccount {
     public HostAccount() {
+        super();
     }
 
     public HostAccount(Email email, Password password, String firstName, String lastName, PhoneNumber phoneNumber) {
