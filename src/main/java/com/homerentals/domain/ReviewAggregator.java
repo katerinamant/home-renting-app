@@ -10,7 +10,7 @@ public class ReviewAggregator {
     }
 
     protected double getAverage() {
-        return ((this.numOfReviews == 0) ? 0 : (double) this.sumOfReviews / this.numOfReviews);
+        return ((this.numOfReviews == 0) ? 0 : Math.floor((double) this.sumOfReviews / this.numOfReviews *100) / 100);
     }
 
     protected double getStars() {

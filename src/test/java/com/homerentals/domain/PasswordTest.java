@@ -23,6 +23,7 @@ public class PasswordTest {
     public void is_valid() {
         Assert.assertTrue(Password.isValid("Example1!"));
 
+        Assert.assertFalse(Password.isValid(null));
         Assert.assertFalse(Password.isValid(""));
         Assert.assertFalse(Password.isValid("Examp1!")); // less than 8 characters
         Assert.assertFalse(Password.isValid("example1!")); // no upper case letter

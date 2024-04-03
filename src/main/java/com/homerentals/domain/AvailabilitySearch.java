@@ -9,24 +9,24 @@ public class AvailabilitySearch {
             throw new RuntimeException("Invalid date input");
         }
 
-        int key;
+        int year;
         Calendar calendar;
         for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
-            key = date.getYear();
-            if (!availability.containsKey(key))
+            year = date.getYear();
+            if (!availability.containsKey(year))
                 return false;
 
-            calendar = availability.get(key);
+            calendar = availability.get(year);
             if (!calendar.isAvailable(date))
                 return false;
         }
 
         // Checking for endDate
-        key = endDate.getYear();
-        if (!availability.containsKey(key))
+        year = endDate.getYear();
+        if (!availability.containsKey(year))
             return false;
 
-        calendar = availability.get(key);
+        calendar = availability.get(year);
         return calendar.isAvailable(endDate);
     }
 
@@ -35,23 +35,23 @@ public class AvailabilitySearch {
             throw new RuntimeException("Invalid date input");
         }
 
-        int key;
+        int year;
         Calendar calendar;
         for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
-            key = date.getYear();
-            if (!availability.containsKey(key))
-                availability.put(key, new Calendar(key));
+            year = date.getYear();
+            if (!availability.containsKey(year))
+                availability.put(year, new Calendar(year));
 
-            calendar = availability.get(key);
+            calendar = availability.get(year);
             calendar.toggleAvailability(date);
         }
 
         // Toggling endDate
-        key = endDate.getYear();
-        if (!availability.containsKey(key))
-            availability.put(key, new Calendar(key));
+        year = endDate.getYear();
+        if (!availability.containsKey(year))
+            availability.put(year, new Calendar(year));
 
-        calendar = availability.get(key);
+        calendar = availability.get(year);
         calendar.toggleAvailability(endDate);
     }
 }

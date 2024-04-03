@@ -35,23 +35,23 @@ public class Rental {
         // Dates spanning from startDate to endDate
         // are toggled.
         this.availability = new HashMap<Integer, Calendar>();
-        int key;
+        int year;
         Calendar calendar;
         for (LocalDate date = this.startDate; date.isBefore(this.endDate); date = date.plusDays(1)) {
-            key = date.getYear();
-            if (!availability.containsKey(key))
-                availability.put(key, new Calendar(key));
+            year = date.getYear();
+            if (!availability.containsKey(year))
+                availability.put(year, new Calendar(year));
 
-            calendar = availability.get(key);
+            calendar = availability.get(year);
             calendar.toggleAvailability(date);
         }
 
         // Toggling endDate
-        key = this.endDate.getYear();
-        if (!availability.containsKey(key))
-            availability.put(key, new Calendar(key));
+        year = this.endDate.getYear();
+        if (!availability.containsKey(year))
+            availability.put(year, new Calendar(year));
 
-        calendar = availability.get(key);
+        calendar = availability.get(year);
         calendar.toggleAvailability(this.endDate);
     }
 
@@ -93,6 +93,10 @@ public class Rental {
 
     public LocalDate getEndDate() {
         return this.endDate;
+    }
+
+    public HashMap<Integer, Calendar> getAvailabilityMap() {
+        return availability;
     }
 
     public String getImagePath() {

@@ -32,6 +32,7 @@ public class EmailTest {
     public void is_valid() {
         Assert.assertTrue(Email.isValid("example@example.com"));
 
+        Assert.assertFalse(Email.isValid(null));
         Assert.assertFalse(Email.isValid(""));
         Assert.assertFalse(Email.isValid("example"));
         Assert.assertFalse(Email.isValid("example@"));

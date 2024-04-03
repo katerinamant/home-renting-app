@@ -23,6 +23,7 @@ public class PhoneNumberTest {
     public void is_valid() {
         Assert.assertTrue(PhoneNumber.isValid("2222222222"));
 
+        Assert.assertFalse(PhoneNumber.isValid(null));
         Assert.assertFalse(PhoneNumber.isValid(""));
         Assert.assertFalse(PhoneNumber.isValid("222222")); // less than 10 digits
         Assert.assertFalse(PhoneNumber.isValid("0000000000")); // starts with 0

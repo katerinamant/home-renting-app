@@ -24,6 +24,10 @@ public class Calendar {
         return year;
     }
 
+    public boolean[] getAvailability() {
+        return this.availability;
+    }
+
     protected boolean isAvailable(LocalDate date) {
         int index = date.getDayOfYear() - 1;
         return this.availability[index];
