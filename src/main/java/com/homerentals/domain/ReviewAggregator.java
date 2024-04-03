@@ -10,13 +10,13 @@ public class ReviewAggregator {
     }
 
     protected double getAverage() {
-        return ((this.numOfReviews == 0) ? 0 : Math.floor((double) this.sumOfReviews / this.numOfReviews *100) / 100);
+        return ((this.numOfReviews == 0) ? 0 : Math.floor((double) this.sumOfReviews / this.numOfReviews * 100) / 100);
     }
 
     protected double getStars() {
         // Rounds the average
         // to the nearest half
-        return ((int) (this.getAverage()*2 + 0.5)) / 2.0;
+        return ((int) (this.getAverage() * 2 + 0.5)) / 2.0;
     }
 
     protected void addReview(int review) {

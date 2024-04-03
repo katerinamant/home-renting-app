@@ -10,11 +10,11 @@ public class ReviewAggregatorTest {
         Rental rental = new Rental(hostAccount, "Rental", "Athens", 50.0, 2, 5, 20, "01/01/2024", "31/12/2025", "\\path");
 
         ReviewAggregator reviewAggregator = rental.getReviewAggregator();
-        Assert.assertTrue(4 == reviewAggregator.getAverage());
-        Assert.assertTrue(4 == reviewAggregator.getStars());
+        Assert.assertEquals(4, reviewAggregator.getAverage(), 0.0);
+        Assert.assertEquals(4, reviewAggregator.getStars(), 0.0);
 
         reviewAggregator.addReview(2);
-        Assert.assertTrue(3.66 == reviewAggregator.getAverage());
-        Assert.assertTrue(3.5 == reviewAggregator.getStars());
+        Assert.assertEquals(3.66, reviewAggregator.getAverage(), 0.0);
+        Assert.assertEquals(3.5, reviewAggregator.getStars(), 0.0);
     }
 }

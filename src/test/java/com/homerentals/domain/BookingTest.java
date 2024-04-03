@@ -25,6 +25,6 @@ public class BookingTest {
         Assert.assertEquals(startDate, booking.getStartDate());
         Assert.assertEquals(endDate, booking.getEndDate());
 
-        Assert.assertTrue(100.0 == booking.getTotalCost());
+        Assert.assertEquals(100.0, booking.getTotalCost(), 0.0);
     }
 }

@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 
 public class CalendarTest {
@@ -14,15 +15,15 @@ public class CalendarTest {
         // Not leap year
         Calendar calendar = new Calendar(2023);
 
-        Assert.assertTrue(2023 == calendar.getYear());
-        Assert.assertTrue(365 == calendar.getAvailability().length);
-        Assert.assertFalse(Arrays.asList(calendar.getAvailability()).contains(true));
+        Assert.assertEquals(2023, calendar.getYear());
+        Assert.assertEquals(365, calendar.getAvailability().length);
+        Assert.assertFalse(Collections.singletonList(calendar.getAvailability()).contains(true));
 
         // Leap year
         calendar = new Calendar(2024);
-        Assert.assertTrue(2024 == calendar.getYear());
-        Assert.assertTrue(366 == calendar.getAvailability().length);
-        Assert.assertFalse(Arrays.asList(calendar.getAvailability()).contains(true));
+        Assert.assertEquals(2024, calendar.getYear());
+        Assert.assertEquals(366, calendar.getAvailability().length);
+        Assert.assertFalse(Collections.singletonList(calendar.getAvailability()).contains(true));
     }
 
     @Test
