@@ -71,7 +71,7 @@ public class Worker {
                 input = worker.readMasterSocketInput();
                 if (input == null) {
                     System.out.println("WORKER MAIN: Error reading Master Socket input");
-                    continue;
+                    break;
                 }
                 System.out.println(input);
 

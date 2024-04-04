@@ -112,7 +112,7 @@ public class Master {
                     input = this.readClientSocketInput();
                     if (input == null) {
                         System.out.println("REQUEST HANDLER RUN: Error reading Client Socket input");
-                        continue;
+                        break;
                     }
                     System.out.println(input);
 
@@ -131,6 +131,19 @@ public class Master {
                         // Send "new-rental" request
                         // to worker
                         this.sendWorkerSocketOutput(input);
+                    }
+
+                    if (inputType.equals("request") && inputHeader.equals("update-availability")) {
+                        // TODO: Choose worker to forward request
+                        //  based on hash function on rental
+
+                        this.sendWorkerSocketOutput(input);
+                    }
+
+                    if (inputType.equals("request") && inputHeader.equals("show-bookings")) {
+                        // TODO: Return result with MapReduce
+
+                        // this.sendWorkerSocketOutput(input);
                     }
                 }
 
