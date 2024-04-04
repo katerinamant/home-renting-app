@@ -5,17 +5,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class Calendar {
+public class CalendarYear {
     private final int year;
     private final boolean[] availability;
     private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
 
-    protected Calendar(int year) {
+    protected CalendarYear(int year) {
         this.year = year;
         int days = 365;
-        if (this.year % 4 == 0) {
-            days = 366;
-        }
+        days += (this.year % 4 == 0) ? 1 : 0;
         this.availability = new boolean[days];
         Arrays.fill(this.availability, false);
     }

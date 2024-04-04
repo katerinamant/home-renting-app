@@ -6,57 +6,49 @@ import java.util.HashMap;
 import java.util.Locale;
 
 public class Rental {
-    private final HostAccount host;
+    private final HostAccount hostAccount;
     private final String roomName;
     private final String area;
     private final double nightlyRate;
     private final int capacity;
-    private final ReviewAggregator reviews;
+    private final RatingsAggregator ratings;
 
-    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
     private final LocalDate startDate;
     private final LocalDate endDate;
-    private final HashMap<Integer, Calendar> availability;
+    private final HashMap<Integer, CalendarYear> availability;
 
     private final String imagePath;
 
-    public Rental(HostAccount host, String roomName, String area, double nightlyRate, int capacity, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
-        this.host = host;
+    public Rental(HostAccount hostAccount, String roomName, String area, double nightlyRate, int capacity, int numOfReviews, int sumOfReviews, String startDate, String endDate, String imagePath) {
+        this.hostAccount = hostAccount;
         this.roomName = roomName;
         this.area = area;
         this.nightlyRate = nightlyRate;
         this.capacity = capacity;
-        this.reviews = new ReviewAggregator(numOfReviews, sumOfReviews);
-        this.startDate = LocalDate.parse(startDate, df);
-        this.endDate = LocalDate.parse(endDate, df);
+        this.ratings = new RatingsAggregator(numOfReviews, sumOfReviews);
+        this.startDate = LocalDate.parse(startDate, dateFormatter);
+        this.endDate = LocalDate.parse(endDate, dateFormatter);
         this.imagePath = imagePath;
 
         // All dates are initialised to unavailable.
         // Dates spanning from startDate to endDate
         // are toggled.
-        this.availability = new HashMap<Integer, Calendar>();
+        this.availability = new HashMap<Integer, CalendarYear>();
         int year;
-        Calendar calendar;
-        for (LocalDate date = this.startDate; date.isBefore(this.endDate); date = date.plusDays(1)) {
+        CalendarYear calendar;
+        for (LocalDate date = this.startDate; date.isBefore(this.endDate.plusDays(1)); date = date.plusDays(1)) {
             year = date.getYear();
             if (!availability.containsKey(year))
-                availability.put(year, new Calendar(year));
+                availability.put(year, new CalendarYear(year));
 
             calendar = availability.get(year);
             calendar.toggleAvailability(date);
         }
-
-        // Toggling endDate
-        year = this.endDate.getYear();
-        if (!availability.containsKey(year))
-            availability.put(year, new Calendar(year));
-
-        calendar = availability.get(year);
-        calendar.toggleAvailability(this.endDate);
     }
 
-    public HostAccount getHost() {
-        return this.host;
+    public HostAccount getHostAccount() {
+        return this.hostAccount;
     }
 
     public String getRoomName() {
@@ -75,16 +67,16 @@ public class Rental {
         return this.capacity;
     }
 
-    public ReviewAggregator getReviewAggregator() {
-        return this.reviews;
+    public RatingsAggregator getReviewAggregator() {
+        return this.ratings;
     }
 
-    public void addReview(int review) {
-        this.reviews.addReview(review);
+    public void addRating(int rating) {
+        this.ratings.addRating(rating);
     }
 
     public double getStars() {
-        return this.reviews.getStars();
+        return this.ratings.getStars();
     }
 
     public LocalDate getStartDate() {
@@ -95,7 +87,7 @@ public class Rental {
         return this.endDate;
     }
 
-    public HashMap<Integer, Calendar> getAvailabilityMap() {
+    public HashMap<Integer, CalendarYear> getAvailabilityMap() {
         return availability;
     }
 

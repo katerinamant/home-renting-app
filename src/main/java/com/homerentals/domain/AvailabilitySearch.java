@@ -4,54 +4,40 @@ import java.time.LocalDate;
 import java.util.HashMap;
 
 public class AvailabilitySearch {
-    protected static boolean getAvailability(HashMap<Integer, Calendar> availability, LocalDate startDate, LocalDate endDate) {
+    protected static boolean getAvailability(HashMap<Integer, CalendarYear> availability, LocalDate startDate, LocalDate endDate) {
         if (endDate.isBefore(startDate)) {
             throw new RuntimeException("Invalid date input");
         }
 
         int year;
-        Calendar calendar;
-        for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
+        CalendarYear CalendarYear;
+        for (LocalDate date = startDate; date.isBefore(endDate.plusDays(1)); date = date.plusDays(1)) {
             year = date.getYear();
             if (!availability.containsKey(year))
                 return false;
 
-            calendar = availability.get(year);
-            if (!calendar.isAvailable(date))
+            CalendarYear = availability.get(year);
+            if (!CalendarYear.isAvailable(date))
                 return false;
         }
 
-        // Checking for endDate
-        year = endDate.getYear();
-        if (!availability.containsKey(year))
-            return false;
-
-        calendar = availability.get(year);
-        return calendar.isAvailable(endDate);
+        return true;
     }
 
-    protected static void toggleAvailability(HashMap<Integer, Calendar> availability, LocalDate startDate, LocalDate endDate) {
+    protected static void toggleAvailability(HashMap<Integer, CalendarYear> availability, LocalDate startDate, LocalDate endDate) {
         if (endDate.isBefore(startDate)) {
             throw new RuntimeException("Invalid date input");
         }
 
         int year;
-        Calendar calendar;
-        for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
+        CalendarYear CalendarYear;
+        for (LocalDate date = startDate; date.isBefore(endDate.plusDays(1)); date = date.plusDays(1)) {
             year = date.getYear();
             if (!availability.containsKey(year))
-                availability.put(year, new Calendar(year));
+                availability.put(year, new CalendarYear(year));
 
-            calendar = availability.get(year);
-            calendar.toggleAvailability(date);
+            CalendarYear = availability.get(year);
+            CalendarYear.toggleAvailability(date);
         }
-
-        // Toggling endDate
-        year = endDate.getYear();
-        if (!availability.containsKey(year))
-            availability.put(year, new Calendar(year));
-
-        calendar = availability.get(year);
-        calendar.toggleAvailability(endDate);
     }
 }

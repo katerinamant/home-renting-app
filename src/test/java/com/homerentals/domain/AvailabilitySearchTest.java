@@ -38,7 +38,7 @@ public class AvailabilitySearchTest {
         LocalDate startDate = LocalDate.parse(bookingStartDate, df);
         LocalDate endDate = LocalDate.parse(bookingEndDate, df);
 
-        HashMap<Integer, Calendar> availability = rental.getAvailabilityMap();
+        HashMap<Integer, CalendarYear> availability = rental.getAvailabilityMap();
         Assert.assertFalse(availability.containsKey(2026));
         Assert.assertFalse(rental.getAvailability(startDate, endDate));
 
@@ -57,7 +57,7 @@ public class AvailabilitySearchTest {
         LocalDate startDate = LocalDate.parse(bookingStartDate, df);
         LocalDate endDate = LocalDate.parse(bookingEndDate, df);
 
-        HashMap<Integer, Calendar> availability = rental.getAvailabilityMap();
+        HashMap<Integer, CalendarYear> availability = rental.getAvailabilityMap();
         Assert.assertFalse(availability.containsKey(2026));
         Assert.assertFalse(rental.getAvailability(startDate, endDate));
 

@@ -7,7 +7,7 @@ public class AbstractAccount {
     private String lastName;
     private PhoneNumber phoneNumber;
 
-    public AbstractAccount() {
+    protected AbstractAccount() {
     }
 
     public AbstractAccount(Email email, Password password, String firstName, String lastName, PhoneNumber phoneNumber) {

@@ -1,7 +1,7 @@
 package com.homerentals.domain;
 
 public class GuestAccount extends AbstractAccount {
-    public GuestAccount() {
+    protected GuestAccount() {
         super();
     }
 
