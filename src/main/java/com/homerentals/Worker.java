@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Worker {
+    // TODO: Replace System.out.println() with logger in log file.
+
     private final ServerSocket workerSocket;
     private final Socket masterSocket;
     private DataOutputStream out = null;
@@ -41,8 +43,8 @@ public class Worker {
             return in.readUTF();
 
         } catch (IOException e) {
-            String msg = "Error reading input";
-            throw new RuntimeException(msg, e.getCause());
+            System.out.println("WORKER: Error reading Master Socket input: " + e);
+            return null;
         }
     }
 
@@ -67,6 +69,10 @@ public class Worker {
             String input;
             while (true) {
                 input = worker.readMasterSocketInput();
+                if (input == null) {
+                    System.out.println("WORKER MAIN: Error reading Master Socket input");
+                    continue;
+                }
                 System.out.println(input);
 
                 // Handle JSON input
@@ -87,7 +93,7 @@ public class Worker {
             }
 
         } catch (IOException e) {
-            System.err.println("Worker IO Error !\n");
+            System.out.println("WORKER MAIN: Error: " + e);
             e.printStackTrace();
 
         } finally {
@@ -131,8 +137,8 @@ public class Worker {
 
             } catch (JSONException e) {
                 // String is not valid JSON object
-                String msg = "Error creating JSON object\n";
-                throw new RuntimeException(msg, e.getCause());
+                System.out.println("REQUEST HANDLER: Error creating Rental object from JSON: " + e);
+                return null;
             }
         }
 
@@ -144,23 +150,20 @@ public class Worker {
             String inputBody = this.requestJson.getString("body");
 
             if (inputType.equals("request") && inputHeader.equals("new-rental")) {
-                try {
-                    // Create Rental object from JSON
-                    Rental rental = this.jsonToRentalObject(inputBody);
-
-                    synchronized (this.rentals) {
-                        System.out.println("lock");
-                        System.out.println(this.rentals);
-                        this.rentals.add(rental);
-                    }
-                    System.out.println("done");
-                    System.out.println(this.rentals);
-
-                } catch (JSONException e) {
-                    // String is not valid JSON object
-                    String msg = "Error creating JSON object";
-                    throw new RuntimeException(msg, e.getCause());
+                // Create Rental object from JSON
+                Rental rental = this.jsonToRentalObject(inputBody);
+                if (rental == null) {
+                    System.out.println("REQUEST HANDLER RUN: Error creating Rental object from JSON");
+                    return;
                 }
+
+                synchronized (this.rentals) {
+                    System.out.println("lock");
+                    System.out.println(this.rentals);
+                    this.rentals.add(rental);
+                }
+                System.out.println("done");
+                System.out.println(this.rentals);
             }
         }
     }

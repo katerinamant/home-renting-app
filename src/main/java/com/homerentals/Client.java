@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class Client {
+    // TODO: Replace System.out.println() with logger in log file.
+
     private JSONObject rentalJson = null;
     private Socket requestSocket = null;
     private DataOutputStream out = null;
@@ -27,18 +29,19 @@ public class Client {
         return this.requestSocket;
     }
 
-    public void setRequestSocket(Socket requestSocket) {
+    public void setRequestSocket(Socket requestSocket) throws IOException {
         this.requestSocket = requestSocket;
         try {
             this.out = new DataOutputStream(this.requestSocket.getOutputStream());
             this.in = new DataInputStream(this.requestSocket.getInputStream());
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("CLIENT: Error setting outputs: " + e);
+            throw e;
         }
     }
 
-    private void readFile(String path) {
+    private void readFile(String path) throws IOException, JSONException {
         // Read JSON file
         try {
             InputStream is = Files.newInputStream(Paths.get(path));
@@ -50,7 +53,8 @@ public class Client {
         } catch (IOException | JSONException e) {
             // Could not find file or
             // File is not valid JSON Object
-            throw new RuntimeException(e);
+            System.out.println("CLIENT: Error reading JSON File: " + e);
+            throw e;
         }
     }
 
@@ -63,17 +67,18 @@ public class Client {
         return request;
     }
 
-    private void sendSocketOutput(String msg) {
+    private void sendSocketOutput(String msg) throws IOException {
         try {
             this.out.writeUTF(msg);
             this.out.flush();
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("CLIENT: Error reading sending Socket Output: " + e);
+            throw e;
         }
     }
 
-    private void close() {
+    private void close() throws IOException {
         try {
             JSONObject request = this.createRequest("close-connection", "");
             this.sendSocketOutput(request.toString());
@@ -83,7 +88,8 @@ public class Client {
             this.requestSocket.close();
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("CLIENT: Error closing sockets: " + e);
+            throw e;
         }
     }
 
@@ -109,7 +115,8 @@ public class Client {
             // inputStream = new ObjectInputStream(socket.getInputStream());
             // String msg = (String) inputStream.readObject();
 
-        } catch (RuntimeException | IOException e) {
+        } catch (IOException | JSONException e) {
+            System.out.println("CLIENT MAIN: Error: " + e);
             e.printStackTrace();
 
         } finally {
@@ -117,7 +124,7 @@ public class Client {
                 try {
                     System.out.println("Closing down connection...");
                     client.close();
-                } catch (RuntimeException e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }

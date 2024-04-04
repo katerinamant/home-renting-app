@@ -1,5 +1,6 @@
 package com.homerentals;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -9,6 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Master {
+    // TODO: Replace System.out.println() with logger in log file.
+
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
         Socket workerSocket = null;
@@ -35,8 +38,8 @@ public class Master {
                 new Thread(clientThread).start();
             }
 
-        } catch (IOException e) {
-            System.err.println("Server IO Error !\n");
+        } catch (IOException | RuntimeException e) {
+            System.out.println("MASTER MAIN: IO Error: " + e);
             e.printStackTrace();
 
         } finally {
@@ -57,7 +60,7 @@ public class Master {
         private DataOutputStream workerSocketOut = null;
         private DataInputStream clientSocketIn = null;
 
-        public ClientHandler(Socket clientSocket, Socket workerSocket) {
+        public ClientHandler(Socket clientSocket, Socket workerSocket) throws IOException {
             this.clientSocket = clientSocket;
             this.workerSocket = workerSocket;
             try {
@@ -65,8 +68,8 @@ public class Master {
                 this.clientSocketIn = new DataInputStream(this.clientSocket.getInputStream());
 
             } catch (IOException e) {
-                String msg = String.format("\tClient %s | Error creating streams:%n", this.clientSocket.getInetAddress().getHostAddress());
-                throw new RuntimeException(msg, e.getCause());
+                System.out.println("CLIENT HANDLER: Error setting up streams: " + e);
+                throw e;
             }
         }
 
@@ -75,8 +78,8 @@ public class Master {
                 return clientSocketIn.readUTF();
 
             } catch (IOException e) {
-                String msg = String.format("\tClient %s | Error reading input%n", this.clientSocket.getInetAddress().getHostAddress());
-                throw new RuntimeException(msg, e.getCause());
+                System.out.println("CLIENT HANDLER: Error reading Client Socket input: " + e);
+                return null;
             }
         }
 
@@ -89,13 +92,14 @@ public class Master {
             return request;
         }
 
-        private void sendWorkerSocketOutput(String msg) {
+        private void sendWorkerSocketOutput(String msg) throws IOException {
             try {
                 this.workerSocketOut.writeUTF(msg);
                 this.workerSocketOut.flush();
 
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                System.out.println("CLIENT HANDLER: Error sending Worker Socket output: " + e);
+                throw e;
             }
         }
 
@@ -106,6 +110,10 @@ public class Master {
             try {
                 while (true) {
                     input = this.readClientSocketInput();
+                    if (input == null) {
+                        System.out.println("REQUEST HANDLER RUN: Error reading Client Socket input");
+                        continue;
+                    }
                     System.out.println(input);
 
                     // Handle JSON input
@@ -126,14 +134,13 @@ public class Master {
                     }
                 }
 
-            } catch (RuntimeException e) {
-                String title = String.format("ERROR Client %s%n", this.clientSocket.getInetAddress().getHostAddress());
-                System.err.println(title);
+            } catch (JSONException | IOException e) {
+                System.out.println("REQUEST HANDLER RUN: Error: " + e);
                 e.printStackTrace();
 
             } finally {
                 try {
-                    // System.out.println("Closing thread");
+                    System.out.println("Closing thread");
                     clientSocketIn.close();
 
                 } catch (IOException e) {
