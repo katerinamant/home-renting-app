@@ -1,4 +1,4 @@
-package com.homerentals;
+package com.homerentals.backend;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
