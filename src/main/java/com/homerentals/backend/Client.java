@@ -96,9 +96,10 @@ public class Client {
 	public static void main(String[] args) {
 		Client client = new Client();
 
+		String filePath = args[0];
 		// Read JSON file
 		try {
-			client.readFile("src/main/java/com/homerentals/util/demo_rental.json");
+			client.readFile(filePath);
 
 			// Establish a connection
 			Socket requestSocket = null;
