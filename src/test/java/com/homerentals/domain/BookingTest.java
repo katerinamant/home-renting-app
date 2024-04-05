@@ -11,7 +11,9 @@ public class BookingTest {
     @Test
     public void constructor_with_args() {
         GuestAccount guestAccount = new GuestAccount();
-        Rental rental = new Rental(null, "Rental", "Athens", 50.0, 2, 5, 20, "01/01/2024", "31/12/2025", "\\path");
+        Rental rental = new Rental(null, "Rental", "Athens",
+                50.0, 2, 5, 20,
+                "01/01/2024", "31/12/2025", "\\path");
         String bookingStartDate = "01/02/2024";
         String bookingEndDate = "03/02/2024";
         Booking booking = new Booking(guestAccount, rental, bookingStartDate, bookingEndDate);

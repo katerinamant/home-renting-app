@@ -1,6 +1,6 @@
 package com.homerentals.domain;
 
-public class AbstractAccount {
+public abstract class AbstractAccount {
     private Email email;
     private Password password;
     private String firstName;

@@ -7,7 +7,9 @@ public class RentalTest {
     @Test
     public void constructor_with_args() {
         HostAccount hostAccount = new HostAccount();
-        Rental rental = new Rental(hostAccount, "Rental", "Athens", 50.0, 2, 5, 20, "01/01/2024", "31/12/2025", "\\path");
+        Rental rental = new Rental(hostAccount, "Rental", "Athens",
+                50.0, 2, 5, 20,
+                "01/01/2024", "31/12/2025", "\\path");
 
         Assert.assertEquals(hostAccount, rental.getHostAccount());
         Assert.assertEquals("Rental", rental.getRoomName());
@@ -29,7 +31,9 @@ public class RentalTest {
     @Test
     public void reviews() {
         HostAccount hostAccount = new HostAccount();
-        Rental rental = new Rental(hostAccount, "Rental", "Athens", 50.0, 2, 5, 20, "01/01/2024", "31/12/2025", "\\path");
+        Rental rental = new Rental(hostAccount, "Rental", "Athens",
+                50.0, 2, 5, 20,
+                "01/01/2024", "31/12/2025", "\\path");
 
         rental.addRating(2);
         Assert.assertEquals(3.5, rental.getStars(), 0.0);

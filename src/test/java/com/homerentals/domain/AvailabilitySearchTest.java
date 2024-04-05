@@ -15,7 +15,9 @@ public class AvailabilitySearchTest {
 
     @Before
     public void init() {
-        rental = new Rental(null, "Rental", "Athens", 50.0, 2, 5, 20, "01/01/2024", "31/12/2025", "\\path");
+        rental = new Rental(null, "Rental", "Athens",
+                50.0, 2, 5, 20,
+                "01/01/2024", "31/12/2025", "\\path");
         df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
     }
 
