@@ -1,11 +1,13 @@
 package com.homerentals.backend;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,16 +15,36 @@ public class Master {
 	// TODO: Replace System.out.println() with logger in log file.
 
 	public static void main(String[] args) {
-		ServerSocket serverSocket = null;
-		Socket workerSocket = null;
+		if (args.length != 1) {
+			System.err.println("Usage: java Server <port_list_file>");
+			System.exit(1);
+		}
+
+		// Get worker ports from file
+		String filePath = args[0];
+		ArrayList<Integer> ports = new ArrayList<>();
+
+		try (FileInputStream inputStream = new FileInputStream(filePath)) {
+			List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
+			for (String line : lines) {
+				ports.add(Integer.parseInt(line.trim()));
+			}
+		} catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ServerSocket serverSocket = null;
+		ArrayList<Socket> workerSockets = new ArrayList<>();
 
 		try {
 			// Server is listening on port 8080
 			serverSocket = new ServerSocket(8080, 10);
 			serverSocket.setReuseAddress(true);
 
-			// Connect to worker
-			workerSocket = new Socket("localhost", 5000);
+			// Connect to workers
+			for (Integer port : ports) {
+				workerSockets.add(new Socket("localhost", port));
+			}
 
 			// Handle client requests
 			while (true) {
@@ -34,7 +56,7 @@ public class Master {
 
 				// Create a new thread object
 				// to handle this client separately
-				ClientHandler clientThread = new ClientHandler(clientSocket, workerSocket);
+				ClientHandler clientThread = new ClientHandler(clientSocket, workerSockets.get(0));
 				new Thread(clientThread).start();
 			}
 
@@ -46,7 +68,9 @@ public class Master {
 			if (serverSocket != null) {
 				try {
 					serverSocket.close();
-					workerSocket.close();
+					for (Socket workerSocket : workerSockets) {
+						workerSocket.close();
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
