@@ -62,9 +62,9 @@ public class PortManager {
 				try {
 					int reservedPort = findAvailablePort(currentPort);
 					reservedPorts.add(reservedPort);
-					currentPort = reservedPort++;
+					currentPort = ++reservedPort;
 				} catch (Exception e) {
-					System.err.println("Could not reserve port " + i + "/" + numberOfPorts);
+                    System.err.printf("Could not reserve port %d/%d%n", i, numberOfPorts);
 				}
 			}
 
@@ -76,9 +76,9 @@ public class PortManager {
 				}
 			}
 
-			System.out.println("Successfully reserved " + numberOfPorts + " ports.");
+            System.out.printf("Successfully reserved %d/%d ports.%n", reservedPorts.size(), numberOfPorts);
 		} catch (IOException e) {
-			System.err.println("Error: " + e.getMessage());
+            System.err.printf("Error: %s%n", e.getMessage());
 			System.exit(1);
 		}
 	}
