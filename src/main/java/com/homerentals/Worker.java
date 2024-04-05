@@ -129,10 +129,8 @@ public class Worker {
                 String startDate = jsonObject.getString("startDate");
                 String endDate = jsonObject.getString("endDate");
                 String imagePath = jsonObject.getString("imagePath");
-                Rental rental = new Rental(roomName, area, pricePerNight, numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
-                //              System.out.println(rental.getRoomName());
-                //			    System.out.println(rental.getStars());
-
+                Rental rental = new Rental(null, roomName, area, pricePerNight,
+                        numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
                 return rental;
 
             } catch (JSONException e) {
