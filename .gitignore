@@ -24,6 +24,10 @@ src.uml
 *.iml
 *.iws
 
+# Logs
+logs/
+*.log
+
 # Mac
 .DS_Store
 
