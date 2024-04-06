@@ -55,12 +55,9 @@ public class Worker {
 		}
 
 		Worker worker = null;
-		ServerSocket workerSocket = null;
 		int port = Integer.parseInt(args[0]);
 
-		try {
-			// Worker is listening on given port
-			workerSocket = new ServerSocket(port, 10);
+		try (ServerSocket workerSocket = new ServerSocket(port, 10);){
 			workerSocket.setReuseAddress(true);
 
             // Accept Master connection
@@ -68,8 +65,6 @@ public class Worker {
 
             worker = new Worker(workerSocket, masterSocket);
 
-            // Displaying that master server connected
-            // to worker
             System.out.println("> Master connected: " + masterSocket.getInetAddress().getHostAddress());
 
             String input;
@@ -102,73 +97,6 @@ public class Worker {
             System.out.println("WORKER MAIN: Error: " + e);
             e.printStackTrace();
 
-        } finally {
-            if (workerSocket != null) {
-                try {
-                    workerSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private static class RequestHandler implements Runnable {
-        private final ArrayList<Rental> rentals;
-        private final JSONObject requestJson;
-
-        public RequestHandler(ArrayList<Rental> rentals, JSONObject requestJson) {
-            this.rentals = rentals;
-            this.requestJson = requestJson;
-        }
-
-        private Rental jsonToRentalObject(String input) {
-            try {
-                // Create Rental object from JSON
-                JSONObject jsonObject = new JSONObject(input);
-                String roomName = jsonObject.getString("roomName");
-                String area = jsonObject.getString("area");
-                double pricePerNight = jsonObject.getDouble("pricePerNight");
-                int numOfPersons = jsonObject.getInt("numOfPersons");
-                int numOfReviews = jsonObject.getInt("numOfReviews");
-                int sumOfReviews = jsonObject.getInt("sumOfReviews");
-                String startDate = jsonObject.getString("startDate");
-                String endDate = jsonObject.getString("endDate");
-                String imagePath = jsonObject.getString("imagePath");
-                Rental rental = new Rental(null, roomName, area, pricePerNight,
-                        numOfPersons, numOfReviews, sumOfReviews, startDate, endDate, imagePath);
-                return rental;
-
-            } catch (JSONException e) {
-                // String is not valid JSON object
-                System.out.println("REQUEST HANDLER: Error creating Rental object from JSON: " + e);
-                return null;
-            }
-        }
-
-        @Override
-        public void run() {
-            // Handle JSON input
-            String inputType = this.requestJson.getString("type");
-            String inputHeader = this.requestJson.getString("header");
-            String inputBody = this.requestJson.getString("body");
-
-            if (inputType.equals("request") && inputHeader.equals("new-rental")) {
-                // Create Rental object from JSON
-                Rental rental = this.jsonToRentalObject(inputBody);
-                if (rental == null) {
-                    System.out.println("REQUEST HANDLER RUN: Error creating Rental object from JSON");
-                    return;
-                }
-
-                synchronized (this.rentals) {
-                    System.out.println("lock");
-                    System.out.println(this.rentals);
-                    this.rentals.add(rental);
-                }
-                System.out.println("done");
-                System.out.println(this.rentals);
-            }
-        }
+        } 
     }
 }
