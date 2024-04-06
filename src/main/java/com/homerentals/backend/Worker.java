@@ -1,4 +1,4 @@
-package com.homerentals;
+package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
@@ -48,14 +48,20 @@ public class Worker {
         }
     }
 
-    public static void main(String[] args) {
-        Worker worker = null;
-        ServerSocket workerSocket = null;
+	public static void main(String[] args) {
+		if (args.length != 1) {
+			System.err.println("Usage: java Worker <port>");
+			System.exit(1);
+		}
 
-        try {
-            // Worker is listening on port 1000
-            workerSocket = new ServerSocket(5000, 10);
-            workerSocket.setReuseAddress(true);
+		Worker worker = null;
+		ServerSocket workerSocket = null;
+		int port = Integer.parseInt(args[0]);
+
+		try {
+			// Worker is listening on given port
+			workerSocket = new ServerSocket(port, 10);
+			workerSocket.setReuseAddress(true);
 
             // Accept Master connection
             Socket masterSocket = workerSocket.accept();

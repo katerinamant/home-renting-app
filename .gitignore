@@ -24,10 +24,6 @@ src.uml
 *.iml
 *.iws
 
-# Logs
-logs/
-*.log
-
 # Mac
 .DS_Store
 
@@ -44,3 +40,12 @@ bin/
 build/
 /bin1/
 java/build/**
+
+# App Specific
+
+# Generated ports
+ports.list
+
+# Logs
+logs/
+*.log

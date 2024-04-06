@@ -1,4 +1,4 @@
-package com.homerentals;
+package com.homerentals.backend;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -120,7 +120,6 @@ public class Client {
                 input = userInput.nextLine().trim();
                 LocalDate.parse(input, dateFormatter);
                 invalid = false;
-
             } catch (DateTimeParseException e) {
                 System.out.println("Invalid input. Try again\n> ");
                 invalid = true;
@@ -167,6 +166,8 @@ public class Client {
 
         String username = client.connectUser();
 
+		String filePath = args[0];
+
         try {
             // Establish a connection
             Socket requestSocket = null;
@@ -198,7 +199,7 @@ public class Client {
                         //  the json file of the new rental
 
                         // Read JSON file
-                        JSONObject newRental = client.readFile("src/main/java/com/homerentals/util/demo_rental.json");
+                        JSONObject newRental = client.readFile(filePath);
                         if (newRental == null) {
                             System.out.println("CLIENT MAIN: Error reading JSON File");
                             break;
