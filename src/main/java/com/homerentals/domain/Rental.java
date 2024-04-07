@@ -20,16 +20,18 @@ public class Rental {
 
     private final String imagePath;
 
-    public Rental(HostAccount hostAccount,
-                  String roomName,
-                  String area,
-                  double nightlyRate,
-                  int capacity,
-                  int numOfReviews,
-                  int sumOfReviews,
-                  String startDate,
-                  String endDate,
-                  String imagePath) {
+    public Rental(
+            HostAccount hostAccount,
+            String roomName,
+            String area,
+            double nightlyRate,
+            int capacity,
+            int numOfReviews,
+            int sumOfReviews,
+            String startDate,
+            String endDate,
+            String imagePath
+    ) {
         this.hostAccount = hostAccount;
         this.roomName = roomName;
         this.area = area;

@@ -107,13 +107,13 @@ public class Client {
     /**
      * @return JSONObject : {"startDate", "endDate"}
      */
-    private JSONObject getInputDates() {
+    private JSONObject getInputDates(String msg) {
         final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
         JSONObject result = new JSONObject();
         String input = "";
 
-        System.out.println("Enter start date to mark available\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ");
+        System.out.println(String.format("Enter start date to %s\n" +
+                "Dates should be in the format of: dd/MM/yyyy\n> ", msg));
         boolean invalid = true;
         while (invalid) {
             try {
@@ -127,8 +127,8 @@ public class Client {
         }
         result.put("startDate", input);
 
-        System.out.println("Enter end date to mark available\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ");
+        System.out.println(String.format("Enter end date to %s\n" +
+                "Dates should be in the format of: dd/MM/yyyy\n> ", msg));
         invalid = true;
         while (invalid) {
             try {
@@ -228,7 +228,7 @@ public class Client {
                         } while (!input.equals("Cozy Rental"));
 
                         // Get start and end days to mark available
-                        requestBody = client.getInputDates();
+                        requestBody = client.getInputDates("mark available");
 
                         // Write to socket
                         System.out.println("Writing to server...");
@@ -240,8 +240,8 @@ public class Client {
                     case "3":
                         // 3. View bookings
 
-                        // Get start and end days to mark available
-                        requestBody = client.getInputDates();
+                        // Get start and end days to show bookings
+                        requestBody = client.getInputDates("view bookings");
 
                         // Get area to show bookings
                         input = "";
