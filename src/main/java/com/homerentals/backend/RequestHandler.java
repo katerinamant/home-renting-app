@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 
 class RequestHandler implements Runnable {
     private final Socket masterSocket;

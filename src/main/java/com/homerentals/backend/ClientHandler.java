@@ -1,6 +1,5 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -90,8 +89,7 @@ class ClientHandler implements Runnable {
 
                         // Establish connection with worker
                         try (Socket workerSocket = new Socket("localhost", ports.get(workerPortIndex));
-                             DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream()))
-                        {
+                             DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream())) {
                             workerSocketOutput.writeUTF(request.toString());
                             workerSocketOutput.flush();
                         } catch (IOException e) {
