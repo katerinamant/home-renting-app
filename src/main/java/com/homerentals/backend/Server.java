@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Master {
+public class Server {
     // TODO: Replace System.out.println() with logger in log file.
 
     public static void main(String[] args) {

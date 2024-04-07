@@ -29,7 +29,7 @@ cd $JAVA_COMMANDS_DIR
 BACKEND_PACKAGE="com/homerentals/backend"
 PORT_MANAGER="$BACKEND_PACKAGE/PortManager"
 WORKER="$BACKEND_PACKAGE/Worker"
-MASTER="$BACKEND_PACKAGE/Master"
+SERVER="$BACKEND_PACKAGE/Server"
 
 # Define the ports file dir
 PORTS_FILE="$BACKEND_PACKAGE/$PORTS_FILE_NAME"
@@ -70,7 +70,7 @@ log "$SUCCESS_COUNT/$WORKERS workers started successfully."
 sleep 1
 
 # Start the server
-gnome-terminal --title="Server" -- java $MASTER $PORTS_FILE &
+gnome-terminal --title="Server" -- java $SERVER $PORTS_FILE &
 PID=$!
 if ! kill -0 $PID 2>/dev/null; then
     log "Failed to start server."
