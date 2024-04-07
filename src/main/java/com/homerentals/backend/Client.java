@@ -83,12 +83,12 @@ public class Client {
         // TODO: Add DAO lookup for user
 
         String username = "";
-        System.out.println("\tWelcome back!\n" +
+        System.out.print("\tWelcome back!\n" +
                 "Enter username\n> ");
         do {
             username = userInput.nextLine().trim();
             if (!username.equals("admin")) {
-                System.out.println("User not found. Try again\n> ");
+                System.out.print("User not found. Try again\n> ");
             }
         } while (!username.equals("admin"));
 
@@ -97,7 +97,7 @@ public class Client {
         do {
             input = userInput.nextLine().trim();
             if (!input.equals("admin")) {
-                System.out.println("Incorrect password. Try again\n> ");
+                System.out.print("Incorrect password. Try again\n> ");
             }
         } while (!input.equals("admin"));
 
@@ -113,7 +113,7 @@ public class Client {
         String input = "";
 
         System.out.printf("Enter start date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> %n", msg);
+                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
         boolean invalid = true;
         while (invalid) {
             try {
@@ -121,14 +121,14 @@ public class Client {
                 LocalDate.parse(input, dateFormatter);
                 invalid = false;
             } catch (DateTimeParseException e) {
-                System.out.println("Invalid input. Try again\n> ");
+                System.out.print("Invalid input. Try again\n> ");
                 invalid = true;
             }
         }
         result.put("startDate", input);
 
         System.out.printf("Enter end date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> %n", msg);
+                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
         invalid = true;
         while (invalid) {
             try {
@@ -137,7 +137,7 @@ public class Client {
                 invalid = false;
 
             } catch (DateTimeParseException e) {
-                System.out.println("Invalid input. Try again\n> ");
+                System.out.print("Invalid input. Try again\n> ");
                 invalid = true;
             }
         }
@@ -219,11 +219,11 @@ public class Client {
 
                         // Get rental for update
                         input = "";
-                        System.out.println("Enter rental name\n> ");
+                        System.out.print("Enter rental name\n> ");
                         do {
                             input = userInput.nextLine().trim();
                             if (!input.equals("Cozy Rental")) {
-                                System.out.println("Rental not found. Try again\n> ");
+                                System.out.print("Rental not found. Try again\n> ");
                             }
                         } while (!input.equals("Cozy Rental"));
 
@@ -245,7 +245,7 @@ public class Client {
 
                         // Get area to show bookings
                         input = "";
-                        System.out.println("Enter area\n> ");
+                        System.out.print("Enter area\n> ");
                         input = userInput.nextLine().trim();
                         requestBody.put("area", input);
 

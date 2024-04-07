@@ -1,21 +1,22 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
 class ClientHandler implements Runnable {
     private final Socket clientSocket;
-    private final ArrayList<Integer> ports;
+    private final ArrayList<Integer> ports = Server.ports;
     private DataInputStream clientSocketIn = null;
 
-    ClientHandler(Socket clientSocket, ArrayList<Integer> ports) throws IOException {
+    ClientHandler(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
-        this.ports = ports;
         try {
             this.clientSocketIn = new DataInputStream(this.clientSocket.getInputStream());
         } catch (IOException e) {
@@ -33,6 +34,15 @@ class ClientHandler implements Runnable {
         }
     }
 
+    private JSONObject createRequest(String header, String body) {
+        JSONObject request = new JSONObject();
+        request.put("type", "request");
+        request.put("header", header);
+        request.put("body", body);
+
+        return request;
+    }
+
     @Override
     public void run() {
         // Read data sent from client
@@ -41,7 +51,7 @@ class ClientHandler implements Runnable {
             while (true) {
                 input = this.readClientSocketInput();
                 if (input == null) {
-                    System.out.println("REQUEST HANDLER RUN: Error reading Client Socket input");
+                    System.err.println("ClientHandler.run(): Error reading Client Socket input");
                     break;
                 }
                 System.out.println(input);
@@ -70,8 +80,24 @@ class ClientHandler implements Runnable {
 
                     // Host Requests
                     case NEW_RENTAL:
-                        /* TODO: Choose worker to forward request
-                            based on hash function on rental*/
+                        int rentalId = Server.getNextRentalId();
+                        JSONObject jsonBody = new JSONObject(inputBody);
+                        jsonBody.put("rentalId", rentalId);
+                        int workerPortIndex = Server.hash(rentalId);
+                        System.out.println(rentalId);
+
+                        JSONObject request = this.createRequest(inputHeader.name(), jsonBody.toString());
+
+                        // Establish connection with worker
+                        try (Socket workerSocket = new Socket("localhost", ports.get(workerPortIndex));
+                             DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream()))
+                        {
+                            workerSocketOutput.writeUTF(request.toString());
+                            workerSocketOutput.flush();
+                        } catch (IOException e) {
+                            System.err.println("ClientHandler.run(): Failed to connect to worker.");
+                        }
+
                         break;
 
                     case UPDATE_AVAILABILITY:
@@ -94,7 +120,7 @@ class ClientHandler implements Runnable {
                 }
             }
         } catch (JSONException e) {
-            System.out.println("REQUEST HANDLER RUN: Error: " + e);
+            System.err.println("ClientHandler.run(): Error: " + e);
             e.printStackTrace();
         } finally {
             try {

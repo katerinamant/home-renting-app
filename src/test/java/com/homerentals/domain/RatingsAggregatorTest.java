@@ -9,7 +9,7 @@ public class RatingsAggregatorTest {
         HostAccount hostAccount = new HostAccount();
         Rental rental = new Rental(hostAccount, "Rental", "Athens",
                 50.0, 2, 5, 20,
-                "01/01/2024", "31/12/2025", "\\path");
+                "01/01/2024", "31/12/2025", "\\path", 0);
 
         RatingsAggregator ratingsAggregator = rental.getReviewAggregator();
         Assert.assertEquals(4, ratingsAggregator.getAverage(), 0.0);

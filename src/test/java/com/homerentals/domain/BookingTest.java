@@ -13,7 +13,7 @@ public class BookingTest {
         GuestAccount guestAccount = new GuestAccount();
         Rental rental = new Rental(null, "Rental", "Athens",
                 50.0, 2, 5, 20,
-                "01/01/2024", "31/12/2025", "\\path");
+                "01/01/2024", "31/12/2025", "\\path", 0);
         String bookingStartDate = "01/02/2024";
         String bookingEndDate = "03/02/2024";
         Booking booking = new Booking(guestAccount, rental, bookingStartDate, bookingEndDate);

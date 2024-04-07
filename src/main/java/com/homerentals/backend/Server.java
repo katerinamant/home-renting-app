@@ -12,6 +12,18 @@ import java.util.List;
 
 public class Server {
     // TODO: Replace System.out.println() with logger in log file.
+    protected final static ArrayList<Integer> ports = new ArrayList<>();
+
+    protected static int numberOfRentals;
+
+    public static int getNextRentalId() {
+        return numberOfRentals++;
+    }
+
+    protected static int hash(int rentalId) {
+        // TODO: New hash function
+        return rentalId % ports.size();
+    }
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -21,7 +33,7 @@ public class Server {
 
         // Get worker ports from file
         String filePath = args[0];
-        ArrayList<Integer> ports = new ArrayList<>();
+        ports.clear();
 
         try (FileInputStream inputStream = new FileInputStream(filePath)) {
             List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
@@ -39,7 +51,7 @@ public class Server {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("> New client connected: " + clientSocket.getInetAddress().getHostAddress());
-                ClientHandler clientThread = new ClientHandler(clientSocket, ports);
+                ClientHandler clientThread = new ClientHandler(clientSocket);
                 new Thread(clientThread).start();
             }
 

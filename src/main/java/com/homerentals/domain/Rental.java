@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 public class Rental {
+    private final int id;
     private final HostAccount hostAccount;
     private final String roomName;
     private final String area;
@@ -30,7 +31,8 @@ public class Rental {
             int sumOfReviews,
             String startDate,
             String endDate,
-            String imagePath
+            String imagePath,
+            int id
     ) {
         this.hostAccount = hostAccount;
         this.roomName = roomName;
@@ -41,6 +43,7 @@ public class Rental {
         this.startDate = LocalDate.parse(startDate, dateFormatter);
         this.endDate = LocalDate.parse(endDate, dateFormatter);
         this.imagePath = imagePath;
+        this.id = id;
 
         // All dates are initialised to unavailable.
         // Dates spanning from startDate to endDate
@@ -56,6 +59,10 @@ public class Rental {
             calendar = availability.get(year);
             calendar.toggleAvailability(date);
         }
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     public HostAccount getHostAccount() {
