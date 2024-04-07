@@ -49,31 +49,48 @@ class ClientHandler implements Runnable {
                 // Handle JSON input
                 JSONObject inputJson = new JSONObject(input);
                 String inputType = inputJson.getString("type");
-                String inputHeader = inputJson.getString("header");
                 String inputBody = inputJson.getString("body");
+                Requests inputHeader = Requests.valueOf(inputJson.getString("header"));
 
-                if (inputType.equals("request") && inputHeader.equals("close-connection")) {
-                    System.out.printf("Stop accepting from client %s%n", this.clientSocket.getInetAddress().getHostAddress());
-                    break;
-                }
+                switch (inputHeader) {
+                    // Guest Requests
+                    case GET_RENTALS:
+                        // TODO: Return result with MapReduce
+                        break;
 
-                if (inputType.equals("request") && inputHeader.equals("new-rental")) {
-                    // Send "new-rental" request
-                    // to worker
-                    //this.sendWorkerSocketOutput(input);
-                }
+                    case NEW_BOOKING:
+                         /*TODO: Choose worker to forward request
+                            based on hash function on rental*/
+                        break;
 
-                if (inputType.equals("request") && inputHeader.equals("update-availability")) {
-                    // TODO: Choose worker to forward request
-                    //  based on hash function on rental
+                    case NEW_RATING:
+                        /* TODO: Choose worker to forward request
+                            based on hash function on rental*/
+                        break;
 
-                    //this.sendWorkerSocketOutput(input);
-                }
+                    // Host Requests
+                    case NEW_RENTAL:
+                        /* TODO: Choose worker to forward request
+                            based on hash function on rental*/
+                        break;
 
-                if (inputType.equals("request") && inputHeader.equals("show-bookings")) {
-                    // TODO: Return result with MapReduce
+                    case UPDATE_AVAILABILITY:
+                        /* TODO: Choose worker to forward request
+                            based on hash function on rental*/
+                        break;
 
-                    // this.sendWorkerSocketOutput(input);
+                    case GET_BOOKINGS:
+                        // TODO: Return result with MapReduce
+                        break;
+
+                    // Miscellaneous Requests
+                    case CLOSE_CONNECTION:
+                        System.out.println("ClientHandler.run(): Closing connection with client.");
+                        break;
+
+                    default:
+                        System.err.println("ClientHandler.run(): Request type not recognized.");
+                        break;
                 }
             }
         } catch (JSONException e) {

@@ -96,10 +96,10 @@ public class Client {
         System.out.println("Enter password\n> ");
         do {
             input = userInput.nextLine().trim();
-            if (!input.equals("12345678")) {
+            if (!input.equals("admin")) {
                 System.out.println("Incorrect password. Try again\n> ");
             }
-        } while (!input.equals("12345678"));
+        } while (!input.equals("admin"));
 
         return username;
     }
@@ -148,7 +148,7 @@ public class Client {
 
     private void close() throws IOException {
         try {
-            JSONObject request = this.createRequest("close-connection", "");
+            JSONObject request = this.createRequest(Requests.CLOSE_CONNECTION.name(), "");
             this.sendSocketOutput(request.toString());
 
             this.socketInput.close();
@@ -207,7 +207,7 @@ public class Client {
 
                         // Write to socket
                         System.out.println("Writing to server...");
-                        request = client.createRequest("new-rental", newRental.toString());
+                        request = client.createRequest(Requests.NEW_RENTAL.name(), newRental.toString());
                         client.sendSocketOutput(request.toString());
 
                         break;
@@ -232,7 +232,7 @@ public class Client {
 
                         // Write to socket
                         System.out.println("Writing to server...");
-                        request = client.createRequest("update-availability", requestBody.toString());
+                        request = client.createRequest(Requests.UPDATE_AVAILABILITY.name(), requestBody.toString());
                         client.sendSocketOutput(request.toString());
 
                         break;
@@ -251,7 +251,7 @@ public class Client {
 
                         // Write to socket
                         System.out.println("Writing to server...");
-                        request = client.createRequest("show-bookings", requestBody.toString());
+                        request = client.createRequest(Requests.GET_BOOKINGS.name(), requestBody.toString());
                         client.sendSocketOutput(request.toString());
 
                         break;
