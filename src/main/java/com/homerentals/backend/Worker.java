@@ -1,7 +1,6 @@
 package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -48,17 +47,17 @@ public class Worker {
         }
     }
 
-	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.err.println("Usage: java Worker <port>");
-			System.exit(1);
-		}
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println("Usage: java Worker <port>");
+            System.exit(1);
+        }
 
-		Worker worker = null;
-		int port = Integer.parseInt(args[0]);
+        Worker worker = null;
+        int port = Integer.parseInt(args[0]);
 
-		try (ServerSocket workerSocket = new ServerSocket(port, 10);){
-			workerSocket.setReuseAddress(true);
+        try (ServerSocket workerSocket = new ServerSocket(port, 10)) {
+            workerSocket.setReuseAddress(true);
 
             // Accept Master connection
             Socket masterSocket = workerSocket.accept();
@@ -96,7 +95,6 @@ public class Worker {
         } catch (IOException e) {
             System.out.println("WORKER MAIN: Error: " + e);
             e.printStackTrace();
-
-        } 
+        }
     }
 }

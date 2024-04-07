@@ -112,8 +112,8 @@ public class Client {
         JSONObject result = new JSONObject();
         String input = "";
 
-        System.out.println(String.format("Enter start date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg));
+        System.out.printf("Enter start date to %s\n" +
+                "Dates should be in the format of: dd/MM/yyyy\n> %n", msg);
         boolean invalid = true;
         while (invalid) {
             try {
@@ -127,8 +127,8 @@ public class Client {
         }
         result.put("startDate", input);
 
-        System.out.println(String.format("Enter end date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg));
+        System.out.printf("Enter end date to %s\n" +
+                "Dates should be in the format of: dd/MM/yyyy\n> %n", msg);
         invalid = true;
         while (invalid) {
             try {
@@ -166,7 +166,7 @@ public class Client {
 
         String username = client.connectUser();
 
-		String filePath = args[0];
+        String filePath = args[0];
 
         try {
             // Establish a connection
