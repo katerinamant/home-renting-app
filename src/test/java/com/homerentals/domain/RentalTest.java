@@ -13,7 +13,7 @@ public class RentalTest {
 
         Assert.assertEquals(hostAccount, rental.getHostAccount());
         Assert.assertEquals("Rental", rental.getRoomName());
-        Assert.assertEquals("Athens", rental.getArea());
+        Assert.assertEquals("Athens", rental.getLocation());
         Assert.assertEquals(50.0, rental.getNightlyRate(), 0.0);
         Assert.assertEquals(2, rental.getCapacity());
         Assert.assertEquals("\\path", rental.getImagePath());

@@ -36,7 +36,7 @@ class RequestHandler implements Runnable {
             // Create Rental object from JSON
             JSONObject jsonObject = new JSONObject(input);
             String roomName = jsonObject.getString("roomName");
-            String area = jsonObject.getString("area");
+            String location = jsonObject.getString("location");
             double pricePerNight = jsonObject.getDouble("nightlyRate");
             int numOfPersons = jsonObject.getInt("capacity");
             int numOfReviews = jsonObject.getInt("numOfReviews");
@@ -45,7 +45,7 @@ class RequestHandler implements Runnable {
             String endDate = jsonObject.getString("endDate");
             String imagePath = jsonObject.getString("imagePath");
             int rentalId = jsonObject.getInt("rentalId");
-            Rental rental = new Rental(null, roomName, area, pricePerNight,
+            Rental rental = new Rental(null, roomName, location, pricePerNight,
                     numOfPersons, numOfReviews, sumOfReviews, startDate, endDate,
                     imagePath, rentalId);
             System.out.println(rental.getId());

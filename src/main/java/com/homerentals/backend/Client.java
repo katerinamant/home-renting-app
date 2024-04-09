@@ -243,11 +243,11 @@ public class Client {
                         // Get start and end days to show bookings
                         requestBody = client.getInputDates("view bookings");
 
-                        // Get area to show bookings
+                        // Get location to show bookings
                         input = "";
-                        System.out.print("Enter area\n> ");
+                        System.out.print("Enter location\n> ");
                         input = userInput.nextLine().trim();
-                        requestBody.put("area", input);
+                        requestBody.put("location", input);
 
                         // Write to socket
                         System.out.println("Writing to server...");
