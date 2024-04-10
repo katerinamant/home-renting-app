@@ -1,0 +1,11 @@
+{
+  "roomName": "Best Spitarwn Of The Island",
+  "location": "Zante",
+  "nightlyRate": 5,
+  "capacity": 10,
+  "numOfReviews": 85,
+  "sumOfReviews": 85,
+  "startDate": "01/04/2024",
+  "endDate": "31/10/2024",
+  "imagePath": "demo_image.png"
+}

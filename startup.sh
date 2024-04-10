@@ -30,6 +30,7 @@ BACKEND_PACKAGE="com/homerentals/backend"
 PORT_MANAGER="$BACKEND_PACKAGE/PortManager"
 WORKER="$BACKEND_PACKAGE/Worker"
 SERVER="$BACKEND_PACKAGE/Server"
+REDUCER="$BACKEND_PACKAGE/ReduceSearch"
 
 # Define the ports file dir
 PORTS_FILE="$BACKEND_PACKAGE/$PORTS_FILE_NAME"
@@ -53,7 +54,7 @@ fi
 # Start workers
 SUCCESS_COUNT=0
 while IFS= read -r port; do
-    gnome-terminal --title="Worker:$port" -- java $WORKER $port &
+    gnome-terminal --title="Worker:$port" -- bash -c "java $WORKER $port; bash;" &
     PID=$!
     if ! kill -0 $PID 2>/dev/null; then
         log "Failed to start worker on port $port."
@@ -69,13 +70,24 @@ log "$SUCCESS_COUNT/$WORKERS workers started successfully."
 # Give some time for all workers to start
 sleep 1
 
-# Start the server
-gnome-terminal --title="Server" -- java $SERVER $PORTS_FILE &
+# Start the server and keep terminal open
+gnome-terminal --title="Server" -- bash -c "java $SERVER $PORTS_FILE; bash;" &
 PID=$!
 if ! kill -0 $PID 2>/dev/null; then
     log "Failed to start server."
 else
     log "Server started successfully."
+fi
+
+sleep 1
+
+# Start the reducer and keep terminal open
+gnome-terminal --title="Reducer" -- bash -c "java $REDUCER $WORKERS; bash;" &
+PID=$!
+if ! kill -0 $PID 2>/dev/null; then
+    log "Failed to start reducer."
+else
+    log "Reducer started succesfully."
 fi
 
 log "Startup complete."

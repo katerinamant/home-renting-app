@@ -4,22 +4,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 
 class ClientHandler implements Runnable {
     private final Socket clientSocket;
-    private final ArrayList<Integer> ports = Server.ports;
     private DataInputStream clientSocketIn = null;
+    private ObjectOutputStream clientSocketOut = null;
 
     ClientHandler(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
         try {
+            this.clientSocketOut = new ObjectOutputStream(this.clientSocket.getOutputStream());
             this.clientSocketIn = new DataInputStream(this.clientSocket.getInputStream());
         } catch (IOException e) {
-            System.out.println("CLIENT HANDLER: Error setting up streams: " + e);
+            System.err.println("ClientHandler(): Error setting up streams: " + e);
             throw e;
         }
     }
@@ -28,26 +28,28 @@ class ClientHandler implements Runnable {
         try {
             return this.clientSocketIn.readUTF();
         } catch (IOException e) {
-            System.out.println("CLIENT HANDLER: Error reading Client Socket input: " + e);
+            System.out.println("ClientHandler.readClientSocketInput(): Error reading Client Socket input: " + e);
             return null;
         }
     }
 
-    private JSONObject createRequest(String header, String body) {
-        JSONObject request = new JSONObject();
-        request.put("type", "request");
-        request.put("header", header);
-        request.put("body", body);
-
-        return request;
+    private void sendClientSocketOutput(Object obj) throws IOException {
+        try {
+            clientSocketOut.writeObject(obj);
+            clientSocketOut.flush();
+        } catch (IOException e) {
+            System.err.println("ClientHandler.sendClientSocketOutput(): Error sending Client Socket output: " + e);
+            throw e;
+        }
     }
 
     @Override
     public void run() {
         // Read data sent from client
         String input = null;
+        boolean running = true;
         try {
-            while (true) {
+            while (running) {
                 input = this.readClientSocketInput();
                 if (input == null) {
                     System.err.println("ClientHandler.run(): Error reading Client Socket input");
@@ -57,14 +59,35 @@ class ClientHandler implements Runnable {
 
                 // Handle JSON input
                 JSONObject inputJson = new JSONObject(input);
-                String inputType = inputJson.getString("type");
-                String inputBody = inputJson.getString("body");
-                Requests inputHeader = Requests.valueOf(inputJson.getString("header"));
+                String inputType = inputJson.getString(BackendUtils.MESSAGE_TYPE);
+                JSONObject inputBody = new JSONObject(inputJson.getString(BackendUtils.MESSAGE_BODY));
+                Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
+                JSONObject request;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
-                        // TODO: Return result with MapReduce
+                        int mapId = Server.getNextMapId();
+                        inputBody.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
+                        request = BackendUtils.createRequest(inputHeader.name(), inputBody.toString());
+                        Server.sendMessageToWorkers(request.toString(), Server.ports);
+
+                        // Check Server.mapReduceResults for Reducer response
+                        MapResult mapResult = null;
+                        synchronized (ReducerHandler.syncObj) {
+                            while (!Server.mapReduceResults.containsKey(mapId)) {
+                                ReducerHandler.syncObj.wait();
+                            }
+                            mapResult = Server.mapReduceResults.get(mapId);
+                            Server.mapReduceResults.remove(mapId);
+                        }
+
+                        if (mapResult == null) {
+                            throw new InterruptedException();
+                        }
+
+                        // Send rentals to client
+                        sendClientSocketOutput(mapResult.getRentals());
                         break;
 
                     case NEW_BOOKING:
@@ -80,22 +103,10 @@ class ClientHandler implements Runnable {
                     // Host Requests
                     case NEW_RENTAL:
                         int rentalId = Server.getNextRentalId();
-                        JSONObject jsonBody = new JSONObject(inputBody);
-                        jsonBody.put("rentalId", rentalId);
-                        int workerPortIndex = Server.hash(rentalId);
-                        System.out.println(rentalId);
-
-                        JSONObject request = this.createRequest(inputHeader.name(), jsonBody.toString());
-
-                        // Establish connection with worker
-                        try (Socket workerSocket = new Socket("localhost", ports.get(workerPortIndex));
-                             DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream())) {
-                            workerSocketOutput.writeUTF(request.toString());
-                            workerSocketOutput.flush();
-                        } catch (IOException e) {
-                            System.err.println("ClientHandler.run(): Failed to connect to worker.");
-                        }
-
+                        inputBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
+                        request = BackendUtils.createRequest(inputHeader.name(), inputBody.toString());
+                        int workerPort = Server.ports.get(Server.hash(rentalId));
+                        Server.sendMessageToWorker(request.toString(), workerPort);
                         break;
 
                     case UPDATE_AVAILABILITY:
@@ -110,6 +121,7 @@ class ClientHandler implements Runnable {
                     // Miscellaneous Requests
                     case CLOSE_CONNECTION:
                         System.out.println("ClientHandler.run(): Closing connection with client.");
+                        running = false;
                         break;
 
                     default:
@@ -120,10 +132,15 @@ class ClientHandler implements Runnable {
         } catch (JSONException e) {
             System.err.println("ClientHandler.run(): Error: " + e);
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            System.err.println("ClientHandler.run(): Could not retrieve result of MapReduce: " + e);
+        } catch (IOException e) {
+            System.err.println("ClientHandler.run(): Could not send MapReduce results to client: " + e);
         } finally {
             try {
                 System.out.println("Closing thread");
                 this.clientSocketIn.close();
+                this.clientSocketOut.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

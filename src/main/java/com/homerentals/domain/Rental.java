@@ -1,11 +1,14 @@
 package com.homerentals.domain;
 
+import org.json.JSONObject;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class Rental {
+public class Rental implements Serializable {
     private final int id;
     private final HostAccount hostAccount;
     private final String roomName;
@@ -122,6 +125,8 @@ public class Rental {
     }
 
     public boolean matchesFilter(String filter, String value) {
+        if (value.isEmpty()) return true;
+
         switch (Filters.valueOf(filter)) {
             case LOCATION:
                 return this.location.equals(value);
@@ -144,7 +149,12 @@ public class Rental {
                 return this.getStars() >= Double.parseDouble(value);
 
             default:
+                System.err.println("Rental.matchesFilter(): Filter type not recognized.");
                 return false;
         }
+    }
+
+    public String toString() {
+        return String.format("%s (%s)", this.roomName, this.location);
     }
 }

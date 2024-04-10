@@ -2,7 +2,9 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -10,6 +12,18 @@ import java.util.ArrayList;
 public class Worker {
     // TODO: Replace System.out.println() with logger in log file.
     protected final static ArrayList<Rental> rentals = new ArrayList<>();
+
+    public static void writeToReducerSocket(MapResult results) throws IOException {
+        try (Socket reducerSocket = new Socket("localhost", BackendUtils.REDUCER_PORT);
+             ObjectOutputStream reducerSocketOutput = new ObjectOutputStream(reducerSocket.getOutputStream())
+        ) {
+            reducerSocketOutput.writeObject(results);
+            reducerSocketOutput.flush();
+        } catch (IOException e) {
+            System.err.println("Worker.writeToReducerSocket(): Failed to write to Reducer:" + BackendUtils.REDUCER_PORT);
+            throw e;
+        }
+    }
 
     public static void main(String[] args) {
         if (args.length != 1) {

@@ -1,23 +1,27 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Filters;
 import com.homerentals.domain.Rental;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 class RequestHandler implements Runnable {
     private final Socket masterSocket;
     private DataInputStream masterSocketIn = null;
 
-    protected RequestHandler(Socket mastetSocket) throws IOException {
-        this.masterSocket = mastetSocket;
+    protected RequestHandler(Socket masterSocket) throws IOException {
+        this.masterSocket = masterSocket;
         try {
             this.masterSocketIn = new DataInputStream(this.masterSocket.getInputStream());
         } catch (IOException e) {
-            System.out.println("RequestHandler(): Error setting up stream: " + e);
+            System.err.println("RequestHandler(): Error setting up stream: " + e);
             throw e;
         }
     }
@@ -26,34 +30,7 @@ class RequestHandler implements Runnable {
         try {
             return this.masterSocketIn.readUTF();
         } catch (IOException e) {
-            System.out.println("CLIENT HANDLER: Error reading Client Socket input: " + e);
-            return null;
-        }
-    }
-
-    private Rental jsonToRentalObject(String input) {
-        try {
-            // Create Rental object from JSON
-            JSONObject jsonObject = new JSONObject(input);
-            String roomName = jsonObject.getString("roomName");
-            String location = jsonObject.getString("location");
-            double pricePerNight = jsonObject.getDouble("nightlyRate");
-            int numOfPersons = jsonObject.getInt("capacity");
-            int numOfReviews = jsonObject.getInt("numOfReviews");
-            int sumOfReviews = jsonObject.getInt("sumOfReviews");
-            String startDate = jsonObject.getString("startDate");
-            String endDate = jsonObject.getString("endDate");
-            String imagePath = jsonObject.getString("imagePath");
-            int rentalId = jsonObject.getInt("rentalId");
-            Rental rental = new Rental(null, roomName, location, pricePerNight,
-                    numOfPersons, numOfReviews, sumOfReviews, startDate, endDate,
-                    imagePath, rentalId);
-            System.out.println(rental.getId());
-            return rental;
-
-        } catch (JSONException e) {
-            // String is not valid JSON object
-            System.out.println("REQUEST HANDLER: Error creating Rental object from JSON: " + e);
+            System.err.println("RequestHandler.readMasterSocketInput(): Error reading Client Socket input: " + e);
             return null;
         }
     }
@@ -71,14 +48,49 @@ class RequestHandler implements Runnable {
 
             // Handle JSON input
             JSONObject inputJson = new JSONObject(input);
-            String inputType = inputJson.getString("type");
-            String inputBody = inputJson.getString("body");
-            Requests inputHeader = Requests.valueOf(inputJson.getString("header"));
+            String inputType = inputJson.getString(BackendUtils.MESSAGE_TYPE);
+            JSONObject inputBody = new JSONObject(inputJson.getString(BackendUtils.MESSAGE_BODY));
+            Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
+            JSONObject request;
             switch (inputHeader) {
                 // Guest Requests
                 case GET_RENTALS:
-                    // TODO: Return result with MapReduce
+                    // Parse JSON Message
+                    int mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
+                    JSONObject jsonFilters = inputBody.getJSONObject(BackendUtils.BODY_FIELD_FILTERS);
+
+                    System.out.println("> Received filters in JSON: " + jsonFilters);
+
+                    // Create filters hashmap
+                    HashMap<String, String> filters = new HashMap<>();
+
+                    // Iterate over each filter in Filters enum
+                    for (Filters f : Filters.values()) {
+                        String filterName = f.name();
+                        String filterValue = "";
+                        if (jsonFilters.has(filterName)) {
+                            filterValue = jsonFilters.getString(filterName);
+                        }
+                        filters.put(filterName, filterValue);
+                        System.out.printf("Storing filter: [%s = %s]%n", filterName, filterValue);
+                    }
+
+                    System.out.println("Created filters map: " + filters);
+
+                    // Perform mapping Operation
+                    MapSearch mapper = new MapSearch(filters, Worker.rentals);
+                    ArrayList<Rental> mappedRentals = mapper.map();
+
+                    // Wrap results in object
+                    MapResult mapResult = new MapResult(mapId, mappedRentals);
+
+                    // Send results to reducer
+                    try {
+                        Worker.writeToReducerSocket(mapResult);
+                    } catch (IOException e) {
+                        System.err.println("RequestHandler.run(): Error writing to Reducer Socket: " + e);
+                    }
                     break;
 
                 case NEW_BOOKING:
@@ -92,9 +104,9 @@ class RequestHandler implements Runnable {
                 // Host Requests
                 case NEW_RENTAL:
                     // Create Rental object from JSON
-                    Rental rental = this.jsonToRentalObject(inputBody);
+                    Rental rental = BackendUtils.jsonToRentalObject(inputBody);
                     if (rental == null) {
-                        System.out.println("REQUEST HANDLER RUN: Error creating Rental object from JSON");
+                        System.err.println("RequestHandler.run(): Error creating Rental object from JSON");
                         return;
                     }
 
@@ -117,7 +129,7 @@ class RequestHandler implements Runnable {
                     break;
 
                 default:
-                    System.err.println("ClientHandler.run(): Request type not recognized.");
+                    System.err.println("RequestHandler.run(): Request type not recognized.");
                     break;
             }
         } catch (JSONException e) {

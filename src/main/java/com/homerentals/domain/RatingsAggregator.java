@@ -1,6 +1,8 @@
 package com.homerentals.domain;
 
-public class RatingsAggregator {
+import java.io.Serializable;
+
+public class RatingsAggregator implements Serializable {
     private int numOfRatings;
     private int sumOfRatings;
 

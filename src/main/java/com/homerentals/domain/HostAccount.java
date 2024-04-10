@@ -1,6 +1,8 @@
 package com.homerentals.domain;
 
-public class HostAccount extends AbstractAccount {
+import java.io.Serializable;
+
+public class HostAccount extends AbstractAccount implements Serializable {
     protected HostAccount() {
         super();
     }

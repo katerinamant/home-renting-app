@@ -2,27 +2,63 @@ package com.homerentals.backend;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class Server {
     // TODO: Replace System.out.println() with logger in log file.
     protected final static ArrayList<Integer> ports = new ArrayList<>();
+    protected final static HashMap<Integer, MapResult> mapReduceResults = new HashMap<>();
 
     protected static int numberOfRentals;
+    protected static int mapId;
 
     public static int getNextRentalId() {
         return numberOfRentals++;
     }
 
+    public static int getNextMapId() {
+        return mapId++;
+    }
+
     protected static int hash(int rentalId) {
         // TODO: New hash function
         return rentalId % ports.size();
+    }
+
+    private static void writeToWorkerSocket(String msg, int port) throws IOException {
+        try (Socket workerSocket = new Socket("localhost", port);
+             DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream())
+        ) {
+            workerSocketOutput.writeUTF(msg);
+            workerSocketOutput.flush();
+        } catch (IOException e) {
+            System.err.println("Server.writeToWorkerSocket(): Failed to write to Worker:" + port);
+            throw e;
+        }
+    }
+
+    protected static void sendMessageToWorker(String msg, int port) {
+        try {
+            writeToWorkerSocket(msg, port);
+        } catch (IOException e) {
+            System.err.println("Server.sendMessageToWorker(): Failed to write to Worker:" + port);
+        }
+    }
+
+    protected static void sendMessageToWorkers(String msg, ArrayList<Integer> ports) {
+        for (int p : ports) {
+            sendMessageToWorker(msg, p);
+        }
     }
 
     public static void main(String[] args) {
@@ -44,8 +80,14 @@ public class Server {
             throw new RuntimeException(e);
         }
 
-        try (ServerSocket serverSocket = new ServerSocket(8080, 10)) {
+        try (ServerSocket serverSocket = new ServerSocket(BackendUtils.SERVER_PORT, 10)) {
             serverSocket.setReuseAddress(true);
+
+            // Start thread that listens to Reducer
+            Socket reducerSocket = serverSocket.accept();
+            System.out.printf("> Reducer:%s connected.%n", reducerSocket.getRemoteSocketAddress());
+            ReducerHandler reducerHandler = new ReducerHandler(reducerSocket);
+            new Thread(reducerHandler).start();
 
             // Handle client requests
             while (true) {
