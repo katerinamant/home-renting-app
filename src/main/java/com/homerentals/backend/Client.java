@@ -15,7 +15,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Scanner;
 
 public class Client {
@@ -61,7 +60,7 @@ public class Client {
             this.serverSocketDataOut.writeUTF(msg);
             this.serverSocketDataOut.flush();
         } catch (IOException e) {
-            System.err.println("Client.sendSocketOutput(): Error reading sending Socket Output: " + e.getMessage());
+            System.err.println("Client.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
             throw e;
         }
     }
@@ -121,7 +120,7 @@ public class Client {
                 invalid = true;
             }
         }
-        result.put("startDate", input);
+        result.put(BackendUtils.BODY_FIELD_START_DATE, input);
 
         System.out.printf("Enter end date to %s\n" +
                 "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
@@ -137,9 +136,37 @@ public class Client {
                 invalid = true;
             }
         }
-        result.put("endDate", input);
+        result.put(BackendUtils.BODY_FIELD_END_DATE, input);
 
         return result;
+    }
+
+    private ArrayList<Rental> getAllRentals(String username) throws IOException {
+        // Create and send request
+        JSONObject filters = new JSONObject();
+        JSONObject body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_FILTERS, filters);
+        JSONObject request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), body.toString());
+        try {
+            this.sendSocketOutput(request.toString());
+        } catch (IOException e) {
+            System.err.println("Client.getAllRentals(): Error sending Socket Output: " + e.getMessage());
+            throw e;
+        }
+
+        // Receive response
+        ArrayList<Rental> rentals = (ArrayList<Rental>) this.readSocketObjectInput();
+        if (rentals == null) {
+            System.err.println("Client.main(): Could not receive host's rentals from Server.");
+            return null;
+        }
+
+        System.out.printf("%n[%s's Rentals List]%n%n", username);
+        for(int i=0; i<rentals.size(); i++) {
+            System.out.printf("[%d] %s%n", i, rentals.get(i));
+        }
+        System.out.println("<-------- [End Of List] -------->");
+        return rentals;
     }
 
     private void close() throws IOException {
@@ -169,6 +196,7 @@ public class Client {
             client.setRequestSocket(requestSocket);
 
             JSONObject request, requestBody;
+            ArrayList<Rental> rentals;
             String input;
             boolean done = false;
             while (!done) {
@@ -195,7 +223,7 @@ public class Client {
                         // Read JSON file
                         JSONObject newRental = client.readFile(filePath);
                         if (newRental == null) {
-                            System.out.println("Client.main(): Error reading JSON File");
+                            System.err.println("Client.main(): Error reading JSON File");
                             break;
                         }
 
@@ -210,20 +238,29 @@ public class Client {
                     case "2":
                         // 2. Update rental availability
 
-                        // TODO: Add rental search for user
+                        // Print rentals list
+                        rentals = client.getAllRentals(username);
+                        if (rentals == null) {
+                            System.err.println("Client.main(): Error getting Rentals list.");
+                            break;
+                        }
 
-                        // Get rental for update
-                        input = "";
-                        System.out.print("Enter rental name\n> ");
+                        System.out.print("\nChoose rental\n> ");
+                        int rentalIndex = -1;
                         do {
-                            input = userInput.nextLine().trim();
-                            if (!input.equals("Cozy Rental")) {
-                                System.out.print("Rental not found. Try again\n> ");
+                            try {
+                                rentalIndex = Integer.parseInt(userInput.nextLine().trim());
+                                if (rentalIndex < 0 || rentalIndex >= rentals.size()) {
+                                    System.out.print("Invalid input. Try again\n> ");
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.print("Invalid input. Try again\n> ");
                             }
-                        } while (!input.equals("Cozy Rental"));
+                        } while (rentalIndex < 0 || rentalIndex >= rentals.size());
 
                         // Get start and end days to mark available
                         requestBody = client.getInputDates("mark available");
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentals.get(rentalIndex).getId());
 
                         // Write to socket
                         System.out.println("Writing to server...");
@@ -253,34 +290,15 @@ public class Client {
                     case "4":
                         // 4. View my rentals
 
-                        // Create and send request
-                        JSONObject filters = new JSONObject();
-                        JSONObject body = new JSONObject();
-                        body.put(BackendUtils.BODY_FIELD_FILTERS, filters);
-                        request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), body.toString());
-                        client.sendSocketOutput(request.toString());
-
-                        // Receive response
-                        ArrayList<Rental> rentals = (ArrayList<Rental>) client.readSocketObjectInput();
+                        rentals = client.getAllRentals(username);
                         if (rentals == null) {
-                            System.err.println("Client.main(): Could not receive host's rentals from Server.");
-                            break;
+                            System.err.println("Client.main(): Error getting Rentals list.");
                         }
-
-                        System.out.printf("%n[%s's Rentals List]%n%n", username);
-                        for(int i=0; i<rentals.size(); i++) {
-                            System.out.printf("[%d] %s%n", i, rentals.get(i));
-                        }
-                        System.out.println("<-------- [End Of List] -------->");
                         break;
 
                     default:
                         break;
                 }
-
-                // Read response from server
-                // inputStream = new ObjectInputStream(socket.getInputStream());
-                // String msg = (String) inputStream.readObject();
             }
 
         } catch (IOException | JSONException e) {

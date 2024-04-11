@@ -17,9 +17,7 @@ public class Rental implements Serializable {
     private final int capacity;
     private final RatingsAggregator ratings;
 
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
-    private final LocalDate startDate;
-    private final LocalDate endDate;
+    public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
     private final HashMap<Integer, CalendarYear> availability;
 
     private final String imagePath;
@@ -32,8 +30,6 @@ public class Rental implements Serializable {
             int capacity,
             int numOfReviews,
             int sumOfReviews,
-            String startDate,
-            String endDate,
             String imagePath,
             int id
     ) {
@@ -43,25 +39,9 @@ public class Rental implements Serializable {
         this.nightlyRate = nightlyRate;
         this.capacity = capacity;
         this.ratings = new RatingsAggregator(numOfReviews, sumOfReviews);
-        this.startDate = LocalDate.parse(startDate, dateFormatter);
-        this.endDate = LocalDate.parse(endDate, dateFormatter);
         this.imagePath = imagePath;
         this.id = id;
-
-        // All dates are initialised to unavailable.
-        // Dates spanning from startDate to endDate
-        // are toggled.
         this.availability = new HashMap<Integer, CalendarYear>();
-        int year;
-        CalendarYear calendar;
-        for (LocalDate date = this.startDate; date.isBefore(this.endDate.plusDays(1)); date = date.plusDays(1)) {
-            year = date.getYear();
-            if (!availability.containsKey(year))
-                availability.put(year, new CalendarYear(year));
-
-            calendar = availability.get(year);
-            calendar.toggleAvailability(date);
-        }
     }
 
     public int getId() {
@@ -100,14 +80,6 @@ public class Rental implements Serializable {
         return this.ratings.getStars();
     }
 
-    public LocalDate getStartDate() {
-        return this.startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return this.endDate;
-    }
-
     public HashMap<Integer, CalendarYear> getAvailabilityMap() {
         return availability;
     }
@@ -122,6 +94,10 @@ public class Rental implements Serializable {
 
     public void toggleAvailability(LocalDate startDate, LocalDate endDate) {
         AvailabilitySearch.toggleAvailability(this.availability, startDate, endDate);
+    }
+
+    public void makeAvailable(LocalDate startDate, LocalDate endDate) {
+        AvailabilitySearch.makeAvailable(this.availability, startDate, endDate);
     }
 
     public boolean matchesFilter(String filter, String value) {

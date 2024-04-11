@@ -64,13 +64,15 @@ class ClientHandler implements Runnable {
                 Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
                 JSONObject request;
+                int workerPort, mapId, rentalId;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
-                        int mapId = Server.getNextMapId();
+                        // Add new mapId to requestBody
+                        mapId = Server.getNextMapId();
                         inputBody.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
                         request = BackendUtils.createRequest(inputHeader.name(), inputBody.toString());
-                        Server.sendMessageToWorkers(request.toString(), Server.ports);
+                        Server.sendMessageToWorkers(request.toString(), Server.ports); // broadcast request
 
                         // Check Server.mapReduceResults for Reducer response
                         MapResult mapResult = null;
@@ -102,16 +104,21 @@ class ClientHandler implements Runnable {
 
                     // Host Requests
                     case NEW_RENTAL:
-                        int rentalId = Server.getNextRentalId();
+                        // Add new rentalId to requestBody
+                        rentalId = Server.getNextRentalId();
                         inputBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
                         request = BackendUtils.createRequest(inputHeader.name(), inputBody.toString());
-                        int workerPort = Server.ports.get(Server.hash(rentalId));
+
+                        // Forward new request to worker that will contain this rental
+                        workerPort = Server.ports.get(Server.hash(rentalId));
                         Server.sendMessageToWorker(request.toString(), workerPort);
                         break;
 
                     case UPDATE_AVAILABILITY:
-                        /* TODO: Choose worker to forward request
-                            based on hash function on rental*/
+                        // Forward request, as it is,
+                        // to worker that contains this rental
+                        workerPort = Server.ports.get(Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
+                        Server.sendMessageToWorker(input, workerPort);
                         break;
 
                     case GET_BOOKINGS:
