@@ -1,6 +1,6 @@
 {
   "roomName": "Cozy Rental",
-  "area": "Crete",
+  "location": "Crete",
   "nightlyRate": 70,
   "capacity": 2,
   "numOfReviews": 0,

@@ -1,0 +1,11 @@
+{
+  "roomName": "Luxury Rental",
+  "location": "Crete",
+  "nightlyRate": 120,
+  "capacity": 4,
+  "numOfReviews": 5,
+  "sumOfReviews": 25,
+  "startDate": "01/01/2024",
+  "endDate": "31/12/2025",
+  "imagePath": "demo_image.png"
+}

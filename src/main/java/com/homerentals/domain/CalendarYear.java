@@ -1,11 +1,12 @@
 package com.homerentals.domain;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class CalendarYear {
+public class CalendarYear implements Serializable {
     private final int year;
     private final boolean[] availability;
     private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);

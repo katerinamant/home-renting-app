@@ -1,15 +1,18 @@
 package com.homerentals.domain;
 
+import org.json.JSONObject;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class Rental {
+public class Rental implements Serializable {
     private final int id;
     private final HostAccount hostAccount;
     private final String roomName;
-    private final String area;
+    private final String location;
     private final double nightlyRate;
     private final int capacity;
     private final RatingsAggregator ratings;
@@ -24,7 +27,7 @@ public class Rental {
     public Rental(
             HostAccount hostAccount,
             String roomName,
-            String area,
+            String location,
             double nightlyRate,
             int capacity,
             int numOfReviews,
@@ -36,7 +39,7 @@ public class Rental {
     ) {
         this.hostAccount = hostAccount;
         this.roomName = roomName;
-        this.area = area;
+        this.location = location;
         this.nightlyRate = nightlyRate;
         this.capacity = capacity;
         this.ratings = new RatingsAggregator(numOfReviews, sumOfReviews);
@@ -73,8 +76,8 @@ public class Rental {
         return this.roomName;
     }
 
-    public String getArea() {
-        return this.area;
+    public String getLocation() {
+        return this.location;
     }
 
     public double getNightlyRate() {
@@ -119,5 +122,39 @@ public class Rental {
 
     public void toggleAvailability(LocalDate startDate, LocalDate endDate) {
         AvailabilitySearch.toggleAvailability(this.availability, startDate, endDate);
+    }
+
+    public boolean matchesFilter(String filter, String value) {
+        if (value.isEmpty()) return true;
+
+        switch (Filters.valueOf(filter)) {
+            case LOCATION:
+                return this.location.equals(value);
+
+            case TIME_PERIOD:
+                String[] split = value.split("-");
+                LocalDate startDate = LocalDate.parse(split[0], dateFormatter);
+                LocalDate endDate = LocalDate.parse(split[1], dateFormatter);
+                return this.getAvailability(startDate, endDate);
+
+            case GUESTS:
+                // Only accept amount of guests that are at most smaller by 2
+                return this.capacity >= Integer.parseInt(value) &&
+                        this.capacity <= Integer.parseInt(value) + 2;
+
+            case NIGHTLY_RATE:
+                return this.nightlyRate <= Double.parseDouble(value);
+
+            case STARS:
+                return this.getStars() >= Double.parseDouble(value);
+
+            default:
+                System.err.println("Rental.matchesFilter(): Filter type not recognized.");
+                return false;
+        }
+    }
+
+    public String toString() {
+        return String.format("%s (%s)", this.roomName, this.location);
     }
 }
