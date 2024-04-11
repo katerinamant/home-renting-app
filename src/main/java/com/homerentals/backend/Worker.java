@@ -8,10 +8,12 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Worker {
     // TODO: Replace System.out.println() with logger in log file.
     protected final static ArrayList<Rental> rentals = new ArrayList<>();
+    protected final static HashMap<Integer, Rental> idToRental = new HashMap<>();
 
     public static void writeToReducerSocket(MapResult results) throws IOException {
         try (Socket reducerSocket = new Socket("localhost", BackendUtils.REDUCER_PORT);

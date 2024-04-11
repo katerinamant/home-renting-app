@@ -1,5 +1,6 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.CalendarYear;
 import com.homerentals.domain.Filters;
 import com.homerentals.domain.Rental;
 import org.json.JSONArray;
@@ -9,6 +10,7 @@ import org.json.JSONObject;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.ArrayList;
 
@@ -53,6 +55,7 @@ class RequestHandler implements Runnable {
             Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
             JSONObject request;
+            Rental rental;
             switch (inputHeader) {
                 // Guest Requests
                 case GET_RENTALS:
@@ -104,7 +107,7 @@ class RequestHandler implements Runnable {
                 // Host Requests
                 case NEW_RENTAL:
                     // Create Rental object from JSON
-                    Rental rental = BackendUtils.jsonToRentalObject(inputBody);
+                    rental = BackendUtils.jsonToRentalObject(inputBody);
                     if (rental == null) {
                         System.err.println("RequestHandler.run(): Error creating Rental object from JSON");
                         return;
@@ -114,6 +117,7 @@ class RequestHandler implements Runnable {
                         System.out.println("lock");
                         System.out.println(Worker.rentals);
                         Worker.rentals.add(rental);
+                        Worker.idToRental.put(rental.getId(), rental);
                     }
                     System.out.println("done");
                     System.out.println(Worker.rentals);
@@ -121,7 +125,22 @@ class RequestHandler implements Runnable {
                     break;
 
                 case UPDATE_AVAILABILITY:
-                    // TODO
+                    // Get Rental object from rentalId
+                    int rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                    rental = Worker.idToRental.get(rentalId);
+
+                    // Get LocalDate objects
+                    String startDateString = inputBody.getString(BackendUtils.BODY_FIELD_START_DATE);
+                    LocalDate startDate = LocalDate.parse(startDateString, Rental.dateFormatter);
+                    String endDateString = inputBody.getString(BackendUtils.BODY_FIELD_END_DATE);
+                    LocalDate endDate = LocalDate.parse(endDateString, Rental.dateFormatter);
+                    synchronized (rental) {
+                        System.out.println("lock");
+                        System.out.println(rental.getAvailability(startDate, endDate));
+                        rental.makeAvailable(startDate, endDate);
+                    }
+                    System.out.println("done");
+                    System.out.println(rental.getAvailability(startDate, endDate));
                     break;
 
                 case GET_BOOKINGS:

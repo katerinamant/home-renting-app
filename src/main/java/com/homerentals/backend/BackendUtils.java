@@ -16,6 +16,8 @@ public class BackendUtils {
     public static final String BODY_FIELD_MAP_ID = "mapId";
     public static final String BODY_FIELD_RENTAL_ID = "rentalId";
     public static final String BODY_FIELD_RENTAL_LIST = "rentalList";
+    public static final String BODY_FIELD_START_DATE = "startDate";
+    public static final String BODY_FIELD_END_DATE = "endDate";
 
     public static final int SERVER_PORT = 8080;
     public static final int REDUCER_PORT = 4040;
@@ -38,13 +40,10 @@ public class BackendUtils {
             int numOfPersons = input.getInt("capacity");
             int numOfReviews = input.getInt("numOfReviews");
             int sumOfReviews = input.getInt("sumOfReviews");
-            String startDate = input.getString("startDate");
-            String endDate = input.getString("endDate");
             String imagePath = input.getString("imagePath");
             int rentalId = input.getInt("rentalId");
             Rental rental = new Rental(null, roomName, location, pricePerNight,
-                    numOfPersons, numOfReviews, sumOfReviews, startDate, endDate,
-                    imagePath, rentalId);
+                    numOfPersons, numOfReviews, sumOfReviews, imagePath, rentalId);
             System.out.println(rental.getId());
             return rental;
 
