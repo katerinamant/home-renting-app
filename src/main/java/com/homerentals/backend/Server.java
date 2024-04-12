@@ -31,8 +31,9 @@ public class Server {
     }
 
     protected static int hash(int rentalId) {
-        // TODO: New hash function
-        return rentalId % ports.size();
+        int numOfWorkers = ports.size();
+        float A = 0.357840f;
+        return (int) Math.floor(numOfWorkers * ((rentalId*A) % 1));
     }
 
     private static void writeToWorkerSocket(String msg, int port) throws IOException {
