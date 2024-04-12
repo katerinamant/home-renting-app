@@ -19,6 +19,7 @@ public class BackendUtils {
 
     public static final String BODY_FIELD_FILTERS = "filters";
     public static final String BODY_FIELD_MAP_ID = "mapId";
+    public static final String BODY_FIELD_FOR_RENTALS = "forRentals";
     public static final String BODY_FIELD_RENTAL_ID = "rentalId";
     public static final String BODY_FIELD_RENTAL_LIST = "rentalList";
     public static final String BODY_FIELD_START_DATE = "startDate";

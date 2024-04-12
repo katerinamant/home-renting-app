@@ -1,5 +1,6 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
 import com.homerentals.domain.Rental;
 
 import java.io.IOException;
@@ -10,9 +11,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class Reducer {
-    private static final HashMap<Integer, ArrayList<ArrayList<Rental>>> rentalsToReduce = new HashMap<>();
+    private static final HashMap<Integer, ArrayList<MapResult>> resultsToReduce = new HashMap<>();
 
     private static Object readWorkerSocketInput(ObjectInputStream in) {
         try {
@@ -62,31 +64,36 @@ public class Reducer {
 
                     // Parse message
                     int mapId = workerInput.getMapId();
-                    boolean containsRentals = workerInput.containsRentals();
+                    System.out.printf("> Received message from worker with mapId: %d", mapId);
 
-                    if (containsRentals) {
-                        ArrayList<Rental> workerRentals = workerInput.getRentals();
-                        System.out.printf("> Received message from worker with mapId: %d with rentals: %s%n", mapId, workerRentals);
-
-                        // Save rentals based on mapId
-                        if (!rentalsToReduce.containsKey(mapId)) {
-                            rentalsToReduce.put(mapId, new ArrayList<>());
-                        }
-                        rentalsToReduce.get(mapId).add(workerRentals);
-                        System.out.printf("> MapReduce for #%d at %d/%d messages.%n", mapId, rentalsToReduce.get(mapId).size(), numOfWorkers);
-
-                        // Reduce values when all workers have sent their results
-                        if (rentalsToReduce.get(mapId).size() == numOfWorkers) {
-                            System.out.printf("> Reducing for #%d.%n", mapId);
-                            ArrayList<Rental> reducedRentals = reduceRentals(mapId);
-                            rentalsToReduce.remove(mapId);
-
-                            // Send results to server
-                            System.out.println("> Sending results to server: " + reducedRentals);
-                            MapResult mapResult = new MapResult(mapId, reducedRentals);
-                            writeToServerSocket(serverSocketOutput, mapResult);
-                        }
+                    // Save MapResults based on mapId
+                    if (!resultsToReduce.containsKey(mapId)) {
+                        resultsToReduce.put(mapId, new ArrayList<>());
                     }
+                    resultsToReduce.get(mapId).add(workerInput);
+                    System.out.printf("> MapReduce for #%d at %d/%d messages.%n", mapId, resultsToReduce.get(mapId).size(), numOfWorkers);
+
+                    // Reduce values when all workers have sent their results
+                    if (resultsToReduce.get(mapId).size() == numOfWorkers) {
+                        System.out.printf("> Reducing for #%d.%n", mapId);
+                        MapResult reducedResults;
+
+                        // Check what type of reduction you need to do
+                        if (workerInput.containsRentals()) {
+                            ArrayList<Rental> reducedRentals = reduceRentals(mapId);
+                            reducedResults = new MapResult(mapId, reducedRentals, null);
+                        } else {
+                            ArrayList<BookingsByLocation> reducedBookingsByLocation = reduceBookingsByLocation(mapId);
+                            reducedResults = new MapResult(mapId, null, reducedBookingsByLocation);
+                        }
+
+                        resultsToReduce.remove(mapId);
+
+                        // Send results to server
+                        System.out.println("> Sending results to server for #" + mapId);
+                        writeToServerSocket(serverSocketOutput, reducedResults);
+                    }
+
                 }
             } catch (IOException e) {
                 System.err.println("ReduceSearch.main(): Could not set up Reducer ServerSocket: " + e.getMessage());
@@ -98,13 +105,36 @@ public class Reducer {
     }
 
     public static ArrayList<Rental> reduceRentals(int mapId) {
-        ArrayList<ArrayList<Rental>> unreducedRentals = rentalsToReduce.get(mapId);
+        ArrayList<MapResult> resultsList = resultsToReduce.get(mapId);
 
         HashSet<Rental> reduced = new HashSet<>();
-        for (ArrayList<Rental> rentals : unreducedRentals) {
-            reduced.addAll(rentals);
+        for (MapResult result : resultsList) {
+            reduced.addAll(result.getRentals());
         }
 
         return new ArrayList<>(reduced);
+    }
+
+    public static ArrayList<BookingsByLocation> reduceBookingsByLocation(int mapId) {
+        ArrayList<MapResult> resultsList = resultsToReduce.get(mapId);
+
+        // Perform reduction based on unique Booking IDs
+        HashMap<String, BookingsByLocation> reduced = new HashMap<>();
+        for (MapResult result : resultsList) {
+            for (BookingsByLocation bookingsByLocation : result.getBookingsByLocation()) {
+                String location = bookingsByLocation.getLocation();
+                if (!reduced.containsKey(location)) {
+                    // Create a new entry in the map by using
+                    // the first worker's object
+                    reduced.put(location, bookingsByLocation);
+                } else {
+                    // Add all the booking ids of this worker
+                    // to the already existing map entry
+                    reduced.get(location).addAll(bookingsByLocation.getBookingIds());
+                }
+            }
+        }
+
+        return new ArrayList<>(reduced.values());
     }
 }

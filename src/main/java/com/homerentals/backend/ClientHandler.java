@@ -43,6 +43,32 @@ class ClientHandler implements Runnable {
         }
     }
 
+    private MapResult performMapReduce(Requests header, JSONObject body) throws InterruptedException {
+        // Create MapReduce Request
+        int mapId = Server.getNextMapId();
+        body.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
+        JSONObject request = BackendUtils.createRequest(header.toString(), body.toString());
+
+        // Send request to all workers
+        Server.sendMessageToWorkers(request.toString(), Server.ports);
+
+        // Check Server.mapReduceResults for Reducer response
+        MapResult mapResult = null;
+        synchronized (ReducerHandler.syncObj) {
+            while (!Server.mapReduceResults.containsKey(mapId)) {
+                ReducerHandler.syncObj.wait();
+            }
+            mapResult = Server.mapReduceResults.get(mapId);
+            Server.mapReduceResults.remove(mapId);
+        }
+
+        if (mapResult == null) {
+            throw new InterruptedException();
+        }
+
+        return mapResult;
+    }
+
     @Override
     public void run() {
         // Read data sent from client
@@ -65,28 +91,12 @@ class ClientHandler implements Runnable {
 
                 JSONObject request;
                 int workerPort, mapId, rentalId;
+                MapResult mapResult;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
-                        // Add new mapId to requestBody
-                        mapId = Server.getNextMapId();
-                        inputBody.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
-                        request = BackendUtils.createRequest(inputHeader.name(), inputBody.toString());
-                        Server.sendMessageToWorkers(request.toString(), Server.ports); // broadcast request
-
-                        // Check Server.mapReduceResults for Reducer response
-                        MapResult mapResult = null;
-                        synchronized (ReducerHandler.syncObj) {
-                            while (!Server.mapReduceResults.containsKey(mapId)) {
-                                ReducerHandler.syncObj.wait();
-                            }
-                            mapResult = Server.mapReduceResults.get(mapId);
-                            Server.mapReduceResults.remove(mapId);
-                        }
-
-                        if (mapResult == null) {
-                            throw new InterruptedException();
-                        }
+                        // MapReduce
+                        mapResult = performMapReduce(inputHeader, inputBody);
 
                         // Send rentals to client
                         sendClientSocketOutput(mapResult.getRentals());
@@ -122,7 +132,11 @@ class ClientHandler implements Runnable {
                         break;
 
                     case GET_BOOKINGS:
-                        // TODO: Return result with MapReduce
+                        // MapReduce
+                        mapResult = performMapReduce(inputHeader, inputBody);
+
+                        // Send amount of bookings per location to client
+                        sendClientSocketOutput(mapResult.getBookingsByLocation());
                         break;
 
                     // Miscellaneous Requests

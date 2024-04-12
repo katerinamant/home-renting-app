@@ -2,9 +2,11 @@ package com.homerentals.domain;
 
 import org.json.JSONObject;
 
+import java.awt.print.Book;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -16,6 +18,7 @@ public class Rental implements Serializable {
     private final double nightlyRate;
     private final int capacity;
     private final RatingsAggregator ratings;
+    private final ArrayList<Booking> bookings;
 
     private final HashMap<Integer, CalendarYear> availability;
 
@@ -40,7 +43,8 @@ public class Rental implements Serializable {
         this.ratings = new RatingsAggregator(numOfReviews, sumOfReviews);
         this.imagePath = imagePath;
         this.id = id;
-        this.availability = new HashMap<Integer, CalendarYear>();
+        this.bookings = new ArrayList<>();
+        this.availability = new HashMap<>();
     }
 
     public int getId() {
@@ -85,6 +89,14 @@ public class Rental implements Serializable {
 
     public String getImagePath() {
         return this.imagePath;
+    }
+
+    public ArrayList<Booking> getBookings() {
+        return this.bookings;
+    }
+
+    public void addBooking(Booking booking) {
+        this.bookings.add(booking);
     }
 
     public boolean getAvailability(LocalDate startDate, LocalDate endDate) {

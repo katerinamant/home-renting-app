@@ -5,13 +5,11 @@ import org.apache.commons.io.IOUtils;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 public class Server {
@@ -19,8 +17,9 @@ public class Server {
     protected final static ArrayList<Integer> ports = new ArrayList<>();
     protected final static HashMap<Integer, MapResult> mapReduceResults = new HashMap<>();
 
-    protected static int numberOfRentals;
-    protected static int mapId;
+    private static int numberOfRentals;
+    private static int mapId;
+    private static int bookingId;
 
     public static int getNextRentalId() {
         return numberOfRentals++;
@@ -28,6 +27,10 @@ public class Server {
 
     public static int getNextMapId() {
         return mapId++;
+    }
+
+    public static String getNextBookingId() {
+        return String.valueOf(bookingId++);
     }
 
     protected static int hash(int rentalId) {

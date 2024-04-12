@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.awt.print.Book;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +14,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class HostConsole {
@@ -51,7 +53,8 @@ public class HostConsole {
         }
 
         public static String getMenuDisplay(int num) {
-            return String.format("%d. %s", num, getOption(String.valueOf(num)));
+            String textDisplay = Objects.requireNonNull(getOption(String.valueOf(num))).getMenuText();
+            return String.format("%d. %s", num, textDisplay);
         }
     }
 
@@ -308,6 +311,20 @@ public class HostConsole {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.GET_BOOKINGS.name(), requestBody.toString());
                         hostConsole.sendSocketOutput(request.toString());
+
+                        // Receive response
+                        ArrayList<BookingsByLocation> bookingsByLocation = (ArrayList<BookingsByLocation>) hostConsole.readSocketObjectInput();
+                        if (bookingsByLocation == null) {
+                            System.err.println("Client.main(): Could not receive host's rentals from Server.");
+                            break;
+                        }
+
+                        // Display booking count per location
+                        System.out.printf("%n[%s's Bookings Per Location]%n%n", username);
+                        for (BookingsByLocation byLocation : bookingsByLocation) {
+                            System.out.printf("- %s: %d%n%s%n%n", byLocation.getLocation(), byLocation.getBookingIds().size(), byLocation.getBookingIds());
+                        }
+                        System.out.println("<-------- [End Of List] -------->");
                         break;
 
                     case VIEW_RENTALS:

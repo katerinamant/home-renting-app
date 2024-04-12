@@ -1,12 +1,8 @@
 package com.homerentals.backend;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class ReducerHandler implements Runnable {
     protected final static Object syncObj = new Object();

@@ -1,5 +1,6 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
 import com.homerentals.domain.Filters;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
@@ -11,6 +12,8 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Random;
 
 class RequestHandler implements Runnable {
     private final Socket masterSocket;
@@ -35,6 +38,26 @@ class RequestHandler implements Runnable {
         }
     }
 
+    private LocalDate[] parseJsonDates(JSONObject json) {
+        String startDateString = json.getString(BackendUtils.BODY_FIELD_START_DATE);
+        String endDateString = json.getString(BackendUtils.BODY_FIELD_END_DATE);
+        LocalDate startDate = LocalDate.parse(startDateString, BackendUtils.dateFormatter);
+        LocalDate endDate = LocalDate.parse(endDateString, BackendUtils.dateFormatter);
+        return new LocalDate[]{startDate, endDate};
+    }
+
+    private void sendMappingToReducer(int mapId, ArrayList<Rental> rentals, ArrayList<BookingsByLocation> bookingsByLocation) {
+        // Wrap results in object
+        MapResult results = new MapResult(mapId, rentals, bookingsByLocation);
+
+        // Send results to reducer
+        try {
+            Worker.writeToReducerSocket(results);
+        } catch (IOException e) {
+            System.err.println("RequestHandler.sendMappingToReducer(): Error writing to Reducer Socket: " + e);
+        }
+    }
+
     @Override
     public void run() {
         String input = null;
@@ -52,13 +75,16 @@ class RequestHandler implements Runnable {
             JSONObject inputBody = new JSONObject(inputJson.getString(BackendUtils.MESSAGE_BODY));
             Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
-            JSONObject request;
             Rental rental;
+            LocalDate[] dates;
+            LocalDate startDate, endDate;
+            int mapId;
+            Mapper mapper = new Mapper(Worker.rentals);
             switch (inputHeader) {
                 // Guest Requests
                 case GET_RENTALS:
                     // Parse JSON Message
-                    int mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
+                    mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
                     JSONObject jsonFilters = inputBody.getJSONObject(BackendUtils.BODY_FIELD_FILTERS);
 
                     System.out.println("> Received filters in JSON: " + jsonFilters);
@@ -79,19 +105,11 @@ class RequestHandler implements Runnable {
 
                     System.out.println("Created filters map: " + filters);
 
-                    // Perform mapping Operation
-                    Mapper mapper = new Mapper(Worker.rentals);
+                    // Perform mapping
                     ArrayList<Rental> mappedRentals = mapper.mapRentalsToFilters(filters);
 
-                    // Wrap results in object
-                    MapResult mapResult = new MapResult(mapId, mappedRentals);
-
-                    // Send results to reducer
-                    try {
-                        Worker.writeToReducerSocket(mapResult);
-                    } catch (IOException e) {
-                        System.err.println("RequestHandler.run(): Error writing to Reducer Socket: " + e);
-                    }
+                    // Send to reducer
+                    this.sendMappingToReducer(mapId, mappedRentals, null);
                     break;
 
                 case NEW_BOOKING:
@@ -128,10 +146,9 @@ class RequestHandler implements Runnable {
                     rental = Worker.idToRental.get(rentalId);
 
                     // Get LocalDate objects
-                    String startDateString = inputBody.getString(BackendUtils.BODY_FIELD_START_DATE);
-                    LocalDate startDate = LocalDate.parse(startDateString, BackendUtils.dateFormatter);
-                    String endDateString = inputBody.getString(BackendUtils.BODY_FIELD_END_DATE);
-                    LocalDate endDate = LocalDate.parse(endDateString, BackendUtils.dateFormatter);
+                    dates = parseJsonDates(inputBody);
+                    startDate = dates[0];
+                    endDate = dates[1];
                     synchronized (rental) {
                         System.out.println("lock");
                         System.out.println(rental.getAvailability(startDate, endDate));
@@ -142,7 +159,20 @@ class RequestHandler implements Runnable {
                     break;
 
                 case GET_BOOKINGS:
-                    // TODO: Return result with MapReduce
+                    // Parse JSON Message
+                    mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
+                    dates = parseJsonDates(inputBody);
+                    startDate = dates[0];
+                    endDate = dates[1];
+
+                    // Perform mapping
+                    ArrayList<BookingsByLocation> bookingsByLocations = mapper.mapBookingsToLocations(startDate, endDate);
+
+                    // Send to reducer
+                    for (BookingsByLocation bbl : bookingsByLocations) {
+                        System.out.println("Sending to reducer: " + bbl.getBookingIds());
+                    }
+                    this.sendMappingToReducer(mapId, null, bookingsByLocations);
                     break;
 
                 default:
