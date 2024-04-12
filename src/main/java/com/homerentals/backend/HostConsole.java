@@ -18,6 +18,43 @@ import java.util.Scanner;
 public class HostConsole {
     // TODO: Replace System.out.println() with logger in log file.
 
+    private enum MENU_OPTIONS {
+        EXIT("Exit", "0"),
+        UPLOAD_RENTAL_FILE("Upload new rental file", "1"),
+        UPDATE_RENTAL_AVAILABILITY("Update rental availability", "2"),
+        VIEW_RENTAL_BOOKINGS("View rental bookings", "3"),
+        VIEW_RENTALS("View my rentals", "4");
+
+        private final String menuText;
+        private final String menuNumber;
+
+        MENU_OPTIONS(String menuText, String menuNumber) {
+            this.menuText = menuText;
+            this.menuNumber = menuNumber;
+        }
+
+        public String getMenuText() {
+            return this.menuText;
+        }
+
+        public String getMenuNumber() {
+            return this.menuNumber;
+        }
+
+        public static MENU_OPTIONS getOption(String menuNumber) {
+            for (MENU_OPTIONS option : MENU_OPTIONS.values()) {
+                if (option.getMenuNumber().equals(menuNumber)) {
+                    return option;
+                }
+            }
+            return null;
+        }
+
+        public static String getMenuDisplay(int num) {
+            return String.format("%d. %s", num, getOption(String.valueOf(num)));
+        }
+    }
+
     private Socket requestSocket = null;
     private DataOutputStream serverSocketDataOut = null;
     private ObjectInputStream serverSocketObjectIn = null;
@@ -194,26 +231,26 @@ public class HostConsole {
 
             JSONObject request, requestBody;
             ArrayList<Rental> rentals;
-            String input;
             boolean done = false;
             while (!done) {
                 System.out.println("\n\n\t[MENU]");
-                System.out.println("1. Upload new rental file");
-                System.out.println("2. Update rental availability");
-                System.out.println("3. View bookings");
-                System.out.println("4. View my rentals");
-                System.out.println("0. Exit");
+                for (int i=1; i < MENU_OPTIONS.values().length; i++) {
+                    System.out.println(MENU_OPTIONS.getMenuDisplay(i));
+                }
+                System.out.println(MENU_OPTIONS.getMenuDisplay(0));
                 System.out.print("> ");
 
-                String ans = userInput.nextLine().trim();
-                switch (ans) {
-                    case "0":
+                MENU_OPTIONS option = MENU_OPTIONS.getOption(userInput.nextLine().trim());
+                if (option == null) {
+                    continue;
+                }
+
+                switch (option) {
+                    case EXIT:
                         done = true;
                         break;
 
-                    case "1":
-                        // 1. Upload new rental file
-
+                    case UPLOAD_RENTAL_FILE:
                         System.out.print("Enter file path for the .json file that contains the rental information.\n> ");
                         String filePath = userInput.nextLine().trim();
 
@@ -232,9 +269,7 @@ public class HostConsole {
 
                         break;
 
-                    case "2":
-                        // 2. Update rental availability
-
+                    case UPDATE_RENTAL_AVAILABILITY:
                         // Print rentals list
                         rentals = hostConsole.getAllRentals(username);
                         if (rentals == null) {
@@ -265,17 +300,9 @@ public class HostConsole {
                         hostConsole.sendSocketOutput(request.toString());
                         break;
 
-                    case "3":
-                        // 3. View bookings
-
+                    case VIEW_RENTAL_BOOKINGS:
                         // Get start and end days to show bookings
                         requestBody = hostConsole.getInputDates("view bookings");
-
-                        // Get location to show bookings
-                        input = "";
-                        System.out.print("Enter location\n> ");
-                        input = userInput.nextLine().trim();
-                        requestBody.put("location", input);
 
                         // Write to socket
                         System.out.println("Writing to server...");
@@ -283,9 +310,7 @@ public class HostConsole {
                         hostConsole.sendSocketOutput(request.toString());
                         break;
 
-                    case "4":
-                        // 4. View my rentals
-
+                    case VIEW_RENTALS:
                         rentals = hostConsole.getAllRentals(username);
                         if (rentals == null) {
                             System.err.println("Client.main(): Error getting Rentals list.");
