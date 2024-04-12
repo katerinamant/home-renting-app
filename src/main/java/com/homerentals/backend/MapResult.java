@@ -1,6 +1,5 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
 import com.homerentals.domain.Rental;
 
 import java.io.Serializable;

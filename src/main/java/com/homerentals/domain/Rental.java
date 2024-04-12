@@ -1,14 +1,9 @@
 package com.homerentals.domain;
 
-import org.json.JSONObject;
-
-import java.awt.print.Book;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class Rental implements Serializable {
     private final int id;

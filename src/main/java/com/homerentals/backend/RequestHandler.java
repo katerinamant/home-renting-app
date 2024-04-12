@@ -1,6 +1,5 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
 import com.homerentals.domain.Filters;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
@@ -10,10 +9,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Random;
+import java.util.HashMap;
 
 class RequestHandler implements Runnable {
     private final Socket masterSocket;

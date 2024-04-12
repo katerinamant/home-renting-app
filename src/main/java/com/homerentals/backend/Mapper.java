@@ -3,12 +3,9 @@ package com.homerentals.backend;
 import com.homerentals.domain.Booking;
 import com.homerentals.domain.Rental;
 
-import java.awt.print.Book;
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class Mapper {
@@ -19,7 +16,7 @@ public class Mapper {
     }
 
     public ArrayList<Rental> mapRentalsToFilters(HashMap<String, String> filters) {
-       ArrayList<Rental> results = new ArrayList<>();
+        ArrayList<Rental> results = new ArrayList<>();
         for (Rental rental : rentals) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
                 if (rental.matchesFilter(filter.getKey(), filter.getValue())) {
@@ -44,7 +41,7 @@ public class Mapper {
             // Iterate over all bookings for this rental and add them to the object
             // if they happen during the period given by the user
             for (Booking booking : rental.getBookings()) {
-                if (isInDateRange(booking, startDate, endDate)){
+                if (isInDateRange(booking, startDate, endDate)) {
                     bookingsByLocation.addBooking(booking.getBookingId());
                 }
             }

@@ -8,7 +8,7 @@ public class ReducerHandler implements Runnable {
     protected final static Object syncObj = new Object();
 
     private final Socket reducerSocket;
-    private ObjectInputStream reducerSocketIn;
+    private final ObjectInputStream reducerSocketIn;
 
     ReducerHandler(Socket reducerSocket) throws IOException {
         this.reducerSocket = reducerSocket;

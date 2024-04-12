@@ -54,7 +54,7 @@ public class AvailabilitySearch {
                 availability.put(year, new CalendarYear(year));
 
             CalendarYear = availability.get(year);
-            if(!CalendarYear.isAvailable(date)) {
+            if (!CalendarYear.isAvailable(date)) {
                 CalendarYear.toggleAvailability(date);
             }
         }

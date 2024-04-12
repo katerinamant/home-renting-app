@@ -1,6 +1,5 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
 import com.homerentals.domain.Rental;
 
 import java.io.IOException;
@@ -11,7 +10,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 public class Reducer {
     private static final HashMap<Integer, ArrayList<MapResult>> resultsToReduce = new HashMap<>();

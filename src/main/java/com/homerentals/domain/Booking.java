@@ -1,7 +1,5 @@
 package com.homerentals.domain;
 
-import com.homerentals.backend.Server;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 

@@ -5,8 +5,10 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.awt.print.Book;
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -199,7 +201,7 @@ public class HostConsole {
         }
 
         System.out.printf("%n[%s's Rentals List]%n%n", username);
-        for(int i=0; i<rentals.size(); i++) {
+        for (int i = 0; i < rentals.size(); i++) {
             System.out.printf("[%d] %s%n", i, rentals.get(i));
         }
         System.out.println("<-------- [End Of List] -------->");
@@ -237,7 +239,7 @@ public class HostConsole {
             boolean done = false;
             while (!done) {
                 System.out.println("\n\n\t[MENU]");
-                for (int i=1; i < MENU_OPTIONS.values().length; i++) {
+                for (int i = 1; i < MENU_OPTIONS.values().length; i++) {
                     System.out.println(MENU_OPTIONS.getMenuDisplay(i));
                 }
                 System.out.println(MENU_OPTIONS.getMenuDisplay(0));
