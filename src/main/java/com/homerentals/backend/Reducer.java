@@ -1,10 +1,7 @@
 package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -14,7 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class ReduceSearch {
+public class Reducer {
     private static final HashMap<Integer, ArrayList<ArrayList<Rental>>> rentalsToReduce = new HashMap<>();
 
     private static Object readWorkerSocketInput(ObjectInputStream in) {
@@ -65,26 +62,30 @@ public class ReduceSearch {
 
                     // Parse message
                     int mapId = workerInput.getMapId();
-                    ArrayList<Rental> workerRentals = workerInput.getRentals();
-                    System.out.printf("> Received message from worker with mapId: %d with rentals: %s%n", mapId, workerRentals);
+                    boolean containsRentals = workerInput.containsRentals();
 
-                    // Save rentals based on mapId
-                    if (!rentalsToReduce.containsKey(mapId)) {
-                        rentalsToReduce.put(mapId, new ArrayList<>());
-                    }
-                    rentalsToReduce.get(mapId).add(workerRentals);
-                    System.out.printf("> MapReduce for #%d at %d/%d messages.%n", mapId, rentalsToReduce.get(mapId).size(), numOfWorkers);
+                    if (containsRentals) {
+                        ArrayList<Rental> workerRentals = workerInput.getRentals();
+                        System.out.printf("> Received message from worker with mapId: %d with rentals: %s%n", mapId, workerRentals);
 
-                    // Reduce values when all workers have sent their results
-                    if (rentalsToReduce.get(mapId).size() == numOfWorkers) {
-                        System.out.printf("> Reducing for #%d.%n", mapId);
-                        ArrayList<Rental> reducedRentals = reduce(mapId);
-                        rentalsToReduce.remove(mapId);
+                        // Save rentals based on mapId
+                        if (!rentalsToReduce.containsKey(mapId)) {
+                            rentalsToReduce.put(mapId, new ArrayList<>());
+                        }
+                        rentalsToReduce.get(mapId).add(workerRentals);
+                        System.out.printf("> MapReduce for #%d at %d/%d messages.%n", mapId, rentalsToReduce.get(mapId).size(), numOfWorkers);
 
-                        // Send results to server
-                        System.out.println("> Sending results to server: " + reducedRentals);
-                        MapResult mapResult = new MapResult(mapId, reducedRentals);
-                        writeToServerSocket(serverSocketOutput, mapResult);
+                        // Reduce values when all workers have sent their results
+                        if (rentalsToReduce.get(mapId).size() == numOfWorkers) {
+                            System.out.printf("> Reducing for #%d.%n", mapId);
+                            ArrayList<Rental> reducedRentals = reduceRentals(mapId);
+                            rentalsToReduce.remove(mapId);
+
+                            // Send results to server
+                            System.out.println("> Sending results to server: " + reducedRentals);
+                            MapResult mapResult = new MapResult(mapId, reducedRentals);
+                            writeToServerSocket(serverSocketOutput, mapResult);
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -96,7 +97,7 @@ public class ReduceSearch {
         }
     }
 
-    public static ArrayList<Rental> reduce(int mapId) {
+    public static ArrayList<Rental> reduceRentals(int mapId) {
         ArrayList<ArrayList<Rental>> unreducedRentals = rentalsToReduce.get(mapId);
 
         HashSet<Rental> reduced = new HashSet<>();

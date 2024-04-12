@@ -1,9 +1,7 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.CalendarYear;
 import com.homerentals.domain.Filters;
 import com.homerentals.domain.Rental;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -82,8 +80,8 @@ class RequestHandler implements Runnable {
                     System.out.println("Created filters map: " + filters);
 
                     // Perform mapping Operation
-                    MapSearch mapper = new MapSearch(filters, Worker.rentals);
-                    ArrayList<Rental> mappedRentals = mapper.map();
+                    Mapper mapper = new Mapper(Worker.rentals);
+                    ArrayList<Rental> mappedRentals = mapper.mapRentalsToFilters(filters);
 
                     // Wrap results in object
                     MapResult mapResult = new MapResult(mapId, mappedRentals);

@@ -4,6 +4,7 @@ import com.homerentals.domain.Rental;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MapResult implements Serializable {
     private final int mapId;
@@ -16,6 +17,10 @@ public class MapResult implements Serializable {
 
     public int getMapId() {
         return mapId;
+    }
+
+    public boolean containsRentals() {
+        return !rentals.isEmpty();
     }
 
     public ArrayList<Rental> getRentals() {

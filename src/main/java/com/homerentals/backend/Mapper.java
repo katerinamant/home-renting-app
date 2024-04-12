@@ -6,16 +6,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MapSearch {
-    private final HashMap<String, String> filters;
+public class Mapper {
     private final ArrayList<Rental> rentals;
 
-    public MapSearch(HashMap<String, String> filters, ArrayList<Rental> rentals) {
-        this.filters = filters;
+    public Mapper(ArrayList<Rental> rentals) {
         this.rentals = rentals;
     }
 
-    public ArrayList<Rental> map() {
+    public ArrayList<Rental> mapRentalsToFilters(HashMap<String, String> filters) {
        ArrayList<Rental> filteredResults = new ArrayList<>();
         for (Rental rental : rentals) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
