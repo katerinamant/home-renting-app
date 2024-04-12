@@ -11,10 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class HostConsole {
@@ -103,7 +101,6 @@ public class HostConsole {
      * @return JSONObject : {"startDate", "endDate"}
      */
     private JSONObject getInputDates(String msg) {
-        final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
         JSONObject result = new JSONObject();
         String input = "";
 
@@ -113,7 +110,7 @@ public class HostConsole {
         while (invalid) {
             try {
                 input = userInput.nextLine().trim();
-                LocalDate.parse(input, dateFormatter);
+                LocalDate.parse(input, BackendUtils.dateFormatter);
                 invalid = false;
             } catch (DateTimeParseException e) {
                 System.out.print("Invalid input. Try again\n> ");
@@ -128,7 +125,7 @@ public class HostConsole {
         while (invalid) {
             try {
                 input = userInput.nextLine().trim();
-                LocalDate.parse(input, dateFormatter);
+                LocalDate.parse(input, BackendUtils.dateFormatter);
                 invalid = false;
 
             } catch (DateTimeParseException e) {
@@ -230,7 +227,7 @@ public class HostConsole {
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.NEW_RENTAL.name(), newRental.toString());
-                        System.out.println(request.toString());
+                        System.out.println(request);
                         hostConsole.sendSocketOutput(request.toString());
 
                         break;
@@ -266,7 +263,6 @@ public class HostConsole {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), requestBody.toString());
                         hostConsole.sendSocketOutput(request.toString());
-
                         break;
 
                     case "3":

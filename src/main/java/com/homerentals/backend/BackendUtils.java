@@ -4,7 +4,12 @@ import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 public class BackendUtils {
+    public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+
     public static final String MESSAGE_TYPE = "type";
     public static final String MESSAGE_HEADER = "header";
     public static final String MESSAGE_BODY = "body";

@@ -30,7 +30,7 @@ public class CalendarYearTest {
     public void availability() {
         CalendarYear CalendarYear = new CalendarYear(2024);
 
-        final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+        final DateTimeFormatter df = DomainUtils.dateFormatter;
         LocalDate localDate = LocalDate.parse("01/01/2024", df);
 
         Assert.assertFalse(CalendarYear.isAvailable(localDate));

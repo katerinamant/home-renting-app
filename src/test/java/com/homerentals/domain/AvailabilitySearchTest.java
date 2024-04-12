@@ -17,7 +17,7 @@ public class AvailabilitySearchTest {
     public void init() {
         rental = new Rental(null, "Rental", "Athens",
                 50.0, 2, 5, 20, "\\path", 0);
-        df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+        df = DomainUtils.dateFormatter;
     }
 
     @Test

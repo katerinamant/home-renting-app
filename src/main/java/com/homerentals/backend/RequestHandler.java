@@ -131,9 +131,9 @@ class RequestHandler implements Runnable {
 
                     // Get LocalDate objects
                     String startDateString = inputBody.getString(BackendUtils.BODY_FIELD_START_DATE);
-                    LocalDate startDate = LocalDate.parse(startDateString, Rental.dateFormatter);
+                    LocalDate startDate = LocalDate.parse(startDateString, BackendUtils.dateFormatter);
                     String endDateString = inputBody.getString(BackendUtils.BODY_FIELD_END_DATE);
-                    LocalDate endDate = LocalDate.parse(endDateString, Rental.dateFormatter);
+                    LocalDate endDate = LocalDate.parse(endDateString, BackendUtils.dateFormatter);
                     synchronized (rental) {
                         System.out.println("lock");
                         System.out.println(rental.getAvailability(startDate, endDate));

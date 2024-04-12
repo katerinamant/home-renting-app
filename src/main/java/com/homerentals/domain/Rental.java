@@ -17,7 +17,6 @@ public class Rental implements Serializable {
     private final int capacity;
     private final RatingsAggregator ratings;
 
-    public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
     private final HashMap<Integer, CalendarYear> availability;
 
     private final String imagePath;
@@ -109,8 +108,8 @@ public class Rental implements Serializable {
 
             case TIME_PERIOD:
                 String[] split = value.split("-");
-                LocalDate startDate = LocalDate.parse(split[0], dateFormatter);
-                LocalDate endDate = LocalDate.parse(split[1], dateFormatter);
+                LocalDate startDate = LocalDate.parse(split[0], DomainUtils.dateFormatter);
+                LocalDate endDate = LocalDate.parse(split[1], DomainUtils.dateFormatter);
                 return this.getAvailability(startDate, endDate);
 
             case GUESTS:

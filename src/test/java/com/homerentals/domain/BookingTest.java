@@ -20,7 +20,7 @@ public class BookingTest {
         Assert.assertEquals(guestAccount, booking.getGuest());
         Assert.assertEquals(rental, booking.getRental());
 
-        final DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+        final DateTimeFormatter df = DomainUtils.dateFormatter;
         LocalDate startDate = LocalDate.parse(bookingStartDate, df);
         LocalDate endDate = LocalDate.parse(bookingEndDate, df);
         Assert.assertEquals(startDate, booking.getStartDate());
