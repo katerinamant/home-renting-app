@@ -137,7 +137,7 @@ public class HostConsole {
     /**
      * @return JSONObject : {"startDate", "endDate"}
      */
-    private JSONObject getInputDates(String msg) {
+    private JSONObject getInputDatesAsJsonObject(String msg) {
         JSONObject result = new JSONObject();
         String input = "";
 
@@ -291,7 +291,7 @@ public class HostConsole {
                         } while (rentalIndex < 0 || rentalIndex >= rentals.size());
 
                         // Get start and end days to mark available
-                        requestBody = hostConsole.getInputDates("mark available");
+                        requestBody = hostConsole.getInputDatesAsJsonObject("mark available");
                         requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentals.get(rentalIndex).getId());
 
                         // Write to socket
@@ -302,7 +302,7 @@ public class HostConsole {
 
                     case VIEW_RENTAL_BOOKINGS:
                         // Get start and end days to show bookings
-                        requestBody = hostConsole.getInputDates("view bookings");
+                        requestBody = hostConsole.getInputDatesAsJsonObject("view bookings");
 
                         // Write to socket
                         System.out.println("Writing to server...");
