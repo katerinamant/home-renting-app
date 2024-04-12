@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
 
-public class Client {
+public class HostConsole {
     // TODO: Replace System.out.println() with logger in log file.
 
     private Socket requestSocket = null;
@@ -184,16 +184,16 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        Client client = new Client();
+        HostConsole hostConsole = new HostConsole();
 
-        String username = client.connectUser();
+        String username = hostConsole.connectUser();
 
         try {
             // Establish a connection
             Socket requestSocket = null;
             System.out.println("Connecting to server...");
             requestSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
-            client.setRequestSocket(requestSocket);
+            hostConsole.setRequestSocket(requestSocket);
 
             JSONObject request, requestBody;
             ArrayList<Rental> rentals;
@@ -221,7 +221,7 @@ public class Client {
                         String filePath = userInput.nextLine().trim();
 
                         // Read JSON file
-                        JSONObject newRental = client.readFile(filePath);
+                        JSONObject newRental = hostConsole.readFile(filePath);
                         if (newRental == null) {
                             System.err.println("Client.main(): Error reading JSON File");
                             break;
@@ -231,7 +231,7 @@ public class Client {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.NEW_RENTAL.name(), newRental.toString());
                         System.out.println(request.toString());
-                        client.sendSocketOutput(request.toString());
+                        hostConsole.sendSocketOutput(request.toString());
 
                         break;
 
@@ -239,7 +239,7 @@ public class Client {
                         // 2. Update rental availability
 
                         // Print rentals list
-                        rentals = client.getAllRentals(username);
+                        rentals = hostConsole.getAllRentals(username);
                         if (rentals == null) {
                             System.err.println("Client.main(): Error getting Rentals list.");
                             break;
@@ -259,13 +259,13 @@ public class Client {
                         } while (rentalIndex < 0 || rentalIndex >= rentals.size());
 
                         // Get start and end days to mark available
-                        requestBody = client.getInputDates("mark available");
+                        requestBody = hostConsole.getInputDates("mark available");
                         requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentals.get(rentalIndex).getId());
 
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), requestBody.toString());
-                        client.sendSocketOutput(request.toString());
+                        hostConsole.sendSocketOutput(request.toString());
 
                         break;
 
@@ -273,7 +273,7 @@ public class Client {
                         // 3. View bookings
 
                         // Get start and end days to show bookings
-                        requestBody = client.getInputDates("view bookings");
+                        requestBody = hostConsole.getInputDates("view bookings");
 
                         // Get location to show bookings
                         input = "";
@@ -284,13 +284,13 @@ public class Client {
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.GET_BOOKINGS.name(), requestBody.toString());
-                        client.sendSocketOutput(request.toString());
+                        hostConsole.sendSocketOutput(request.toString());
                         break;
 
                     case "4":
                         // 4. View my rentals
 
-                        rentals = client.getAllRentals(username);
+                        rentals = hostConsole.getAllRentals(username);
                         if (rentals == null) {
                             System.err.println("Client.main(): Error getting Rentals list.");
                         }
@@ -306,10 +306,10 @@ public class Client {
             e.printStackTrace();
 
         } finally {
-            if (client.getRequestSocket() != null) {
+            if (hostConsole.getRequestSocket() != null) {
                 try {
                     System.out.println("Closing down connection...");
-                    client.close();
+                    hostConsole.close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
