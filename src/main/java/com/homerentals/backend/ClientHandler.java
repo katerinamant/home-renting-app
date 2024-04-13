@@ -89,22 +89,20 @@ class ClientHandler implements Runnable {
                 JSONObject inputBody = new JSONObject(inputJson.getString(BackendUtils.MESSAGE_BODY));
                 Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
-                JSONObject request;
-                int workerPort, mapId, rentalId;
                 MapResult mapResult;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
                         // MapReduce
-                        mapResult = performMapReduce(inputHeader, inputBody);
+                        mapResult = this.performMapReduce(inputHeader, inputBody);
 
                         // Send rentals to client
-                        sendClientSocketOutput(mapResult.getRentals());
+                        this.sendClientSocketOutput(mapResult.getRentals());
                         break;
 
                     case NEW_BOOKING:
-                         /*TODO: Choose worker to forward request
-                            based on hash function on rental*/
+                        // inputBody = {rentalId, startDate, endDate}
+                        BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
                         break;
 
                     case NEW_RATING:
@@ -114,29 +112,19 @@ class ClientHandler implements Runnable {
 
                     // Host Requests
                     case NEW_RENTAL:
-                        // Add new rentalId to requestBody
-                        rentalId = Server.getNextRentalId();
-                        inputBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
-                        request = BackendUtils.createRequest(inputHeader.name(), inputBody.toString());
-
-                        // Forward new request to worker that will contain this rental
-                        workerPort = Server.ports.get(Server.hash(rentalId));
-                        Server.sendMessageToWorker(request.toString(), workerPort);
+                        BackendUtils.executeNewRentalRequest(inputBody, inputHeader.name());
                         break;
 
                     case UPDATE_AVAILABILITY:
-                        // Forward request, as it is,
-                        // to worker that contains this rental
-                        workerPort = Server.ports.get(Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
-                        Server.sendMessageToWorker(input, workerPort);
+                        BackendUtils.executeUpdateAvailability(input, inputBody);
                         break;
 
                     case GET_BOOKINGS:
                         // MapReduce
-                        mapResult = performMapReduce(inputHeader, inputBody);
+                        mapResult = this.performMapReduce(inputHeader, inputBody);
 
                         // Send amount of bookings per location to client
-                        sendClientSocketOutput(mapResult.getBookingsByLocation());
+                        this.sendClientSocketOutput(mapResult.getBookingsByLocation());
                         break;
 
                     // Miscellaneous Requests

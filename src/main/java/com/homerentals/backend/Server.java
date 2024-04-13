@@ -1,6 +1,7 @@
 package com.homerentals.backend;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
@@ -65,6 +66,65 @@ public class Server {
         }
     }
 
+    private static void setUp() throws IOException {
+        // Add cozy_rental_crete.json
+        JSONObject rentalJson = BackendUtils.readFile("com/homerentals/inputs/cozy_rental_crete.json");
+        if (rentalJson != null) {
+            BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
+        }
+        // Make available for 2024
+        JSONObject body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, 0);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
+        BackendUtils.executeUpdateAvailability(request.toString(), body);
+        // Add new Booking
+        body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, 0);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
+
+        // Add lux_rental_crete.json
+        rentalJson = BackendUtils.readFile("com/homerentals/inputs/lux_rental_crete.json");
+        if (rentalJson != null) {
+            BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
+        }
+        // Make available for 2024
+        body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, 1);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
+        BackendUtils.executeUpdateAvailability(request.toString(), body);
+        // Add new Booking
+        body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, 1);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/10/2024");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
+
+        // Add best_spitarwn_zante.json
+        rentalJson = BackendUtils.readFile("com/homerentals/inputs/best_spitarwn_zante.json");
+        if (rentalJson != null) {
+            BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
+        }
+        // Make available for 2024
+        body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, 2);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
+        BackendUtils.executeUpdateAvailability(request.toString(), body);
+        // Add new Booking
+        body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, 2);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/10/2024");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
+    }
+
     public static void main(String[] args) {
         if (args.length != 1) {
             System.err.println("Usage: java Server <port_list_file>");
@@ -92,6 +152,8 @@ public class Server {
             System.out.printf("> Reducer:%s connected.%n", reducerSocket.getRemoteSocketAddress());
             ReducerHandler reducerHandler = new ReducerHandler(reducerSocket);
             new Thread(reducerHandler).start();
+
+            Server.setUp();
 
             // Handle client requests
             while (true) {

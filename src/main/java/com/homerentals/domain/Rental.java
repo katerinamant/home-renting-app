@@ -92,6 +92,7 @@ public class Rental implements Serializable {
 
     public void addBooking(Booking booking) {
         this.bookings.add(booking);
+        toggleAvailability(booking.getStartDate(), booking.getEndDate());
     }
 
     public boolean getAvailability(LocalDate startDate, LocalDate endDate) {

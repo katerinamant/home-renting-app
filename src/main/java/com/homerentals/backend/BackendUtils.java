@@ -1,9 +1,15 @@
 package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
@@ -24,6 +30,7 @@ public class BackendUtils {
     public static final String BODY_FIELD_RENTAL_LIST = "rentalList";
     public static final String BODY_FIELD_START_DATE = "startDate";
     public static final String BODY_FIELD_END_DATE = "endDate";
+    public static final String BODY_FIELD_BOOKING_ID = "bookingId";
 
     public static final int SERVER_PORT = 8080;
     public static final int REDUCER_PORT = 4040;
@@ -35,6 +42,21 @@ public class BackendUtils {
         if (body.isEmpty()) body = "{}";
         request.put(MESSAGE_BODY, body);
         return request;
+    }
+
+    public static JSONObject readFile(String path) {
+        // Read JSON file
+        try {
+            InputStream is = Files.newInputStream(Paths.get(path));
+            String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
+            System.out.println(jsonTxt);
+            return new JSONObject(jsonTxt);
+        } catch (IOException | JSONException e) {
+            // Could not find file or
+            // File is not valid JSON Object
+            System.err.println("Client.readFile(): Error reading JSON File: " + e.getMessage());
+            return null;
+        }
     }
 
     public static Rental jsonToRentalObject(JSONObject input) {
@@ -58,6 +80,48 @@ public class BackendUtils {
             System.err.println("RequestHandler.jsonToRentalObject(): Error creating Rental object from JSON: " + e);
             return null;
         }
+    }
+
+    /*
+    Used in ClientHandler for NEW_RENTAL request
+    and Server.setUp()
+     */
+    protected static void executeNewRentalRequest(JSONObject body, String header) {
+        // Add new rentalId to requestBody
+        int rentalId = Server.getNextRentalId();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
+        JSONObject request = BackendUtils.createRequest(header, body.toString());
+
+        // Forward new request to worker that will contain this rental
+        int workerPort = Server.ports.get(Server.hash(rentalId));
+        Server.sendMessageToWorker(request.toString(), workerPort);
+    }
+
+    /*
+    Used in ClientHandler for UPDATE_AVAILABILITY request
+    and Server.setUp()
+     */
+    public static void executeUpdateAvailability(String input, JSONObject body) {
+        // Forward request, as it is,
+        // to worker that contains this rental
+        int workerPort = Server.ports.get(Server.hash(body.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
+        Server.sendMessageToWorker(input, workerPort);
+    }
+
+    /*
+    Used in ClientHandler for NEW_BOOKING request
+    and Server.setUp()
+     */
+    protected static void executeNewBookingRequest(JSONObject body, String header) {
+        // Add new bookingId to requestBody
+        String bookingId = Server.getNextBookingId();
+        body.put(BackendUtils.BODY_FIELD_BOOKING_ID, bookingId);
+        JSONObject request = BackendUtils.createRequest(header, body.toString());
+
+        // Forward new request to worker that contains this rental
+        int rentalId = body.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+        int workerPort = Server.ports.get(Server.hash(rentalId));
+        Server.sendMessageToWorker(request.toString(), workerPort);
     }
 
     // TODO: write to worker/reducer socket

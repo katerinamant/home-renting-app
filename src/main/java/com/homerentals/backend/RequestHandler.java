@@ -1,5 +1,6 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
 import com.homerentals.domain.Filters;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
@@ -75,7 +76,7 @@ class RequestHandler implements Runnable {
             Rental rental;
             LocalDate[] dates;
             LocalDate startDate, endDate;
-            int mapId;
+            int rentalId, mapId;
             Mapper mapper = new Mapper(Worker.rentals);
             switch (inputHeader) {
                 // Guest Requests
@@ -110,7 +111,25 @@ class RequestHandler implements Runnable {
                     break;
 
                 case NEW_BOOKING:
-                    // TODO
+                    // Get Rental object from rentalId
+                    rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                    rental = Worker.idToRental.get(rentalId);
+
+                    // TODO: Add response for successful / unsuccessful booking
+                    // Get LocalDate objects
+                    dates = this.parseJsonDates(inputBody);
+                    startDate = dates[0];
+                    endDate = dates[1];
+                    synchronized (rental) {
+                        System.out.println("lock");
+                        if (rental.getAvailability(startDate, endDate)) {
+                            String bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
+                            Booking booking = new Booking(null, rental, startDate.toString(), endDate.toString(), bookingId);
+                            rental.addBooking(booking);
+                        }
+                    }
+                    System.out.println("done");
+                    System.out.println(rental.getAvailability(startDate, endDate));
                     break;
 
                 case NEW_RATING:
@@ -139,11 +158,11 @@ class RequestHandler implements Runnable {
 
                 case UPDATE_AVAILABILITY:
                     // Get Rental object from rentalId
-                    int rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                    rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     rental = Worker.idToRental.get(rentalId);
 
                     // Get LocalDate objects
-                    dates = parseJsonDates(inputBody);
+                    dates = this.parseJsonDates(inputBody);
                     startDate = dates[0];
                     endDate = dates[1];
                     synchronized (rental) {
@@ -158,7 +177,7 @@ class RequestHandler implements Runnable {
                 case GET_BOOKINGS:
                     // Parse JSON Message
                     mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
-                    dates = parseJsonDates(inputBody);
+                    dates = this.parseJsonDates(inputBody);
                     startDate = dates[0];
                     endDate = dates[1];
 

@@ -1,18 +1,13 @@
 package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
-import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -77,21 +72,6 @@ public class HostConsole {
         } catch (IOException e) {
             System.out.println("Client.setRequestSocket(): Error setting outputs: " + e);
             throw e;
-        }
-    }
-
-    private JSONObject readFile(String path) {
-        // Read JSON file
-        try {
-            InputStream is = Files.newInputStream(Paths.get(path));
-            String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
-            System.out.println(jsonTxt);
-            return new JSONObject(jsonTxt);
-        } catch (IOException | JSONException e) {
-            // Could not find file or
-            // File is not valid JSON Object
-            System.err.println("Client.readFile(): Error reading JSON File: " + e.getMessage());
-            return null;
         }
     }
 
@@ -260,7 +240,7 @@ public class HostConsole {
                         String filePath = userInput.nextLine().trim();
 
                         // Read JSON file
-                        JSONObject newRental = hostConsole.readFile(filePath);
+                        JSONObject newRental = BackendUtils.readFile(filePath);
                         if (newRental == null) {
                             System.err.println("Client.main(): Error reading JSON File");
                             break;
