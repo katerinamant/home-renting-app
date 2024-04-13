@@ -1,0 +1,9 @@
+{
+  "roomName": "Luxury Apartment",
+  "location": "Thessaloniki",
+  "nightlyRate": 150,
+  "capacity": 4,
+  "numOfRatings": 7,
+  "sumOfRatings": 20,
+  "imagePath": "demo_image.png"
+}

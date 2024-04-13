@@ -1,0 +1,9 @@
+{
+  "roomName": "Beach-side Summer House",
+  "location": "Paros",
+  "nightlyRate": 150,
+  "capacity": 8,
+  "numOfRatings": 60,
+  "sumOfRatings": 210,
+  "imagePath": "demo_image.png"
+}

@@ -25,8 +25,8 @@ public class Rental implements Serializable {
             String location,
             double nightlyRate,
             int capacity,
-            int numOfReviews,
-            int sumOfReviews,
+            int numOfRatings,
+            int sumOfRatings,
             String imagePath,
             int id
     ) {
@@ -35,7 +35,7 @@ public class Rental implements Serializable {
         this.location = location;
         this.nightlyRate = nightlyRate;
         this.capacity = capacity;
-        this.ratings = new RatingsAggregator(numOfReviews, sumOfReviews);
+        this.ratings = new RatingsAggregator(numOfRatings, sumOfRatings);
         this.imagePath = imagePath;
         this.id = id;
         this.bookings = new ArrayList<>();

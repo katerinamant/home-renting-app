@@ -3,7 +3,7 @@
   "location": "Zante",
   "nightlyRate": 5,
   "capacity": 10,
-  "numOfReviews": 85,
-  "sumOfReviews": 85,
+  "numOfRatings": 85,
+  "sumOfRatings": 85,
   "imagePath": "demo_image.png"
 }

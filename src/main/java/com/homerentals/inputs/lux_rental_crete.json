@@ -3,7 +3,7 @@
   "location": "Crete",
   "nightlyRate": 120,
   "capacity": 4,
-  "numOfReviews": 5,
-  "sumOfReviews": 25,
+  "numOfRatings": 5,
+  "sumOfRatings": 25,
   "imagePath": "demo_image.png"
 }

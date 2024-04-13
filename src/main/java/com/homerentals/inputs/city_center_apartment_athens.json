@@ -1,0 +1,9 @@
+{
+  "roomName": "City Center Apartment",
+  "location": "Athens",
+  "nightlyRate": 85,
+  "capacity": 3,
+  "numOfRatings": 20,
+  "sumOfRatings": 65,
+  "imagePath": "demo_image.png"
+}

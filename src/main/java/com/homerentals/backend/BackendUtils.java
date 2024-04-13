@@ -44,12 +44,12 @@ public class BackendUtils {
             String location = input.getString("location");
             double pricePerNight = input.getDouble("nightlyRate");
             int numOfPersons = input.getInt("capacity");
-            int numOfReviews = input.getInt("numOfReviews");
-            int sumOfReviews = input.getInt("sumOfReviews");
+            int numOfRatings = input.getInt("numOfRatings");
+            int sumOfRatings = input.getInt("sumOfRatings");
             String imagePath = input.getString("imagePath");
             int rentalId = input.getInt("rentalId");
             Rental rental = new Rental(null, roomName, location, pricePerNight,
-                    numOfPersons, numOfReviews, sumOfReviews, imagePath, rentalId);
+                    numOfPersons, numOfRatings, sumOfRatings, imagePath, rentalId);
             System.out.println(rental.getId());
             return rental;
 
