@@ -10,6 +10,7 @@ public enum Requests {
     GET_RENTALS,
     NEW_BOOKING,
     NEW_RATING,
+    GET_BOOKINGS_WITH_NO_RATINGS,
 
     // Miscellaneous Requests
     CLOSE_CONNECTION,

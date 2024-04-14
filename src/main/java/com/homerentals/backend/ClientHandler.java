@@ -1,5 +1,6 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -7,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 class ClientHandler implements Runnable {
     private final Socket clientSocket;
@@ -104,9 +106,19 @@ class ClientHandler implements Runnable {
                         BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
                         break;
 
+                    case GET_BOOKINGS_WITH_NO_RATINGS:
+                        // Get result from Server.GuestAccountDAO
+                        String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        String password = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
+                        ArrayList<Booking> bookings = Server.getGuestBookings(email, password);
+                        this.sendClientSocketOutput(bookings);
+                        break;
+
                     case NEW_RATING:
-                        /* TODO: Choose worker to forward request
-                            based on hash function on rental*/
+                        // Forward request, as it is,
+                        // to worker that contains this rental
+                        int workerPort = Server.ports.get(Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
+                        Server.sendMessageToWorker(input, workerPort);
                         break;
 
                     // Host Requests

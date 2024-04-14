@@ -12,7 +12,7 @@ public class GuestAccountDAO {
     public GuestAccount find(String emailString, String passwordString) {
         if (emailToGuestAccount.containsKey(emailString)) {
             GuestAccount guestAccount = emailToGuestAccount.get(emailString);
-            if (guestAccount.equals(passwordString)) {
+            if (guestAccount.getPassword().equals(passwordString)) {
                 // Valid email, valid password
                 return guestAccount;
             } else {

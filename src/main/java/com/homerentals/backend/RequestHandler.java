@@ -164,6 +164,7 @@ class RequestHandler implements Runnable {
                             String endDateString = BackendUtils.dateFormatter.format(endDate);
                             Booking booking = new Booking(null, rental, startDateString, endDateString, bookingId);
                             rental.addBooking(booking);
+                            // TODO: Add booking to guest's list
                         }
                     }
                     System.out.println("done");
@@ -171,7 +172,23 @@ class RequestHandler implements Runnable {
                     break;
 
                 case NEW_RATING:
-                    // TODO
+                    // Parse JSON Object
+                    rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                    rental = Worker.idToRental.get(rentalId);
+                    if (rental == null) {
+                        System.err.printf("RequestHandler.run(): Rental with ID %d not found%n", rentalId);
+                        break;
+                    }
+
+                    int rating = inputBody.getInt(BackendUtils.BODY_FIELD_RATING);
+                    synchronized (rental) {
+                        System.out.println("lock");
+                        System.out.println(rental.getStars());
+                        rental.addRating(rating);
+                        // TODO: Remove booking from guest's list
+                    }
+                    System.out.println("done");
+                    System.out.println(rental.getStars());
                     break;
 
                 // Host Requests

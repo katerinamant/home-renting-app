@@ -1,5 +1,6 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,29 +83,29 @@ public class GuestConsole {
         return serverSocketObjectIn;
     }
 
-    private String connectUser() {
+    private String[] connectUser() {
         // TODO: Add DAO lookup for user
 
-        String username = "";
+        String email = "";
         System.out.print("\tWelcome back!\n" +
-                "Enter username\n> ");
+                "Enter email\n> ");
         do {
-            username = userInput.nextLine().trim();
-            if (!username.equals("guest")) {
+            email = userInput.nextLine().trim();
+            if (!email.equals("guest@example.com")) {
                 System.out.print("User not found. Try again\n> ");
             }
-        } while (!username.equals("guest"));
+        } while (!email.equals("guest@example.com"));
 
-        String input = "";
+        String password = "";
         System.out.print("Enter password\n> ");
         do {
-            input = userInput.nextLine().trim();
-            if (!input.equals("guest")) {
+            password = userInput.nextLine().trim();
+            if (!password.equals("guest")) {
                 System.out.print("Incorrect password. Try again\n> ");
             }
-        } while (!input.equals("guest"));
+        } while (!password.equals("guest"));
 
-        return username;
+        return new String[]{email, password};
     }
 
     private void printRentalsList(ArrayList<Rental> rentals) {
@@ -131,7 +132,9 @@ public class GuestConsole {
     public static void main(String[] args) {
         GuestConsole guestConsole = new GuestConsole();
 
-        String username = guestConsole.connectUser();
+        String[] userInfo = guestConsole.connectUser();
+        String email = userInfo[0];
+        String password = userInfo[1];
 
         try {
             // Establish a connection
@@ -186,7 +189,7 @@ public class GuestConsole {
                         // Receive response
                         rentalsFromLatestSearch = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
                         if (rentalsFromLatestSearch == null) {
-                            System.err.println("GuestConsole.main(): Could not receive host's rentals from Server.");
+                            System.err.println("GuestConsole.main(): Could not receive rentals from Server.");
                             break;
                         }
                         guestConsole.printRentalsList(rentalsFromLatestSearch);
@@ -231,6 +234,60 @@ public class GuestConsole {
                         break;
 
                     case RATE_RENTAL:
+                        // Get all booking with no ratings
+                        requestBody = new JSONObject();
+                        requestBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
+                        requestBody.put(BackendUtils.BODY_FIELD_GUEST_PASSWORD, password);
+                        request = BackendUtils.createRequest(Requests.GET_BOOKINGS_WITH_NO_RATINGS.name(), requestBody.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
+
+                        // Receive response
+                        ArrayList<Booking> bookings = (ArrayList<Booking>) BackendUtils.serverToClient(inputStream);
+                        if (bookings == null) {
+                            System.err.println("GuestConsole.main(): Could not receive bookings from Server.");
+                            break;
+                        }
+                        System.out.println("\n[Previous Bookings]\n");
+                        for (int i = 0; i < bookings.size(); i++) {
+                            System.out.printf("[%d] %s%n", i, bookings.get(i).getRental());
+                        }
+                        System.out.println("<-------- [End Of List] -------->");
+
+                        // Create NEQ_RATING request body
+                        requestBody = new JSONObject();
+                        System.out.print("\nChoose booking\n> ");
+                        int bookingIndex = -1;
+                        do {
+                            try {
+                                bookingIndex = Integer.parseInt(userInput.nextLine().trim());
+                                if (bookingIndex < 0 || bookingIndex >= bookings.size()) {
+                                    System.out.print("Invalid input. Try again\n> ");
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.print("Invalid input. Try again\n> ");
+                            }
+                        } while (bookingIndex < 0 || bookingIndex >= bookings.size());
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, bookings.get(bookingIndex).getRental().getId());
+
+                        System.out.print("\nRate your stay [1-5]\n> ");
+                        int rating = -1;
+                        do {
+                            try {
+                                rating = Integer.parseInt(userInput.nextLine().trim());
+                                if (rating <= 0 || rating >= 6) {
+                                    System.out.print("Invalid input. Try again\n> ");
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.print("Invalid input. Try again\n> ");
+                            }
+                        } while (rating <= 0 || rating >= 6);
+                        requestBody.put(BackendUtils.BODY_FIELD_RATING, rating);
+
+                        // Write to socket
+                        System.out.println("Writing to server...");
+                        request = BackendUtils.createRequest(Requests.NEW_RATING.name(), requestBody.toString());
+                        System.out.println(request);
+                        BackendUtils.clientToServer(outputStream, request.toString());
                         break;
 
                     default:

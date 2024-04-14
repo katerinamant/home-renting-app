@@ -1,10 +1,7 @@
 package com.homerentals.backend;
 
 import com.homerentals.dao.GuestAccountDAO;
-import com.homerentals.domain.Email;
-import com.homerentals.domain.GuestAccount;
-import com.homerentals.domain.Password;
-import com.homerentals.domain.PhoneNumber;
+import com.homerentals.domain.*;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
@@ -70,6 +67,15 @@ public class Server {
         for (int p : ports) {
             sendMessageToWorker(msg, p);
         }
+    }
+
+    protected static ArrayList<Booking> getGuestBookings(String email, String password) {
+        GuestAccount guestAccount = guestAccountDAO.find(email, password);
+        if (guestAccount == null) {
+            System.out.println("Server.getGuestBookings(): Guest account not found");
+            return null;
+        }
+        return guestAccount.getBookingsWithNoRating();
     }
 
     private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {
