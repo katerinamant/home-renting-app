@@ -67,7 +67,7 @@ public class GuestConsole {
             this.serverSocketDataOut = new DataOutputStream(this.requestSocket.getOutputStream());
             this.serverSocketObjectIn = new ObjectInputStream(this.requestSocket.getInputStream());
         } catch (IOException e) {
-            System.out.println("Client.setRequestSocket(): Error setting outputs: " + e);
+            System.out.println("GuestConsole.setRequestSocket(): Error setting outputs: " + e);
             throw e;
         }
     }
@@ -77,7 +77,7 @@ public class GuestConsole {
             this.serverSocketDataOut.writeUTF(msg);
             this.serverSocketDataOut.flush();
         } catch (IOException e) {
-            System.err.println("Client.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
+            System.err.println("GuestConsole.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
             throw e;
         }
     }
@@ -86,7 +86,7 @@ public class GuestConsole {
         try {
             return this.serverSocketObjectIn.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Client.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
+            System.err.println("GuestConsole.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
             return null;
         }
     }
@@ -166,7 +166,7 @@ public class GuestConsole {
             this.requestSocket.close();
 
         } catch (IOException e) {
-            System.out.println("Client.close(): Error closing sockets: " + e);
+            System.out.println("GuestConsole.close(): Error closing sockets: " + e);
             throw e;
         }
     }
@@ -211,17 +211,30 @@ public class GuestConsole {
                         // Read JSON file
                         JSONObject filters = BackendUtils.readFile(filePath);
                         if (filters == null) {
-                            System.err.println("Client.main(): Error reading JSON File");
+                            System.err.println("GuestConsole.main(): Error reading JSON File");
                             break;
                         }
                         requestBody = new JSONObject();
-                        requestBody.put("filters", filters.toString());
+                        requestBody.put(BackendUtils.BODY_FIELD_FILTERS, filters);
 
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), requestBody.toString());
                         System.out.println(request);
                         guestConsole.sendSocketOutput(request.toString());
+
+                        // Receive response
+                        rentals = (ArrayList<Rental>) guestConsole.readSocketObjectInput();
+                        if (rentals == null) {
+                            System.err.println("GuestConsole.main(): Could not receive host's rentals from Server.");
+                            break;
+                        }
+
+                        System.out.println("\n[Rentals List]\n");
+                        for (int i = 0; i < rentals.size(); i++) {
+                            System.out.printf("[%d] %s%n", i, rentals.get(i));
+                        }
+                        System.out.println("<-------- [End Of List] -------->");
                         break;
 
                     case BOOK_RENTAL:
@@ -236,7 +249,7 @@ public class GuestConsole {
             }
 
         } catch (IOException | JSONException e) {
-            System.out.println("Client.main(): Error: " + e);
+            System.out.println("GuestConsole.main(): Error: " + e);
             e.printStackTrace();
 
         } finally {

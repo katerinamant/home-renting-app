@@ -98,15 +98,22 @@ class RequestHandler implements Runnable {
                     // Create filters hashmap
                     HashMap<String, String> filters = new HashMap<>();
 
-                    // Iterate over each filter in Filters enum
-                    for (Filters f : Filters.values()) {
-                        String filterName = f.name();
-                        String filterValue = "";
-                        if (jsonFilters.has(filterName)) {
-                            filterValue = jsonFilters.getString(filterName);
+                    if (jsonFilters.isEmpty()) {
+                        for (Filters f : Filters.values()) {
+                            String filterName = f.name();
+                            filters.put(filterName, "");
+                            System.out.printf("Storing filter: [%s = %s]%n", filterName, "");
                         }
-                        filters.put(filterName, filterValue);
-                        System.out.printf("Storing filter: [%s = %s]%n", filterName, filterValue);
+                    } else {
+                        // Iterate over each filter in Filters enum
+                        for (Filters f : Filters.values()) {
+                            String filterName = f.name();
+                            if (jsonFilters.has(filterName)) {
+                                String filterValue = jsonFilters.getString(filterName);
+                                filters.put(filterName, filterValue);
+                                System.out.printf("Storing filter: [%s = %s]%n", filterName, filterValue);
+                            }
+                        }
                     }
 
                     System.out.println("Created filters map: " + filters);

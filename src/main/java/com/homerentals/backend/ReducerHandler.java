@@ -39,6 +39,7 @@ public class ReducerHandler implements Runnable {
                 System.err.println("ReducerHandler.run(): Error reading mapResult from Reducer.");
                 break;
             }
+            System.out.println("ReducerHandler.run(): Received result with mapId = " + mapResult.getMapId());
 
             // Put results in Server.mapReduceResults
             // and notify waiting ClientHandler threads

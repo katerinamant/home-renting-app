@@ -18,11 +18,15 @@ public class Mapper {
     public ArrayList<Rental> mapRentalsToFilters(HashMap<String, String> filters) {
         ArrayList<Rental> results = new ArrayList<>();
         for (Rental rental : rentals) {
+            boolean matchesAll = true;
             for (Map.Entry<String, String> filter : filters.entrySet()) {
-                if (rental.matchesFilter(filter.getKey(), filter.getValue())) {
-                    results.add(rental);
+                if (!rental.matchesFilter(filter.getKey(), filter.getValue())) {
+                    matchesAll = false;
                     break;
                 }
+            }
+            if (matchesAll) {
+                results.add(rental);
             }
         }
         return results;
