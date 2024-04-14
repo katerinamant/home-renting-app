@@ -143,6 +143,7 @@ public class GuestConsole {
 
             JSONObject request, requestBody;
             ArrayList<Rental> rentalsFromLatestSearch = null;
+            ArrayList<Rental> rentals;
             boolean done = false;
             while (!done) {
                 System.out.println("\n\n\t[MENU]");
@@ -191,6 +192,41 @@ public class GuestConsole {
                         break;
 
                     case BOOK_RENTAL:
+                        if (rentalsFromLatestSearch != null) {
+                            System.out.print("Display rentals from latest search? (Y/N)\n> ");
+                            String ans;
+                            do {
+                                ans = userInput.nextLine().trim();
+                                if (!ans.equals("Y") && !ans.equals("N")) {
+                                    System.out.print("Invalid input. Try again\n> ");
+                                }
+                            } while (!ans.equals("Y") && !ans.equals("N"));
+
+                            if (ans.equals("Y")) {
+                                guestConsole.printRentalsList(rentalsFromLatestSearch);
+                                rentals = rentalsFromLatestSearch;
+                            } else {
+                                rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
+                                if (rentals == null) {
+                                    System.err.println("GuestConsole.main(): Error getting Rentals list.");
+                                    break;
+                                }
+                            }
+                        } else {
+                            rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
+                            if (rentals == null) {
+                                System.err.println("GuestConsole.main(): Error getting Rentals list.");
+                                break;
+                            }
+                        }
+
+                        Rental rental = BackendUtils.chooseRentalFromList(rentals);
+                        // Get start and end days of booking
+                        requestBody = BackendUtils.getInputDatesAsJsonObject("mark available");
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
+
+                        request = BackendUtils.createRequest(Requests.NEW_BOOKING.name(), requestBody.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
                         break;
 
                     case RATE_RENTAL:

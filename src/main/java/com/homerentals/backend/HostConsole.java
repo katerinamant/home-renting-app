@@ -109,47 +109,6 @@ public class HostConsole {
         return username;
     }
 
-    /**
-     * @return JSONObject : {"startDate", "endDate"}
-     */
-    private JSONObject getInputDatesAsJsonObject(String msg) {
-        JSONObject result = new JSONObject();
-        String input = "";
-
-        System.out.printf("Enter start date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
-        boolean invalid = true;
-        while (invalid) {
-            try {
-                input = userInput.nextLine().trim();
-                LocalDate.parse(input, BackendUtils.dateFormatter);
-                invalid = false;
-            } catch (DateTimeParseException e) {
-                System.out.print("Invalid input. Try again\n> ");
-                invalid = true;
-            }
-        }
-        result.put(BackendUtils.BODY_FIELD_START_DATE, input);
-
-        System.out.printf("Enter end date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
-        invalid = true;
-        while (invalid) {
-            try {
-                input = userInput.nextLine().trim();
-                LocalDate.parse(input, BackendUtils.dateFormatter);
-                invalid = false;
-
-            } catch (DateTimeParseException e) {
-                System.out.print("Invalid input. Try again\n> ");
-                invalid = true;
-            }
-        }
-        result.put(BackendUtils.BODY_FIELD_END_DATE, input);
-
-        return result;
-    }
-
     private void close() throws IOException {
         try {
             JSONObject request = BackendUtils.createRequest(Requests.CLOSE_CONNECTION.name(), "");
@@ -222,26 +181,14 @@ public class HostConsole {
                         // Print rentals list
                         rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
                         if (rentals == null) {
-                            System.err.println("Client.main(): Error getting Rentals list.");
+                            System.err.println("HostConsole.main(): Error getting Rentals list.");
                             break;
                         }
 
-                        System.out.print("\nChoose rental\n> ");
-                        int rentalIndex = -1;
-                        do {
-                            try {
-                                rentalIndex = Integer.parseInt(userInput.nextLine().trim());
-                                if (rentalIndex < 0 || rentalIndex >= rentals.size()) {
-                                    System.out.print("Invalid input. Try again\n> ");
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.print("Invalid input. Try again\n> ");
-                            }
-                        } while (rentalIndex < 0 || rentalIndex >= rentals.size());
-
+                        Rental rental = BackendUtils.chooseRentalFromList(rentals);
                         // Get start and end days to mark available
-                        requestBody = hostConsole.getInputDatesAsJsonObject("mark available");
-                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentals.get(rentalIndex).getId());
+                        requestBody = BackendUtils.getInputDatesAsJsonObject("mark available");
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
 
                         // Write to socket
                         System.out.println("Writing to server...");
@@ -251,7 +198,7 @@ public class HostConsole {
 
                     case VIEW_RENTAL_BOOKINGS:
                         // Get start and end days to show bookings
-                        requestBody = hostConsole.getInputDatesAsJsonObject("view bookings");
+                        requestBody = BackendUtils.getInputDatesAsJsonObject("view bookings");
 
                         // Write to socket
                         System.out.println("Writing to server...");

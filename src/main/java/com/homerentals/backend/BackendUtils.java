@@ -12,9 +12,12 @@ import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Scanner;
 
 public class BackendUtils {
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
@@ -83,6 +86,48 @@ public class BackendUtils {
             System.err.println("RequestHandler.jsonToRentalObject(): Error creating Rental object from JSON: " + e);
             return null;
         }
+    }
+
+    /**
+     * @return JSONObject : {"startDate", "endDate"}
+     */
+    protected static JSONObject getInputDatesAsJsonObject(String msg) {
+        Scanner userInput = new Scanner(System.in);
+        JSONObject result = new JSONObject();
+        String input = "";
+
+        System.out.printf("Enter start date to %s\n" +
+                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
+        boolean invalid = true;
+        while (invalid) {
+            try {
+                input = userInput.nextLine().trim();
+                LocalDate.parse(input, BackendUtils.dateFormatter);
+                invalid = false;
+            } catch (DateTimeParseException e) {
+                System.out.print("Invalid input. Try again\n> ");
+                invalid = true;
+            }
+        }
+        result.put(BackendUtils.BODY_FIELD_START_DATE, input);
+
+        System.out.printf("Enter end date to %s\n" +
+                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
+        invalid = true;
+        while (invalid) {
+            try {
+                input = userInput.nextLine().trim();
+                LocalDate.parse(input, BackendUtils.dateFormatter);
+                invalid = false;
+
+            } catch (DateTimeParseException e) {
+                System.out.print("Invalid input. Try again\n> ");
+                invalid = true;
+            }
+        }
+        result.put(BackendUtils.BODY_FIELD_END_DATE, input);
+
+        return result;
     }
 
     /*
@@ -180,6 +225,25 @@ public class BackendUtils {
         }
         System.out.println("<-------- [End Of List] -------->");
         return rentals;
+    }
+
+    protected static Rental chooseRentalFromList(ArrayList<Rental> rentals) {
+        Scanner userInput = new Scanner(System.in);
+
+        System.out.print("\nChoose rental\n> ");
+        int rentalIndex = -1;
+        do {
+            try {
+                rentalIndex = Integer.parseInt(userInput.nextLine().trim());
+                if (rentalIndex < 0 || rentalIndex >= rentals.size()) {
+                    System.out.print("Invalid input. Try again\n> ");
+                }
+            } catch (NumberFormatException e) {
+                System.out.print("Invalid input. Try again\n> ");
+            }
+        } while (rentalIndex < 0 || rentalIndex >= rentals.size());
+
+        return rentals.get(rentalIndex);
     }
 
     // TODO: write to worker/reducer socket
