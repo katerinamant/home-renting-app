@@ -36,4 +36,16 @@ public class Password {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || String.class != o.getClass()) {
+            return false;
+        }
+
+        String password = (String) o;
+        return password.equals(this.password);
+    }
 }

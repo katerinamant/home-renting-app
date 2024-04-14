@@ -1,5 +1,10 @@
 package com.homerentals.backend;
 
+import com.homerentals.dao.GuestAccountDAO;
+import com.homerentals.domain.Email;
+import com.homerentals.domain.GuestAccount;
+import com.homerentals.domain.Password;
+import com.homerentals.domain.PhoneNumber;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
@@ -17,6 +22,7 @@ public class Server {
     // TODO: Replace System.out.println() with logger in log file.
     protected final static ArrayList<Integer> ports = new ArrayList<>();
     protected final static HashMap<Integer, MapResult> mapReduceResults = new HashMap<>();
+    private static final GuestAccountDAO guestAccountDAO = new GuestAccountDAO();
 
     private static int numberOfRentals;
     private static int mapId;
@@ -94,6 +100,13 @@ public class Server {
     }
 
     private static void setUp() throws IOException, InterruptedException {
+        // Add guest account
+        Email email = new Email("guest@example.com");
+        Password password = new Password("guest");
+        PhoneNumber phoneNumber = new PhoneNumber("123456789");
+        GuestAccount guestAccount = new GuestAccount(email, password, "Guest", "Guest", phoneNumber);
+        guestAccountDAO.save(guestAccount);
+
         // Add cozy_rental_crete.json
         Server.setUpRental("com/homerentals/inputs/cozy_rental_crete.json", 0, "01/01/2024", "31/12/2024");
 
