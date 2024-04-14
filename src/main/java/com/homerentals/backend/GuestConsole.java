@@ -15,6 +15,8 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class GuestConsole {
+    // TODO: Replace System.out.println() with logger in log file.
+
     private enum MENU_OPTIONS {
         EXIT("Exit", "0"),
         UPLOAD_FILTERS_FILE("Upload new filters file", "1"),
@@ -120,7 +122,6 @@ public class GuestConsole {
             this.serverSocketObjectIn.close();
             this.serverSocketDataOut.close();
             this.requestSocket.close();
-
         } catch (IOException e) {
             System.out.println("GuestConsole.close(): Error closing sockets: " + e);
             throw e;

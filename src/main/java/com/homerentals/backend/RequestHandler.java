@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDate;
@@ -15,25 +16,37 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 class RequestHandler implements Runnable {
-    private final Socket masterSocket;
-    private DataInputStream masterSocketIn = null;
+    private final Socket serverSocket;
+    private DataInputStream serverSocketIn = null;
+    private DataOutputStream serverSocketOut = null;
 
-    protected RequestHandler(Socket masterSocket) throws IOException {
-        this.masterSocket = masterSocket;
+    protected RequestHandler(Socket serverSocket) throws IOException {
+        this.serverSocket = serverSocket;
         try {
-            this.masterSocketIn = new DataInputStream(this.masterSocket.getInputStream());
+            this.serverSocketOut = new DataOutputStream(this.serverSocket.getOutputStream());
+            this.serverSocketIn = new DataInputStream(this.serverSocket.getInputStream());
         } catch (IOException e) {
             System.err.println("RequestHandler(): Error setting up stream: " + e);
             throw e;
         }
     }
 
-    private String readMasterSocketInput() {
+    private String readServerSocketInput() {
         try {
-            return this.masterSocketIn.readUTF();
+            return this.serverSocketIn.readUTF();
         } catch (IOException e) {
-            System.err.println("RequestHandler.readMasterSocketInput(): Error reading Client Socket input: " + e);
+            System.err.println("RequestHandler.readServerSocketInput(): Error reading Client Socket input: " + e);
             return null;
+        }
+    }
+
+    private void sendServerSocketOutput(String msg) throws IOException {
+        try {
+            this.serverSocketOut.writeUTF(msg);
+            this.serverSocketOut.flush();
+        } catch (IOException e) {
+            System.err.println("RequestHandler.sendServerSocketOutput(): Error sending Socket Output: " + e.getMessage());
+            throw e;
         }
     }
 
@@ -67,7 +80,7 @@ class RequestHandler implements Runnable {
     public void run() {
         String input = null;
         try {
-            input = this.readMasterSocketInput();
+            input = this.readServerSocketInput();
             if (input == null) {
                 System.err.println("RequestHandler.run(): Error reading Master Socket input");
                 return;
@@ -236,7 +249,8 @@ class RequestHandler implements Runnable {
         } finally {
             try {
                 System.out.println("Closing thread");
-                this.masterSocketIn.close();
+                this.serverSocketIn.close();
+                this.serverSocketOut.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

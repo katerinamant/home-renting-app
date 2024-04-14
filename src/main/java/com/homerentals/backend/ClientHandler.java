@@ -101,7 +101,6 @@ class ClientHandler implements Runnable {
                         break;
 
                     case NEW_BOOKING:
-                        // inputBody = {rentalId, startDate, endDate}
                         BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
                         break;
 
