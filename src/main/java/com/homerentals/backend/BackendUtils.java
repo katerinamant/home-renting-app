@@ -5,12 +5,15 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class BackendUtils {
@@ -122,6 +125,61 @@ public class BackendUtils {
         int rentalId = body.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
         int workerPort = Server.ports.get(Server.hash(rentalId));
         Server.sendMessageToWorker(request.toString(), workerPort);
+    }
+
+    protected static void clientToServer(DataOutputStream stream, String msg) throws IOException {
+        try {
+            stream.writeUTF(msg);
+            stream.flush();
+        } catch (IOException e) {
+            System.err.println("BackendUtils.clientToServer(): Error sending Socket Output: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    protected static Object serverToClient(ObjectInputStream stream) {
+        try {
+            return stream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("GuestConsole.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /*
+    Executes MapReduce request for all rentals
+    from HostConsole / GuestConsole
+     */
+    protected static ArrayList<Rental> getAllRentals(DataOutputStream dataOutputStream, ObjectInputStream objectInputStream, String username) throws IOException {
+        // Create and send request
+        JSONObject filters = new JSONObject();
+        JSONObject body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_FILTERS, filters);
+        JSONObject request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), body.toString());
+        try {
+            BackendUtils.clientToServer(dataOutputStream, request.toString());
+        } catch (IOException e) {
+            System.err.println("BackendUtils.getAllRentals(): Error sending Socket Output: " + e.getMessage());
+            throw e;
+        }
+
+        // Receive response
+        ArrayList<Rental> rentals = (ArrayList<Rental>) BackendUtils.serverToClient(objectInputStream);
+        if (rentals == null) {
+            System.err.println("BackendUtils.getAllRentals(): Could not receive host's rentals from Server.");
+            return null;
+        }
+
+        if (username != null) {
+            System.out.printf("%n[%s's Rentals List]%n%n", username);
+        } else {
+            System.out.println("\n[Rentals List]\n");
+        }
+        for (int i = 0; i < rentals.size(); i++) {
+            System.out.printf("[%d] %s%n", i, rentals.get(i));
+        }
+        System.out.println("<-------- [End Of List] -------->");
+        return rentals;
     }
 
     // TODO: write to worker/reducer socket

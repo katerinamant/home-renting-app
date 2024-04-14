@@ -72,23 +72,12 @@ public class GuestConsole {
         }
     }
 
-    private void sendSocketOutput(String msg) throws IOException {
-        try {
-            this.serverSocketDataOut.writeUTF(msg);
-            this.serverSocketDataOut.flush();
-        } catch (IOException e) {
-            System.err.println("GuestConsole.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
-            throw e;
-        }
+    public DataOutputStream getOutputStream() {
+        return serverSocketDataOut;
     }
 
-    private Object readSocketObjectInput() {
-        try {
-            return this.serverSocketObjectIn.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("GuestConsole.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
-            return null;
-        }
+    public ObjectInputStream getInputStream() {
+        return serverSocketObjectIn;
     }
 
     private String connectUser() {
@@ -116,51 +105,18 @@ public class GuestConsole {
         return username;
     }
 
-    /**
-     * @return JSONObject : {"startDate", "endDate"}
-     */
-    private JSONObject getInputDatesAsJsonObject(String msg) {
-        JSONObject result = new JSONObject();
-        String input = "";
-
-        System.out.printf("Enter start date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
-        boolean invalid = true;
-        while (invalid) {
-            try {
-                input = userInput.nextLine().trim();
-                LocalDate.parse(input, BackendUtils.dateFormatter);
-                invalid = false;
-            } catch (DateTimeParseException e) {
-                System.out.print("Invalid input. Try again\n> ");
-                invalid = true;
-            }
+    private void printRentalsList(ArrayList<Rental> rentals) {
+        System.out.println("\n[Rentals List]\n");
+        for (int i = 0; i < rentals.size(); i++) {
+            System.out.printf("[%d] %s%n", i, rentals.get(i));
         }
-        result.put(BackendUtils.BODY_FIELD_START_DATE, input);
-
-        System.out.printf("Enter end date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
-        invalid = true;
-        while (invalid) {
-            try {
-                input = userInput.nextLine().trim();
-                LocalDate.parse(input, BackendUtils.dateFormatter);
-                invalid = false;
-
-            } catch (DateTimeParseException e) {
-                System.out.print("Invalid input. Try again\n> ");
-                invalid = true;
-            }
-        }
-        result.put(BackendUtils.BODY_FIELD_END_DATE, input);
-
-        return result;
+        System.out.println("<-------- [End Of List] -------->");
     }
 
     private void close() throws IOException {
         try {
             JSONObject request = BackendUtils.createRequest(Requests.CLOSE_CONNECTION.name(), "");
-            this.sendSocketOutput(request.toString());
+            BackendUtils.clientToServer(this.serverSocketDataOut, request.toString());
             this.serverSocketObjectIn.close();
             this.serverSocketDataOut.close();
             this.requestSocket.close();
@@ -182,9 +138,11 @@ public class GuestConsole {
             System.out.println("Connecting to server...");
             requestSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
             guestConsole.setRequestSocket(requestSocket);
+            DataOutputStream outputStream = guestConsole.getOutputStream();
+            ObjectInputStream inputStream = guestConsole.getInputStream();
 
             JSONObject request, requestBody;
-            ArrayList<Rental> rentals;
+            ArrayList<Rental> rentalsFromLatestSearch = null;
             boolean done = false;
             while (!done) {
                 System.out.println("\n\n\t[MENU]");
@@ -221,20 +179,15 @@ public class GuestConsole {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), requestBody.toString());
                         System.out.println(request);
-                        guestConsole.sendSocketOutput(request.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
 
                         // Receive response
-                        rentals = (ArrayList<Rental>) guestConsole.readSocketObjectInput();
-                        if (rentals == null) {
+                        rentalsFromLatestSearch = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
+                        if (rentalsFromLatestSearch == null) {
                             System.err.println("GuestConsole.main(): Could not receive host's rentals from Server.");
                             break;
                         }
-
-                        System.out.println("\n[Rentals List]\n");
-                        for (int i = 0; i < rentals.size(); i++) {
-                            System.out.printf("[%d] %s%n", i, rentals.get(i));
-                        }
-                        System.out.println("<-------- [End Of List] -------->");
+                        guestConsole.printRentalsList(rentalsFromLatestSearch);
                         break;
 
                     case BOOK_RENTAL:

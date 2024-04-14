@@ -56,6 +56,7 @@ public class HostConsole {
     }
 
     private Socket requestSocket = null;
+
     private DataOutputStream serverSocketDataOut = null;
     private ObjectInputStream serverSocketObjectIn = null;
     private static final Scanner userInput = new Scanner(System.in);
@@ -75,23 +76,12 @@ public class HostConsole {
         }
     }
 
-    private void sendSocketOutput(String msg) throws IOException {
-        try {
-            this.serverSocketDataOut.writeUTF(msg);
-            this.serverSocketDataOut.flush();
-        } catch (IOException e) {
-            System.err.println("HostConsole.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
-            throw e;
-        }
+    public DataOutputStream getOutputStream() {
+        return serverSocketDataOut;
     }
 
-    private Object readSocketObjectInput() {
-        try {
-            return this.serverSocketObjectIn.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("HostConsole.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
-            return null;
-        }
+    public ObjectInputStream getInputStream() {
+        return serverSocketObjectIn;
     }
 
     private String connectUser() {
@@ -160,38 +150,10 @@ public class HostConsole {
         return result;
     }
 
-    private ArrayList<Rental> getAllRentals(String username) throws IOException {
-        // Create and send request
-        JSONObject filters = new JSONObject();
-        JSONObject body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_FILTERS, filters);
-        JSONObject request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), body.toString());
-        try {
-            this.sendSocketOutput(request.toString());
-        } catch (IOException e) {
-            System.err.println("HostConsole.getAllRentals(): Error sending Socket Output: " + e.getMessage());
-            throw e;
-        }
-
-        // Receive response
-        ArrayList<Rental> rentals = (ArrayList<Rental>) this.readSocketObjectInput();
-        if (rentals == null) {
-            System.err.println("HostConsole.main(): Could not receive host's rentals from Server.");
-            return null;
-        }
-
-        System.out.printf("%n[%s's Rentals List]%n%n", username);
-        for (int i = 0; i < rentals.size(); i++) {
-            System.out.printf("[%d] %s%n", i, rentals.get(i));
-        }
-        System.out.println("<-------- [End Of List] -------->");
-        return rentals;
-    }
-
     private void close() throws IOException {
         try {
             JSONObject request = BackendUtils.createRequest(Requests.CLOSE_CONNECTION.name(), "");
-            this.sendSocketOutput(request.toString());
+            BackendUtils.clientToServer(serverSocketDataOut, request.toString());
             this.serverSocketObjectIn.close();
             this.serverSocketDataOut.close();
             this.requestSocket.close();
@@ -213,6 +175,8 @@ public class HostConsole {
             System.out.println("Connecting to server...");
             requestSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
             hostConsole.setRequestSocket(requestSocket);
+            DataOutputStream outputStream = hostConsole.getOutputStream();
+            ObjectInputStream inputStream = hostConsole.getInputStream();
 
             JSONObject request, requestBody;
             ArrayList<Rental> rentals;
@@ -250,13 +214,13 @@ public class HostConsole {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.NEW_RENTAL.name(), newRental.toString());
                         System.out.println(request);
-                        hostConsole.sendSocketOutput(request.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
 
                         break;
 
                     case UPDATE_RENTAL_AVAILABILITY:
                         // Print rentals list
-                        rentals = hostConsole.getAllRentals(username);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
                         if (rentals == null) {
                             System.err.println("Client.main(): Error getting Rentals list.");
                             break;
@@ -282,7 +246,7 @@ public class HostConsole {
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), requestBody.toString());
-                        hostConsole.sendSocketOutput(request.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
                         break;
 
                     case VIEW_RENTAL_BOOKINGS:
@@ -292,10 +256,10 @@ public class HostConsole {
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.GET_BOOKINGS.name(), requestBody.toString());
-                        hostConsole.sendSocketOutput(request.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
 
                         // Receive response
-                        ArrayList<BookingsByLocation> bookingsByLocation = (ArrayList<BookingsByLocation>) hostConsole.readSocketObjectInput();
+                        ArrayList<BookingsByLocation> bookingsByLocation = (ArrayList<BookingsByLocation>) BackendUtils.serverToClient(inputStream);
                         if (bookingsByLocation == null) {
                             System.err.println("HostConsole.main(): Could not receive host's rentals from Server.");
                             break;
@@ -310,9 +274,10 @@ public class HostConsole {
                         break;
 
                     case VIEW_RENTALS:
-                        rentals = hostConsole.getAllRentals(username);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
                         if (rentals == null) {
                             System.err.println("HostConsole.main(): Error getting Rentals list.");
+                            break;
                         }
                         break;
 
