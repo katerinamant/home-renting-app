@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class GuestAccount extends AbstractAccount {
     private ArrayList<Booking> bookingsWithNoRating;
+
     protected GuestAccount() {
         super();
     }
