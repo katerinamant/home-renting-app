@@ -70,7 +70,7 @@ public class HostConsole {
             this.serverSocketDataOut = new DataOutputStream(this.requestSocket.getOutputStream());
             this.serverSocketObjectIn = new ObjectInputStream(this.requestSocket.getInputStream());
         } catch (IOException e) {
-            System.out.println("Client.setRequestSocket(): Error setting outputs: " + e);
+            System.out.println("HostConsole.setRequestSocket(): Error setting outputs: " + e);
             throw e;
         }
     }
@@ -80,7 +80,7 @@ public class HostConsole {
             this.serverSocketDataOut.writeUTF(msg);
             this.serverSocketDataOut.flush();
         } catch (IOException e) {
-            System.err.println("Client.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
+            System.err.println("HostConsole.sendSocketOutput(): Error sending Socket Output: " + e.getMessage());
             throw e;
         }
     }
@@ -89,7 +89,7 @@ public class HostConsole {
         try {
             return this.serverSocketObjectIn.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Client.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
+            System.err.println("HostConsole.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
             return null;
         }
     }
@@ -169,14 +169,14 @@ public class HostConsole {
         try {
             this.sendSocketOutput(request.toString());
         } catch (IOException e) {
-            System.err.println("Client.getAllRentals(): Error sending Socket Output: " + e.getMessage());
+            System.err.println("HostConsole.getAllRentals(): Error sending Socket Output: " + e.getMessage());
             throw e;
         }
 
         // Receive response
         ArrayList<Rental> rentals = (ArrayList<Rental>) this.readSocketObjectInput();
         if (rentals == null) {
-            System.err.println("Client.main(): Could not receive host's rentals from Server.");
+            System.err.println("HostConsole.main(): Could not receive host's rentals from Server.");
             return null;
         }
 
@@ -197,7 +197,7 @@ public class HostConsole {
             this.requestSocket.close();
 
         } catch (IOException e) {
-            System.out.println("Client.close(): Error closing sockets: " + e);
+            System.out.println("HostConsole.close(): Error closing sockets: " + e);
             throw e;
         }
     }
@@ -242,7 +242,7 @@ public class HostConsole {
                         // Read JSON file
                         JSONObject newRental = BackendUtils.readFile(filePath);
                         if (newRental == null) {
-                            System.err.println("Client.main(): Error reading JSON File");
+                            System.err.println("HostConsole.main(): Error reading JSON File");
                             break;
                         }
 
@@ -297,7 +297,7 @@ public class HostConsole {
                         // Receive response
                         ArrayList<BookingsByLocation> bookingsByLocation = (ArrayList<BookingsByLocation>) hostConsole.readSocketObjectInput();
                         if (bookingsByLocation == null) {
-                            System.err.println("Client.main(): Could not receive host's rentals from Server.");
+                            System.err.println("HostConsole.main(): Could not receive host's rentals from Server.");
                             break;
                         }
 
@@ -312,7 +312,7 @@ public class HostConsole {
                     case VIEW_RENTALS:
                         rentals = hostConsole.getAllRentals(username);
                         if (rentals == null) {
-                            System.err.println("Client.main(): Error getting Rentals list.");
+                            System.err.println("HostConsole.main(): Error getting Rentals list.");
                         }
                         break;
 
@@ -322,7 +322,7 @@ public class HostConsole {
             }
 
         } catch (IOException | JSONException e) {
-            System.out.println("Client.main(): Error: " + e);
+            System.out.println("HostConsole.main(): Error: " + e);
             e.printStackTrace();
 
         } finally {
