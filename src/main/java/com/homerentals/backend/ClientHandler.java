@@ -93,6 +93,7 @@ class ClientHandler implements Runnable {
                 Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
                 MapResult mapResult;
+                String response;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
@@ -104,7 +105,7 @@ class ClientHandler implements Runnable {
                         break;
 
                     case NEW_BOOKING:
-                        String response = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+                        response = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
                         this.sendClientSocketOutput(response);
                         break;
 
@@ -129,7 +130,8 @@ class ClientHandler implements Runnable {
                         break;
 
                     case UPDATE_AVAILABILITY:
-                        BackendUtils.executeUpdateAvailability(input, inputBody);
+                        response = BackendUtils.executeUpdateAvailability(input, inputBody);
+                        this.sendClientSocketOutput(response);
                         break;
 
                     case GET_BOOKINGS:

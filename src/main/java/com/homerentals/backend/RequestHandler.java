@@ -92,9 +92,10 @@ class RequestHandler implements Runnable {
             Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
             Rental rental;
+            JSONObject responseBody, response;
             LocalDate[] dates;
             LocalDate startDate, endDate;
-            int rentalId, mapId;
+            int rentalId, requestId, mapId;
             String bookingId;
             Mapper mapper = new Mapper(Worker.rentals);
             switch (inputHeader) {
@@ -138,7 +139,7 @@ class RequestHandler implements Runnable {
 
                 case NEW_BOOKING:
                     // Parse JSON Object
-                    int requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
+                    requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
                     dates = this.parseJsonDates(inputBody);
@@ -160,12 +161,11 @@ class RequestHandler implements Runnable {
                         System.out.println("lock");
                         if (rental.getAvailability(startDate, endDate)) {
                             // Execute booking
-                            successfulBooking = true;
-
                             String startDateString = BackendUtils.dateFormatter.format(startDate);
                             String endDateString = BackendUtils.dateFormatter.format(endDate);
                             Booking booking = new Booking(null, rental, startDateString, endDateString, bookingId);
                             rental.addBooking(booking);
+                            successfulBooking = true;
                             // TODO: Add booking to guest's list
                         }
                     }
@@ -173,9 +173,9 @@ class RequestHandler implements Runnable {
                     System.out.println(rental.getAvailability(startDate, endDate));
 
                     // Send response to Server
-                    JSONObject responseBody = new JSONObject();
+                    responseBody = new JSONObject();
                     responseBody.put(BackendUtils.BODY_FIELD_STATUS, successfulBooking ? "OK" : "ERROR");
-                    JSONObject response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
                     System.out.printf("Sending response for requestId [%d]: %s%n", requestId, response);
                     this.sendServerSocketOutput(response.toString());
                     break;
@@ -221,7 +221,8 @@ class RequestHandler implements Runnable {
                     break;
 
                 case UPDATE_AVAILABILITY:
-                    // Get Rental object from rentalId
+                    // Parse JSON object
+                    requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     rental = Worker.idToRental.get(rentalId);
                     if (rental == null) {
@@ -237,15 +238,22 @@ class RequestHandler implements Runnable {
                     }
                     startDate = dates[0];
                     endDate = dates[1];
+
+                    boolean successfulChange;
                     synchronized (rental) {
                         System.out.println("lock");
                         System.out.println(rental.getAvailability(startDate, endDate));
-                        // TODO: Add check,
-                        //  don't allow action if it is unavailable because of a booking
-                        rental.makeAvailable(startDate, endDate);
+                        successfulChange = rental.makeAvailable(startDate, endDate);
                     }
                     System.out.println("done");
                     System.out.println(rental.getAvailability(startDate, endDate));
+
+                    // Send response to Server
+                    responseBody = new JSONObject();
+                    responseBody.put(BackendUtils.BODY_FIELD_STATUS, successfulChange ? "OK" : "ERROR");
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
+                    System.out.printf("Sending response for requestId [%d]: %s%n", requestId, response);
+                    this.sendServerSocketOutput(response.toString());
                     break;
 
                 case GET_BOOKINGS:

@@ -47,4 +47,30 @@ public class Booking implements Serializable {
     public String getBookingId() {
         return this.bookingId;
     }
+
+    public boolean occursDuring(LocalDate startDate, LocalDate endDate) {
+        if (this.startDate.isEqual(startDate) || this.endDate.isEqual(endDate) ||
+                this.startDate.isEqual(endDate) || this.endDate.isEqual(startDate)){
+            // Start date or end date matches
+            // that of the time period
+            return true;
+        }
+
+        if (this.startDate.isAfter(startDate) || this.endDate.isBefore(endDate)) {
+            // The booking occurs entirely
+            // within the time period
+            return true;
+        }
+
+        if (this.startDate.isBefore(startDate) || this.endDate.isAfter(endDate)) {
+            // The booking is ongoing
+            // during the time period
+            return true;
+        }
+
+        // If part of the booking occurs
+        // within the time period, return true
+        return (this.startDate.isBefore(startDate) && this.endDate.isAfter(startDate) && this.endDate.isBefore(endDate)) ||
+                (this.startDate.isAfter(startDate) && this.startDate.isBefore(endDate) && this.endDate.isAfter(endDate));
+    }
 }

@@ -103,8 +103,17 @@ public class Rental implements Serializable {
         AvailabilitySearch.toggleAvailability(this.availability, startDate, endDate);
     }
 
-    public void makeAvailable(LocalDate startDate, LocalDate endDate) {
+    public boolean makeAvailable(LocalDate startDate, LocalDate endDate) {
+        // Do not allow this action
+        // if a booking occurs during
+        // this time period
+        for (Booking booking : this.bookings) {
+            if (booking.occursDuring(startDate, endDate)) {
+                return false;
+            }
+        }
         AvailabilitySearch.makeAvailable(this.availability, startDate, endDate);
+        return true;
     }
 
     public boolean matchesFilter(String filter, String value) {

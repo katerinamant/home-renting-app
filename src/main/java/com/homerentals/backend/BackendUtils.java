@@ -203,11 +203,11 @@ public class BackendUtils {
     Used in ClientHandler for UPDATE_AVAILABILITY request
     and Server.setUp()
      */
-    public static void executeUpdateAvailability(String input, JSONObject body) {
+    public static String executeUpdateAvailability(String input, JSONObject body) {
         // Forward request, as it is,
         // to worker that contains this rental
         int workerPort = Server.ports.get(Server.hash(body.getInt(BODY_FIELD_RENTAL_ID)));
-        Server.sendMessageToWorker(input, workerPort);
+        return Server.sendMessageToWorkerAndWaitForResponse(input, workerPort);
     }
 
     /*
@@ -252,6 +252,24 @@ public class BackendUtils {
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("BackendUtils.serverToClient(): Could not read object from server input stream: " + e.getMessage());
             return null;
+        }
+    }
+
+    protected static void handleServerResponse(ObjectInputStream stream, String successfulMsg, String unsuccessfulMsg) throws IOException {
+        // Receive responseString
+        String responseString = (String) BackendUtils.serverToClient(stream);
+        if (responseString == null) {
+            System.err.println("GuestConsole.bookNewRental(): Could not receive responseString from Server.");
+            return;
+        }
+        // Handle JSON input
+        JSONObject responseJson = new JSONObject(responseString);
+        JSONObject inputBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
+        if (status.equals("OK")) {
+            System.out.println(successfulMsg);
+        } else {
+            System.out.println(unsuccessfulMsg);
         }
     }
 

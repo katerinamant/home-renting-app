@@ -138,21 +138,7 @@ public class GuestConsole {
         JSONObject request = BackendUtils.createRequest(Requests.NEW_BOOKING.name(), requestBody.toString());
         BackendUtils.clientToServer(this.serverSocketDataOut, request.toString());
 
-        // Receive responseString
-        String responseString = (String) BackendUtils.serverToClient(this.serverSocketObjectIn);
-        if (responseString == null) {
-            System.err.println("GuestConsole.bookNewRental(): Could not receive responseString from Server.");
-            return;
-        }
-        // Handle JSON input
-        JSONObject responseJson = new JSONObject(responseString);
-        JSONObject inputBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
-        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
-        if (status.equals("OK")) {
-            System.out.println("Booking successful!");
-        } else {
-            System.out.println("Booking failed. Try again another time.");
-        }
+        BackendUtils.handleServerResponse(this.serverSocketObjectIn, "Booking successful!", "Booking failed. Try again another time.");
     }
 
     private void close() throws IOException {

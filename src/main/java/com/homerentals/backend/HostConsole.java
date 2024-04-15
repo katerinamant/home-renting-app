@@ -192,6 +192,8 @@ public class HostConsole {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), requestBody.toString());
                         BackendUtils.clientToServer(outputStream, request.toString());
+
+                        BackendUtils.handleServerResponse(hostConsole.getInputStream(), "Change successful!", "Change unsuccessful.\nCheck rental bookings and try again.");
                         break;
 
                     case VIEW_RENTAL_BOOKINGS:
