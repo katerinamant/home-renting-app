@@ -2,34 +2,36 @@ package com.homerentals.domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class Booking implements Serializable {
-
-    private final GuestAccount guest;
-    private final Rental rental;
     private final String bookingId;
+    private final int rentalId;
+    private final String guestEmail;
 
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final double rentalNightlyRate;
 
-    public Booking(GuestAccount guest, Rental rental, String startDate, String endDate, String bookingId) {
-        this.guest = guest;
-        this.rental = rental;
+    public Booking(String bookingId, int rentalId, String guestEmail, String startDate, String endDate, double rentalNightlyRate) {
+        this.bookingId = bookingId;
+        this.rentalId = rentalId;
+        this.guestEmail = guestEmail;
         this.startDate = LocalDate.parse(startDate, DomainUtils.dateFormatter);
         this.endDate = LocalDate.parse(endDate, DomainUtils.dateFormatter);
-        this.bookingId = bookingId;
+        this.rentalNightlyRate = rentalNightlyRate;
     }
 
     private double calculateTotalCost() {
-        return this.rental.getNightlyRate() * (this.endDate.getDayOfMonth() - this.startDate.getDayOfMonth());
+        return this.rentalNightlyRate * (this.endDate.getDayOfMonth() - this.startDate.getDayOfMonth());
     }
 
-    public GuestAccount getGuest() {
-        return this.guest;
+    public String getGuestEmail() {
+        return this.guestEmail;
     }
 
-    public Rental getRental() {
-        return this.rental;
+    public int getRentalId() {
+        return this.rentalId;
     }
 
     public LocalDate getStartDate() {

@@ -114,7 +114,7 @@ public class GuestConsole {
         System.out.println("<-------- [End Of List] -------->");
     }
 
-    private void bookNewRental(ArrayList<Rental> rentals) throws IOException {
+    private void bookNewRental(ArrayList<Rental> rentals, String email) throws IOException {
         // Ask user for new booking
         System.out.print("\n\nWould you like to book a rental? (Y/N)\n> ");
         String ans;
@@ -134,6 +134,7 @@ public class GuestConsole {
         // Get start and end days of booking
         JSONObject requestBody = BackendUtils.getInputDatesAsJsonObject("book rental");
         requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
+        requestBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
 
         JSONObject request = BackendUtils.createRequest(Requests.NEW_BOOKING.name(), requestBody.toString());
         BackendUtils.clientToServer(this.serverSocketDataOut, request.toString());
@@ -219,7 +220,7 @@ public class GuestConsole {
                         guestConsole.printRentalsList(rentals);
 
                         try {
-                            guestConsole.bookNewRental(rentals);
+                            guestConsole.bookNewRental(rentals, email);
                         } catch (IOException e) {
                             System.err.println("GuestConsole.main(): Error booking rental: " + e);
                         }
@@ -234,7 +235,7 @@ public class GuestConsole {
                         }
 
                         try {
-                            guestConsole.bookNewRental(rentals);
+                            guestConsole.bookNewRental(rentals, email);
                         } catch (IOException e) {
                             System.err.println("GuestConsole.main(): Error booking rental: " + e);
                         }
@@ -256,7 +257,7 @@ public class GuestConsole {
                         }
                         System.out.println("\n[Previous Bookings]\n");
                         for (int i = 0; i < bookings.size(); i++) {
-                            System.out.printf("[%d] %s%n", i, bookings.get(i).getRental());
+                            System.out.printf("[%d] %s%n", i, bookings.get(i).getRentalId());
                         }
                         System.out.println("<-------- [End Of List] -------->");
 

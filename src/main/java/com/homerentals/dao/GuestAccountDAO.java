@@ -24,6 +24,10 @@ public class GuestAccountDAO {
         return null;
     }
 
+    public GuestAccount find(String emailString) {
+        return emailToGuestAccount.get(emailString);
+    }
+
     public void save(GuestAccount guestAccount) {
         guestAccounts.add(guestAccount);
         emailToGuestAccount.put(guestAccount.getEmail().toString(), guestAccount);

@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 public class BookingTest {
     @Test
@@ -17,8 +16,8 @@ public class BookingTest {
         String bookingEndDate = "03/02/2024";
         Booking booking = new Booking(guestAccount, rental, bookingStartDate, bookingEndDate, "0");
 
-        Assert.assertEquals(guestAccount, booking.getGuest());
-        Assert.assertEquals(rental, booking.getRental());
+        Assert.assertEquals(guestAccount, booking.getGuestEmail());
+        Assert.assertEquals(rental, booking.getRentalId());
 
         final DateTimeFormatter df = DomainUtils.dateFormatter;
         LocalDate startDate = LocalDate.parse(bookingStartDate, df);

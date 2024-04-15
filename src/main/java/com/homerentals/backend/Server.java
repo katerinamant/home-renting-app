@@ -46,6 +46,15 @@ public class Server {
         return (int) Math.floor(numOfWorkers * ((rentalId * A) % 1));
     }
 
+    protected static void addBookingToGuest(String email, String bookingId, int rentalId) {
+        GuestAccount guestAccount = guestAccountDAO.find(email);
+        if (guestAccount == null) {
+            return;
+        }
+
+        guestAccount.addBooking(bookingId, rentalId);
+    }
+
     protected static String sendMessageToWorkerAndWaitForResponse(String msg, int port) {
         try (Socket workerSocket = new Socket("localhost", port);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream());
@@ -86,15 +95,6 @@ public class Server {
         for (int p : ports) {
             sendMessageToWorker(msg, p);
         }
-    }
-
-    protected static ArrayList<Booking> getGuestBookings(String email, String password) {
-        GuestAccount guestAccount = guestAccountDAO.find(email, password);
-        if (guestAccount == null) {
-            System.out.println("Server.getGuestBookings(): Guest account not found");
-            return null;
-        }
-        return guestAccount.getBookingsWithNoRating();
     }
 
     private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {

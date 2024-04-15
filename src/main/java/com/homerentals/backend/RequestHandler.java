@@ -2,12 +2,14 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Booking;
 import com.homerentals.domain.Filters;
+import com.homerentals.domain.Password;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -142,6 +144,7 @@ class RequestHandler implements Runnable {
                     requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
+                    String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
                     dates = this.parseJsonDates(inputBody);
                     if (dates == null) {
                         System.err.println("RequestHandler.run(): Error parsing dates");
@@ -163,10 +166,9 @@ class RequestHandler implements Runnable {
                             // Execute booking
                             String startDateString = BackendUtils.dateFormatter.format(startDate);
                             String endDateString = BackendUtils.dateFormatter.format(endDate);
-                            Booking booking = new Booking(null, rental, startDateString, endDateString, bookingId);
+                            Booking booking = new Booking(bookingId, rentalId, email, startDateString, endDateString, rental.getNightlyRate());
                             rental.addBooking(booking);
                             successfulBooking = true;
-                            // TODO: Add booking to guest's list
                         }
                     }
                     System.out.println("done");
@@ -174,7 +176,14 @@ class RequestHandler implements Runnable {
 
                     // Send response to Server
                     responseBody = new JSONObject();
-                    responseBody.put(BackendUtils.BODY_FIELD_STATUS, successfulBooking ? "OK" : "ERROR");
+                    if (successfulBooking) {
+                        responseBody.put(BackendUtils.BODY_FIELD_STATUS,"OK");
+                        responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
+                        responseBody.put(BackendUtils.BODY_FIELD_BOOKING_ID, bookingId);
+                        responseBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
+                    } else {
+                        responseBody.put(BackendUtils.BODY_FIELD_STATUS,"ERROR");
+                    }
                     response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
                     System.out.printf("Sending response for requestId [%d]: %s%n", requestId, response);
                     this.sendServerSocketOutput(response.toString());

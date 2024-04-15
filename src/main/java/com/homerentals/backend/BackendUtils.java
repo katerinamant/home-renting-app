@@ -264,8 +264,8 @@ public class BackendUtils {
         }
         // Handle JSON input
         JSONObject responseJson = new JSONObject(responseString);
-        JSONObject inputBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
-        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
+        JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+        String status = responseBody.getString(BackendUtils.BODY_FIELD_STATUS);
         if (status.equals("OK")) {
             System.out.println(successfulMsg);
         } else {

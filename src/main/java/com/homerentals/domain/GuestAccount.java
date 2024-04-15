@@ -1,24 +1,23 @@
 package com.homerentals.domain;
 
-import java.util.ArrayList;
-
 public class GuestAccount extends AbstractAccount {
-    private ArrayList<Booking> bookingsWithNoRating;
+    private final BookingsReference bookingsReference;
 
     protected GuestAccount() {
         super();
+        this.bookingsReference = new BookingsReference();
     }
 
     public GuestAccount(Email email, Password password, String firstName, String lastName, PhoneNumber phoneNumber) {
         super(email, password, firstName, lastName, phoneNumber);
-        this.bookingsWithNoRating = new ArrayList<>();
+        this.bookingsReference = new BookingsReference();
     }
 
-    public ArrayList<Booking> getBookingsWithNoRating() {
-        return this.bookingsWithNoRating;
+    public BookingsReference getBookingsReference() {
+        return this.bookingsReference;
     }
 
-    public void addBooking(Booking booking) {
-        this.bookingsWithNoRating.add(booking);
+    public void addBooking(String bookingId, int rentalId) {
+        this.bookingsReference.addBooking(bookingId, rentalId);
     }
 }

@@ -106,6 +106,17 @@ class ClientHandler implements Runnable {
 
                     case NEW_BOOKING:
                         response = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+
+                        // Handle JSON input
+                        JSONObject responseJson = new JSONObject(response);
+                        JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+                        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
+                        if (status.equals("OK")) {
+                            String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                            String bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
+                            int rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                            Server.addBookingToGuest(email, bookingId, rentalId);
+                        }
                         this.sendClientSocketOutput(response);
                         break;
 
@@ -113,8 +124,8 @@ class ClientHandler implements Runnable {
                         // Get result from Server.GuestAccountDAO
                         String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
                         String password = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
-                        ArrayList<Booking> bookings = Server.getGuestBookings(email, password);
-                        this.sendClientSocketOutput(bookings);
+                        // ArrayList<Booking> bookings = Server.getGuestBookings(email, password);
+                        // this.sendClientSocketOutput(bookings);
                         break;
 
                     case NEW_RATING:
