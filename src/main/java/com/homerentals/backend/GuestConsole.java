@@ -19,7 +19,7 @@ public class GuestConsole {
     private enum MENU_OPTIONS {
         EXIT("Exit", "0"),
         UPLOAD_FILTERS_FILE("Upload new filters file", "1"),
-        BOOK_RENTAL("Book a rental", "2"),
+        VIEW_ALL_RENTALS("View all rentals", "2"),
         RATE_RENTAL("Rate a rental", "3");
 
         private final String menuText;
@@ -114,6 +114,47 @@ public class GuestConsole {
         System.out.println("<-------- [End Of List] -------->");
     }
 
+    private void bookNewRental(ArrayList<Rental> rentals) throws IOException {
+        // Ask user for new booking
+        System.out.print("\n\nWould you like to book a rental? (Y/N)\n> ");
+        String ans;
+        do {
+            ans = userInput.nextLine().trim();
+            if (!ans.equalsIgnoreCase("Y") && !ans.equalsIgnoreCase("N")) {
+                System.out.print("Invalid input. Try again\n> ");
+            }
+        } while (!ans.equalsIgnoreCase("Y") && !ans.equalsIgnoreCase("N"));
+
+        if (ans.equalsIgnoreCase("N")) {
+            return;
+        }
+
+        this.printRentalsList(rentals);
+        Rental rental = BackendUtils.chooseRentalFromList(rentals);
+        // Get start and end days of booking
+        JSONObject requestBody = BackendUtils.getInputDatesAsJsonObject("book rental");
+        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
+
+        JSONObject request = BackendUtils.createRequest(Requests.NEW_BOOKING.name(), requestBody.toString());
+        BackendUtils.clientToServer(this.serverSocketDataOut, request.toString());
+
+        // Receive responseString
+        String responseString = (String) BackendUtils.serverToClient(this.serverSocketObjectIn);
+        if (responseString == null) {
+            System.err.println("GuestConsole.bookNewRental(): Could not receive responseString from Server.");
+            return;
+        }
+        // Handle JSON input
+        JSONObject responseJson = new JSONObject(responseString);
+        JSONObject inputBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
+        if (status.equals("OK")) {
+            System.out.println("Booking successful!");
+        } else {
+            System.out.println("Booking failed. Try again another time.");
+        }
+    }
+
     private void close() throws IOException {
         try {
             JSONObject request = BackendUtils.createRequest(Requests.CLOSE_CONNECTION.name(), "");
@@ -144,7 +185,6 @@ public class GuestConsole {
             ObjectInputStream inputStream = guestConsole.getInputStream();
 
             JSONObject request, requestBody;
-            ArrayList<Rental> rentalsFromLatestSearch = null;
             ArrayList<Rental> rentals;
             boolean done = false;
             while (!done) {
@@ -185,65 +225,32 @@ public class GuestConsole {
                         BackendUtils.clientToServer(outputStream, request.toString());
 
                         // Receive responseString
-                        rentalsFromLatestSearch = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
-                        if (rentalsFromLatestSearch == null) {
+                        rentals = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
+                        if (rentals == null) {
                             System.err.println("GuestConsole.main(): Could not receive rentals from Server.");
                             break;
                         }
-                        guestConsole.printRentalsList(rentalsFromLatestSearch);
+                        guestConsole.printRentalsList(rentals);
+
+                        try {
+                            guestConsole.bookNewRental(rentals);
+                        } catch (IOException e) {
+                            System.err.println("GuestConsole.main(): Error booking rental: " + e);
+                        }
+
                         break;
 
-                    case BOOK_RENTAL:
-                        if (rentalsFromLatestSearch != null) {
-                            System.out.print("Display rentals from latest search? (Y/N)\n> ");
-                            String ans;
-                            do {
-                                ans = userInput.nextLine().trim();
-                                if (!ans.equals("Y") && !ans.equals("N")) {
-                                    System.out.print("Invalid input. Try again\n> ");
-                                }
-                            } while (!ans.equals("Y") && !ans.equals("N"));
-
-                            if (ans.equalsIgnoreCase("Y")) {
-                                guestConsole.printRentalsList(rentalsFromLatestSearch);
-                                rentals = rentalsFromLatestSearch;
-                            } else {
-                                rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
-                                if (rentals == null) {
-                                    System.err.println("GuestConsole.main(): Error getting Rentals list.");
-                                    break;
-                                }
-                            }
-                        } else {
-                            rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
-                            if (rentals == null) {
-                                System.err.println("GuestConsole.main(): Error getting Rentals list.");
-                                break;
-                            }
-                        }
-
-                        Rental rental = BackendUtils.chooseRentalFromList(rentals);
-                        // Get start and end days of booking
-                        requestBody = BackendUtils.getInputDatesAsJsonObject("book rental");
-                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
-
-                        request = BackendUtils.createRequest(Requests.NEW_BOOKING.name(), requestBody.toString());
-                        BackendUtils.clientToServer(outputStream, request.toString());
-
-                        // Receive responseString
-                        String responseString = (String) BackendUtils.serverToClient(inputStream);
-                        if (responseString == null) {
-                            System.err.println("GuestConsole.main(): Could not receive responseString from Server.");
+                    case VIEW_ALL_RENTALS:
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
+                        if (rentals == null) {
+                            System.err.println("GuestConsole.main(): Error getting Rentals list.");
                             break;
                         }
-                        // Handle JSON input
-                        JSONObject responseJson = new JSONObject(responseString);
-                        JSONObject inputBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
-                        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
-                        if (status.equals("OK")) {
-                            System.out.println("Booking successful!");
-                        } else {
-                            System.out.println("Booking failed. Try again another time.");
+
+                        try {
+                            guestConsole.bookNewRental(rentals);
+                        } catch (IOException e) {
+                            System.err.println("GuestConsole.main(): Error booking rental: " + e);
                         }
                         break;
 
@@ -267,7 +274,11 @@ public class GuestConsole {
                         }
                         System.out.println("<-------- [End Of List] -------->");
 
-                        // Create NEQ_RATING request body
+                        if (bookings.isEmpty()) {
+                            break;
+                        }
+
+                        // Create NEW_RATING request body
                         requestBody = new JSONObject();
                         System.out.print("\nChoose booking\n> ");
                         int bookingIndex = -1;
