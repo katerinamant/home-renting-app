@@ -184,7 +184,7 @@ public class GuestConsole {
                         System.out.println(request);
                         BackendUtils.clientToServer(outputStream, request.toString());
 
-                        // Receive response
+                        // Receive responseString
                         rentalsFromLatestSearch = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
                         if (rentalsFromLatestSearch == null) {
                             System.err.println("GuestConsole.main(): Could not receive rentals from Server.");
@@ -204,7 +204,7 @@ public class GuestConsole {
                                 }
                             } while (!ans.equals("Y") && !ans.equals("N"));
 
-                            if (ans.equals("Y")) {
+                            if (ans.equalsIgnoreCase("Y")) {
                                 guestConsole.printRentalsList(rentalsFromLatestSearch);
                                 rentals = rentalsFromLatestSearch;
                             } else {
@@ -224,11 +224,27 @@ public class GuestConsole {
 
                         Rental rental = BackendUtils.chooseRentalFromList(rentals);
                         // Get start and end days of booking
-                        requestBody = BackendUtils.getInputDatesAsJsonObject("mark available");
+                        requestBody = BackendUtils.getInputDatesAsJsonObject("book rental");
                         requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
 
                         request = BackendUtils.createRequest(Requests.NEW_BOOKING.name(), requestBody.toString());
                         BackendUtils.clientToServer(outputStream, request.toString());
+
+                        // Receive responseString
+                        String responseString = (String) BackendUtils.serverToClient(inputStream);
+                        if (responseString == null) {
+                            System.err.println("GuestConsole.main(): Could not receive responseString from Server.");
+                            break;
+                        }
+                        // Handle JSON input
+                        JSONObject responseJson = new JSONObject(responseString);
+                        JSONObject inputBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+                        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
+                        if (status.equals("OK")) {
+                            System.out.println("Booking successful!");
+                        } else {
+                            System.out.println("Booking failed. Try again another time.");
+                        }
                         break;
 
                     case RATE_RENTAL:

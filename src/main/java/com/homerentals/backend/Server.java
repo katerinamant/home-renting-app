@@ -5,9 +5,7 @@ import com.homerentals.domain.*;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -22,11 +20,16 @@ public class Server {
     private static final GuestAccountDAO guestAccountDAO = new GuestAccountDAO();
 
     private static int numberOfRentals;
+    private static int numberOfRequests;
     private static int mapId;
     private static int bookingId;
 
     public static int getNextRentalId() {
         return numberOfRentals++;
+    }
+
+    public static int getNextRequestId() {
+        return numberOfRequests++;
     }
 
     public static int getNextMapId() {
@@ -43,6 +46,22 @@ public class Server {
         return (int) Math.floor(numOfWorkers * ((rentalId * A) % 1));
     }
 
+    protected static String sendMessageToWorkerAndWaitForResponse(String msg, int port) {
+        try (Socket workerSocket = new Socket("localhost", port);
+             DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream());
+             DataInputStream workerSocketInput = new DataInputStream(workerSocket.getInputStream());
+        ) {
+            workerSocketOutput.writeUTF(msg);
+            workerSocketOutput.flush();
+
+            // Receive response
+            return workerSocketInput.readUTF();
+        } catch (IOException e) {
+            System.err.printf("Server.writeToWorkerSocketAndWaitForResponse(): Failed to set up Socket to Worker: %d%n%s%n", port, e);
+            return null;
+        }
+    }
+
     private static void writeToWorkerSocket(String msg, int port) throws IOException {
         try (Socket workerSocket = new Socket("localhost", port);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream())
@@ -50,7 +69,7 @@ public class Server {
             workerSocketOutput.writeUTF(msg);
             workerSocketOutput.flush();
         } catch (IOException e) {
-            System.err.println("Server.writeToWorkerSocket(): Failed to write to Worker:" + port);
+            System.err.println("Server.writeToWorkerSocket(): Failed to write to Worker: " + port);
             throw e;
         }
     }
@@ -81,6 +100,7 @@ public class Server {
     private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {
         JSONObject rentalJson = BackendUtils.readFile(path);
         if (rentalJson != null) {
+            rentalJson.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
             BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
         } else {
             return;
@@ -92,6 +112,7 @@ public class Server {
         body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
+        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
         BackendUtils.executeUpdateAvailability(request.toString(), body);
         Thread.sleep(1000);
@@ -101,6 +122,7 @@ public class Server {
         body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
         body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
         body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
+        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
         Thread.sleep(1000);
     }

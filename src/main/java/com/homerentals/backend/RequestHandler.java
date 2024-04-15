@@ -6,9 +6,7 @@ import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -140,6 +138,7 @@ class RequestHandler implements Runnable {
 
                 case NEW_BOOKING:
                     // Parse JSON Object
+                    int requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
                     dates = this.parseJsonDates(inputBody);
@@ -156,10 +155,13 @@ class RequestHandler implements Runnable {
                         break;
                     }
 
-                    // TODO: Add response for successful / unsuccessful booking
+                    boolean successfulBooking = false;
                     synchronized (rental) {
                         System.out.println("lock");
                         if (rental.getAvailability(startDate, endDate)) {
+                            // Execute booking
+                            successfulBooking = true;
+
                             String startDateString = BackendUtils.dateFormatter.format(startDate);
                             String endDateString = BackendUtils.dateFormatter.format(endDate);
                             Booking booking = new Booking(null, rental, startDateString, endDateString, bookingId);
@@ -169,6 +171,13 @@ class RequestHandler implements Runnable {
                     }
                     System.out.println("done");
                     System.out.println(rental.getAvailability(startDate, endDate));
+
+                    // Send response to Server
+                    JSONObject responseBody = new JSONObject();
+                    responseBody.put(BackendUtils.BODY_FIELD_STATUS, successfulBooking ? "OK" : "ERROR");
+                    JSONObject response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
+                    System.out.printf("Sending response for requestId [%d]: %s%n", requestId, response);
+                    this.sendServerSocketOutput(response.toString());
                     break;
 
                 case NEW_RATING:
@@ -243,6 +252,10 @@ class RequestHandler implements Runnable {
                     // Parse JSON Message
                     mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
                     dates = this.parseJsonDates(inputBody);
+                    if (dates == null) {
+                        System.err.println("RequestHandler.run(): Error parsing dates");
+                        break;
+                    }
                     startDate = dates[0];
                     endDate = dates[1];
 
@@ -260,7 +273,7 @@ class RequestHandler implements Runnable {
                     System.err.println("RequestHandler.run(): Request type not recognized.");
                     break;
             }
-        } catch (JSONException e) {
+        } catch (IOException | RuntimeException e) {
             System.err.println("RequestHandler.run(): Error: " + e);
             e.printStackTrace();
         } finally {

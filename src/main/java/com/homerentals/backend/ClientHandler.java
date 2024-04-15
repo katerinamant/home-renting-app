@@ -46,10 +46,11 @@ class ClientHandler implements Runnable {
     }
 
     private MapResult performMapReduce(Requests header, JSONObject body) throws InterruptedException {
+        int requestId = body.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
         // Create MapReduce Request
         int mapId = Server.getNextMapId();
         body.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
-        JSONObject request = BackendUtils.createRequest(header.toString(), body.toString());
+        JSONObject request = BackendUtils.createRequest(header.toString(), body.toString(), requestId);
 
         // Send request to all workers
         Server.sendMessageToWorkers(request.toString(), Server.ports);
@@ -103,7 +104,8 @@ class ClientHandler implements Runnable {
                         break;
 
                     case NEW_BOOKING:
-                        BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+                        String response = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+                        this.sendClientSocketOutput(response);
                         break;
 
                     case GET_BOOKINGS_WITH_NO_RATINGS:

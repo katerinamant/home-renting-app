@@ -30,6 +30,7 @@ public class BackendUtils {
     public static final String MESSAGE_TYPE_REQUEST = "request";
     public static final String MESSAGE_TYPE_RESPONSE = "response";
 
+    public static final String BODY_FIELD_REQUEST_ID = "requestId";
     public static final String BODY_FIELD_FILTERS = "filters";
     public static final String BODY_FIELD_MAP_ID = "mapId";
     public static final String BODY_FIELD_FOR_RENTALS = "forRentals";
@@ -42,16 +43,53 @@ public class BackendUtils {
     public static final String BODY_FIELD_GUEST_PASSWORD = "guestPassword";
     public static final String BODY_FIELD_RATING = "rating";
 
+    public static final String BODY_FIELD_STATUS = "status";
+
     public static final int SERVER_PORT = 8080;
     public static final int REDUCER_PORT = 4040;
 
+
+    /*
+    Creates new request and adds new requestId
+     */
     public static JSONObject createRequest(String header, String body) {
         JSONObject request = new JSONObject();
         request.put(MESSAGE_TYPE, MESSAGE_TYPE_REQUEST);
         request.put(MESSAGE_HEADER, header);
+
+        // Add request id to request body
+        if (body.isEmpty()) body = "{}";
+        JSONObject bodyJson = new JSONObject(body);
+        bodyJson.put(BODY_FIELD_REQUEST_ID, Server.getNextRequestId());
+
+        request.put(MESSAGE_BODY, bodyJson.toString());
+        return request;
+    }
+
+    /*
+    Used to forward a request,
+    already containing a requestId
+     */
+    public static JSONObject createRequest(String header, String body, int requestId) {
+        JSONObject request = new JSONObject();
+        request.put(MESSAGE_TYPE, MESSAGE_TYPE_RESPONSE);
+        request.put(MESSAGE_HEADER, header);
         if (body.isEmpty()) body = "{}";
         request.put(MESSAGE_BODY, body);
         return request;
+    }
+
+    public static JSONObject createResponse(String header, String body, int requestId) {
+        JSONObject response = new JSONObject();
+        response.put(MESSAGE_TYPE, MESSAGE_TYPE_RESPONSE);
+        response.put(MESSAGE_HEADER, header);
+
+        // Add request id to request body
+        JSONObject bodyJson = new JSONObject(body);
+        bodyJson.put(BODY_FIELD_REQUEST_ID, requestId);
+
+        response.put(MESSAGE_BODY, bodyJson.toString());
+        return response;
     }
 
     public static JSONObject readFile(String path) {
@@ -97,39 +135,49 @@ public class BackendUtils {
      */
     protected static JSONObject getInputDatesAsJsonObject(String msg) {
         Scanner userInput = new Scanner(System.in);
+        LocalDate startDate = null;
+        LocalDate endDate = null;
         JSONObject result = new JSONObject();
         String input = "";
+        boolean validTimePeriod = false;
+        while (!validTimePeriod) {
+            System.out.printf("Enter start date to %s\n" +
+                    "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
+            boolean invalidDateInput = true;
+            while (invalidDateInput) {
+                try {
+                    input = userInput.nextLine().trim();
+                    startDate = LocalDate.parse(input, dateFormatter);
+                    invalidDateInput = false;
+                } catch (DateTimeParseException e) {
+                    System.out.print("Invalid input. Try again\n> ");
+                    invalidDateInput = true;
+                }
+            }
+            result.put(BODY_FIELD_START_DATE, input);
 
-        System.out.printf("Enter start date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
-        boolean invalid = true;
-        while (invalid) {
-            try {
-                input = userInput.nextLine().trim();
-                LocalDate.parse(input, BackendUtils.dateFormatter);
-                invalid = false;
-            } catch (DateTimeParseException e) {
-                System.out.print("Invalid input. Try again\n> ");
-                invalid = true;
+            System.out.printf("Enter end date to %s\n" +
+                    "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
+            invalidDateInput = true;
+            while (invalidDateInput) {
+                try {
+                    input = userInput.nextLine().trim();
+                    endDate = LocalDate.parse(input, dateFormatter);
+                    invalidDateInput = false;
+
+                } catch (DateTimeParseException e) {
+                    System.out.print("Invalid input. Try again\n> ");
+                    invalidDateInput = true;
+                }
+            }
+
+            if (startDate.isBefore(endDate)) {
+                validTimePeriod = true;
+                result.put(BODY_FIELD_END_DATE, input);
+            } else {
+                System.out.print("Invalid dates. Try again\n> ");
             }
         }
-        result.put(BackendUtils.BODY_FIELD_START_DATE, input);
-
-        System.out.printf("Enter end date to %s\n" +
-                "Dates should be in the format of: dd/MM/yyyy\n> ", msg);
-        invalid = true;
-        while (invalid) {
-            try {
-                input = userInput.nextLine().trim();
-                LocalDate.parse(input, BackendUtils.dateFormatter);
-                invalid = false;
-
-            } catch (DateTimeParseException e) {
-                System.out.print("Invalid input. Try again\n> ");
-                invalid = true;
-            }
-        }
-        result.put(BackendUtils.BODY_FIELD_END_DATE, input);
 
         return result;
     }
@@ -139,10 +187,12 @@ public class BackendUtils {
     and Server.setUp()
      */
     protected static void executeNewRentalRequest(JSONObject body, String header) {
+        int requestId = body.getInt(BODY_FIELD_REQUEST_ID);
+
         // Add new rentalId to requestBody
         int rentalId = Server.getNextRentalId();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
-        JSONObject request = BackendUtils.createRequest(header, body.toString());
+        body.put(BODY_FIELD_RENTAL_ID, rentalId);
+        JSONObject request = createRequest(header, body.toString(), requestId);
 
         // Forward new request to worker that will contain this rental
         int workerPort = Server.ports.get(Server.hash(rentalId));
@@ -156,7 +206,7 @@ public class BackendUtils {
     public static void executeUpdateAvailability(String input, JSONObject body) {
         // Forward request, as it is,
         // to worker that contains this rental
-        int workerPort = Server.ports.get(Server.hash(body.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
+        int workerPort = Server.ports.get(Server.hash(body.getInt(BODY_FIELD_RENTAL_ID)));
         Server.sendMessageToWorker(input, workerPort);
     }
 
@@ -164,18 +214,24 @@ public class BackendUtils {
     Used in ClientHandler for NEW_BOOKING request
     and Server.setUp()
      */
-    protected static void executeNewBookingRequest(JSONObject body, String header) {
+    protected static String executeNewBookingRequest(JSONObject body, String header) {
+        int requestId = body.getInt(BODY_FIELD_REQUEST_ID);
+
         // Add new bookingId to requestBody
         String bookingId = Server.getNextBookingId();
-        body.put(BackendUtils.BODY_FIELD_BOOKING_ID, bookingId);
-        JSONObject request = BackendUtils.createRequest(header, body.toString());
+        body.put(BODY_FIELD_BOOKING_ID, bookingId);
+        JSONObject request = createRequest(header, body.toString(), requestId);
 
         // Forward new request to worker that contains this rental
-        int rentalId = body.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+        int rentalId = body.getInt(BODY_FIELD_RENTAL_ID);
         int workerPort = Server.ports.get(Server.hash(rentalId));
-        Server.sendMessageToWorker(request.toString(), workerPort);
+        return Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
     }
 
+    /*
+    Used by HostConsole and GuestConsole clients
+    to send requests to Server
+     */
     protected static void clientToServer(DataOutputStream stream, String msg) throws IOException {
         try {
             stream.writeUTF(msg);
@@ -186,11 +242,15 @@ public class BackendUtils {
         }
     }
 
+    /*
+    Used by HostConsole and GuestConsole clients
+    to receive responses from Server
+     */
     protected static Object serverToClient(ObjectInputStream stream) {
         try {
             return stream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("GuestConsole.readSocketObjectInput(): Could not read object from server input stream: " + e.getMessage());
+            System.err.println("BackendUtils.serverToClient(): Could not read object from server input stream: " + e.getMessage());
             return null;
         }
     }
@@ -203,17 +263,17 @@ public class BackendUtils {
         // Create and send request
         JSONObject filters = new JSONObject();
         JSONObject body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_FILTERS, filters);
-        JSONObject request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), body.toString());
+        body.put(BODY_FIELD_FILTERS, filters);
+        JSONObject request = createRequest(Requests.GET_RENTALS.name(), body.toString());
         try {
-            BackendUtils.clientToServer(dataOutputStream, request.toString());
+            clientToServer(dataOutputStream, request.toString());
         } catch (IOException e) {
             System.err.println("BackendUtils.getAllRentals(): Error sending Socket Output: " + e.getMessage());
             throw e;
         }
 
         // Receive response
-        ArrayList<Rental> rentals = (ArrayList<Rental>) BackendUtils.serverToClient(objectInputStream);
+        ArrayList<Rental> rentals = (ArrayList<Rental>) serverToClient(objectInputStream);
         if (rentals == null) {
             System.err.println("BackendUtils.getAllRentals(): Could not receive host's rentals from Server.");
             return null;
