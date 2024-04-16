@@ -14,7 +14,7 @@ public class BookingTest {
                 50.0, 2, 5, 20,"\\path", 0);
         String bookingStartDate = "01/02/2024";
         String bookingEndDate = "03/02/2024";
-        Booking booking = new Booking(guestAccount, rental, bookingStartDate, bookingEndDate, "0");
+        Booking booking = new Booking("0", rental.getId(),"guest@example.com", bookingStartDate, bookingEndDate, rental.getNightlyRate());
 
         Assert.assertEquals(guestAccount, booking.getGuestEmail());
         Assert.assertEquals(rental, booking.getRentalId());
