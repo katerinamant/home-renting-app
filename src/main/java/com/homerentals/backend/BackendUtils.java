@@ -21,6 +21,9 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class BackendUtils {
+    public static final String inputsPath = "com/homerentals/inputs/";
+    public static final String filtersPath = "com/homerentals/inputs/filters/";
+
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
 
     public static final String MESSAGE_TYPE = "type";
@@ -33,9 +36,7 @@ public class BackendUtils {
     public static final String BODY_FIELD_REQUEST_ID = "requestId";
     public static final String BODY_FIELD_FILTERS = "filters";
     public static final String BODY_FIELD_MAP_ID = "mapId";
-    public static final String BODY_FIELD_FOR_RENTALS = "forRentals";
     public static final String BODY_FIELD_RENTAL_ID = "rentalId";
-    public static final String BODY_FIELD_RENTAL_LIST = "rentalList";
     public static final String BODY_FIELD_START_DATE = "startDate";
     public static final String BODY_FIELD_END_DATE = "endDate";
     public static final String BODY_FIELD_BOOKING_ID = "bookingId";
@@ -98,12 +99,12 @@ public class BackendUtils {
         try {
             InputStream is = Files.newInputStream(Paths.get(path));
             String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
-            System.out.println(jsonTxt);
+            System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
             return new JSONObject(jsonTxt);
         } catch (IOException | JSONException e) {
             // Could not find file or
             // File is not valid JSON Object
-            System.err.println("Client.readFile(): Error reading JSON File: " + e.getMessage());
+            System.err.println("\n! Client.readFile(): Error reading JSON File:\n" + e);
             return null;
         }
     }
@@ -119,14 +120,11 @@ public class BackendUtils {
             int sumOfRatings = input.getInt("sumOfRatings");
             String imagePath = input.getString("imagePath");
             int rentalId = input.getInt("rentalId");
-            Rental rental = new Rental(null, roomName, location, pricePerNight,
+            return new Rental(null, roomName, location, pricePerNight,
                     numOfPersons, numOfRatings, sumOfRatings, imagePath, rentalId);
-            System.out.println(rental.getId());
-            return rental;
-
         } catch (JSONException e) {
             // String is not valid JSON object
-            System.err.println("RequestHandler.jsonToRentalObject(): Error creating Rental object from JSON: " + e);
+            System.err.println("\n! RequestHandler.jsonToRentalObject(): Error creating Rental object from JSON:\n" + e);
             return null;
         }
     }
@@ -155,7 +153,7 @@ public class BackendUtils {
                     startDate = LocalDate.parse(input, dateFormatter);
                     invalidDateInput = false;
                 } catch (DateTimeParseException e) {
-                    System.out.print("Invalid input. Try again\n> ");
+                    System.out.print("Invalid input! Try again.\n> ");
                     invalidDateInput = true;
                 }
             }
@@ -171,7 +169,7 @@ public class BackendUtils {
                     invalidDateInput = false;
 
                 } catch (DateTimeParseException e) {
-                    System.out.print("Invalid input. Try again\n> ");
+                    System.out.print("Invalid input! Try again.\n> ");
                     invalidDateInput = true;
                 }
             }
@@ -180,7 +178,7 @@ public class BackendUtils {
                 validTimePeriod = true;
                 result.put(BODY_FIELD_END_DATE, input);
             } else {
-                System.out.print("Invalid dates. Try again\n> ");
+                System.out.print("Invalid dates! Try again.\n> ");
             }
         }
 
@@ -268,7 +266,7 @@ public class BackendUtils {
             stream.writeUTF(msg);
             stream.flush();
         } catch (IOException e) {
-            System.err.println("BackendUtils.clientToServer(): Error sending Socket Output: " + e.getMessage());
+            System.err.println("\n! BackendUtils.clientToServer(): Error sending Socket Output:\n" + e);
             throw e;
         }
     }
@@ -281,7 +279,7 @@ public class BackendUtils {
         try {
             return stream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("BackendUtils.serverToClient(): Could not read object from server input stream: " + e.getMessage());
+            System.err.println("\n! BackendUtils.serverToClient(): Could not read object from server input stream:\n" + e);
             return null;
         }
     }
@@ -290,7 +288,7 @@ public class BackendUtils {
         // Receive responseString
         String responseString = (String) BackendUtils.serverToClient(stream);
         if (responseString == null) {
-            System.err.println("GuestConsole.bookNewRental(): Could not receive responseString from Server.");
+            System.err.println("\n! BackendUtils.handleServerResponse(): Could not receive responseString from Server.");
             return;
         }
         // Handle JSON input
@@ -317,14 +315,14 @@ public class BackendUtils {
         try {
             clientToServer(dataOutputStream, request.toString());
         } catch (IOException e) {
-            System.err.println("BackendUtils.getAllRentals(): Error sending Socket Output: " + e.getMessage());
+            System.err.println("\n! BackendUtils.getAllRentals(): Error sending Socket Output:\n" + e);
             throw e;
         }
 
         // Receive response
         ArrayList<Rental> rentals = (ArrayList<Rental>) serverToClient(objectInputStream);
         if (rentals == null) {
-            System.err.println("BackendUtils.getAllRentals(): Could not receive host's rentals from Server.");
+            System.err.println("\n! BackendUtils.getAllRentals(): Could not receive host's rentals from Server.");
             return null;
         }
 
@@ -349,10 +347,10 @@ public class BackendUtils {
             try {
                 rentalIndex = Integer.parseInt(userInput.nextLine().trim());
                 if (rentalIndex < 0 || rentalIndex >= rentals.size()) {
-                    System.out.print("Invalid input. Try again\n> ");
+                    System.out.print("Invalid input! Try again.\n> ");
                 }
             } catch (NumberFormatException e) {
-                System.out.print("Invalid input. Try again\n> ");
+                System.out.print("Invalid input! Try again.\n> ");
             }
         } while (rentalIndex < 0 || rentalIndex >= rentals.size());
 

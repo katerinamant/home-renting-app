@@ -18,7 +18,7 @@ public class Reducer {
         try {
             return in.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Reducer.readWorkerSocketInput(): " + e.getMessage());
+            System.err.println("\n! Reducer.readWorkerSocketInput(): Error reading worker socket input:\n" + e);
             return null;
         }
     }
@@ -28,7 +28,7 @@ public class Reducer {
             out.writeObject(output);
             out.flush();
         } catch (IOException e) {
-            System.err.println("Reducer.writeToServerSocket(): " + e.getMessage());
+            System.err.println("\n! Reducer.writeToServerSocket(): Error writing to server socket:\n" + e);
         }
     }
 
@@ -50,30 +50,30 @@ public class Reducer {
                 while (true) {
                     // Accept connection from worker
                     Socket workerSocket = reducerSocket.accept();
-                    System.out.println("> New worker connected " + workerSocket.getRemoteSocketAddress());
+                    System.out.println("\n> New worker connected " + workerSocket.getRemoteSocketAddress());
 
                     // Get message from worker
                     ObjectInputStream workerSocketInput = new ObjectInputStream(workerSocket.getInputStream());
                     MapResult workerInput = (MapResult) readWorkerSocketInput(workerSocketInput);
                     if (workerInput == null) {
-                        System.err.println("ReduceSearch.main(): Error reading worker socket input.");
+                        System.err.println("\n! ReduceSearch.main(): Error reading worker socket input.");
                         break;
                     }
 
                     // Parse message
                     int mapId = workerInput.getMapId();
-                    System.out.printf("> Received message from worker with mapId: %d", mapId);
+                    System.out.printf("\n> Received message from worker with mapId: %d%n", mapId);
 
                     // Save MapResults based on mapId
                     if (!resultsToReduce.containsKey(mapId)) {
                         resultsToReduce.put(mapId, new ArrayList<>());
                     }
                     resultsToReduce.get(mapId).add(workerInput);
-                    System.out.printf("> MapReduce for #%d at %d/%d messages.%n", mapId, resultsToReduce.get(mapId).size(), numOfWorkers);
+                    System.out.printf("\n> MapReduce for #%d at %d/%d messages.%n", mapId, resultsToReduce.get(mapId).size(), numOfWorkers);
 
                     // Reduce values when all workers have sent their results
                     if (resultsToReduce.get(mapId).size() == numOfWorkers) {
-                        System.out.printf("> Reducing for #%d.%n", mapId);
+                        System.out.printf("\n> Reducing for #%d.%n", mapId);
                         MapResult reducedResults;
 
                         // Check what type of reduction you need to do
@@ -88,17 +88,16 @@ public class Reducer {
                         resultsToReduce.remove(mapId);
 
                         // Send results to server
-                        System.out.println("> Sending results to server for #" + mapId);
+                        System.out.println("\n> Sending results to server for #" + mapId);
                         writeToServerSocket(serverSocketOutput, reducedResults);
                     }
 
                 }
             } catch (IOException e) {
-                System.err.println("ReduceSearch.main(): Could not set up Reducer ServerSocket: " + e.getMessage());
+                System.err.println("\n! ReduceSearch.main(): Could not set up Reducer ServerSocket:\n" + e);
             }
-
         } catch (IOException e) {
-            System.err.println("ReduceSearch.main(): Could not connect to Server: " + e.getMessage());
+            System.err.println("\n! ReduceSearch.main(): Could not connect to Server:\n" + e);
         }
     }
 

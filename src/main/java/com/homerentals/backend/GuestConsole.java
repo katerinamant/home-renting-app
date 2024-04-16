@@ -68,7 +68,7 @@ public class GuestConsole {
             this.serverSocketDataOut = new DataOutputStream(this.requestSocket.getOutputStream());
             this.serverSocketObjectIn = new ObjectInputStream(this.requestSocket.getInputStream());
         } catch (IOException e) {
-            System.out.println("GuestConsole.setRequestSocket(): Error setting outputs: " + e);
+            System.err.println("\n! GuestConsole.setRequestSocket(): Error setting outputs:\n" + e);
             throw e;
         }
     }
@@ -89,7 +89,7 @@ public class GuestConsole {
         do {
             email = userInput.nextLine().trim();
             if (!email.equals("guest@example.com")) {
-                System.out.print("User not found. Try again\n> ");
+                System.out.print("User not found! Try again.\n> ");
             }
         } while (!email.equals("guest@example.com"));
 
@@ -98,7 +98,7 @@ public class GuestConsole {
         do {
             password = userInput.nextLine().trim();
             if (!password.equals("guest")) {
-                System.out.print("Incorrect password. Try again\n> ");
+                System.out.print("Incorrect password! Try again.\n> ");
             }
         } while (!password.equals("guest"));
 
@@ -120,7 +120,7 @@ public class GuestConsole {
         do {
             ans = userInput.nextLine().trim();
             if (!ans.equalsIgnoreCase("Y") && !ans.equalsIgnoreCase("N")) {
-                System.out.print("Invalid input. Try again\n> ");
+                System.out.print("Invalid input! Try again.\n> ");
             }
         } while (!ans.equalsIgnoreCase("Y") && !ans.equalsIgnoreCase("N"));
 
@@ -149,7 +149,7 @@ public class GuestConsole {
             this.serverSocketDataOut.close();
             this.requestSocket.close();
         } catch (IOException e) {
-            System.out.println("GuestConsole.close(): Error closing sockets: " + e);
+            System.err.println("\n! GuestConsole.close(): Error closing sockets:\n" + e);
             throw e;
         }
     }
@@ -191,13 +191,13 @@ public class GuestConsole {
                         break;
 
                     case UPLOAD_FILTERS_FILE:
-                        System.out.print("Enter file path for the .json file that contains the filters.\n> ");
-                        String filePath = userInput.nextLine().trim();
+                        System.out.print("Enter name of .json file that contains the filters.\n> ");
+                        String filePath = BackendUtils.filtersPath + userInput.nextLine().trim();
 
                         // Read JSON file
                         JSONObject filters = BackendUtils.readFile(filePath);
                         if (filters == null) {
-                            System.err.println("GuestConsole.main(): Error reading JSON File");
+                            System.err.println("\n! GuestConsole.main(): Error reading JSON File.");
                             break;
                         }
                         requestBody = new JSONObject();
@@ -206,13 +206,12 @@ public class GuestConsole {
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.GET_RENTALS.name(), requestBody.toString());
-                        System.out.println(request);
                         BackendUtils.clientToServer(outputStream, request.toString());
 
                         // Receive response
                         rentals = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
                         if (rentals == null) {
-                            System.err.println("GuestConsole.main(): Could not receive rentals from Server.");
+                            System.err.println("\n! GuestConsole.main(): Could not receive rentals from Server.");
                             break;
                         }
                         guestConsole.printRentalsList(rentals);
@@ -220,21 +219,21 @@ public class GuestConsole {
                         try {
                             guestConsole.bookNewRental(rentals, email);
                         } catch (IOException e) {
-                            System.err.println("GuestConsole.main(): Error booking rental: " + e);
+                            System.err.println("\n! GuestConsole.main(): Error booking rental:\n" + e);
                         }
                         break;
 
                     case VIEW_ALL_RENTALS:
                         rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
                         if (rentals == null) {
-                            System.err.println("GuestConsole.main(): Error getting Rentals list.");
+                            System.err.println("\n! GuestConsole.main(): Error getting Rentals list.");
                             break;
                         }
 
                         try {
                             guestConsole.bookNewRental(rentals, email);
                         } catch (IOException e) {
-                            System.err.println("GuestConsole.main(): Error booking rental: " + e);
+                            System.err.println("\n! GuestConsole.main(): Error booking rental: " + e);
                         }
                         break;
 
@@ -248,7 +247,7 @@ public class GuestConsole {
                         // Receive response
                         ArrayList<BookingReference> bookings = (ArrayList<BookingReference>) BackendUtils.serverToClient(inputStream);
                         if (bookings == null) {
-                            System.err.println("GuestConsole.main(): Could not receive bookings from Server.");
+                            System.err.println("\n! GuestConsole.main(): Could not receive bookings from Server.");
                             break;
                         }
                         System.out.println("\n[Previous Stays]\n");
@@ -271,10 +270,10 @@ public class GuestConsole {
                             try {
                                 bookingIndex = Integer.parseInt(userInput.nextLine().trim());
                                 if (bookingIndex < 0 || bookingIndex >= bookings.size()) {
-                                    System.out.print("Invalid input. Try again\n> ");
+                                    System.out.print("Invalid input! Try again.\n> ");
                                 }
                             } catch (NumberFormatException e) {
-                                System.out.print("Invalid input. Try again\n> ");
+                                System.out.print("Invalid input! Try again.\n> ");
                             }
                         } while (bookingIndex < 0 || bookingIndex >= bookings.size());
                         requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, bookings.get(bookingIndex).getRentalId());
@@ -286,10 +285,10 @@ public class GuestConsole {
                             try {
                                 rating = Integer.parseInt(userInput.nextLine().trim());
                                 if (rating <= 0 || rating >= 6) {
-                                    System.out.print("Invalid input. Try again\n> ");
+                                    System.out.print("Invalid input! Try again.\n> ");
                                 }
                             } catch (NumberFormatException e) {
-                                System.out.print("Invalid input. Try again\n> ");
+                                System.out.print("Invalid input! Try again.\n> ");
                             }
                         } while (rating <= 0 || rating >= 6);
                         requestBody.put(BackendUtils.BODY_FIELD_RATING, rating);
@@ -297,7 +296,6 @@ public class GuestConsole {
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.NEW_RATING.name(), requestBody.toString());
-                        System.out.println(request);
                         BackendUtils.clientToServer(outputStream, request.toString());
                         break;
 
@@ -305,11 +303,8 @@ public class GuestConsole {
                         break;
                 }
             }
-
         } catch (IOException | JSONException e) {
-            System.out.println("GuestConsole.main(): Error: " + e);
-            e.printStackTrace();
-
+            System.err.println("\n! GuestConsole.main(): Error:\n" + e);
         } finally {
             if (guestConsole.getRequestSocket() != null) {
                 try {

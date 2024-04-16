@@ -20,7 +20,7 @@ public class HostConsole {
     private enum MENU_OPTIONS {
         EXIT("Exit", "0"),
         UPDATE_RENTAL_AVAILABILITY("Update rental availability", "1"),
-        VIEW_ALL_BOOKINGS("View all bookings", "2"),
+        VIEW_ALL_BOOKINGS("View all upcoming bookings", "2"),
         VIEW_AMOUNT_OF_BOOKINGS_PER_LOCATION("View amount of bookings per location", "3"),
         UPLOAD_RENTAL_FILE("Upload new rental file", "4"),
         VIEW_RENTALS("View my rentals", "5");
@@ -72,7 +72,7 @@ public class HostConsole {
             this.serverSocketDataOut = new DataOutputStream(this.requestSocket.getOutputStream());
             this.serverSocketObjectIn = new ObjectInputStream(this.requestSocket.getInputStream());
         } catch (IOException e) {
-            System.out.println("HostConsole.setRequestSocket(): Error setting outputs: " + e);
+            System.err.println("\n! HostConsole.setRequestSocket(): Error setting outputs:\n" + e);
             throw e;
         }
     }
@@ -94,7 +94,7 @@ public class HostConsole {
         do {
             username = userInput.nextLine().trim();
             if (!username.equals("admin")) {
-                System.out.print("User not found. Try again\n> ");
+                System.out.print("User not found! Try again.\n> ");
             }
         } while (!username.equals("admin"));
 
@@ -103,7 +103,7 @@ public class HostConsole {
         do {
             input = userInput.nextLine().trim();
             if (!input.equals("admin")) {
-                System.out.print("Incorrect password. Try again\n> ");
+                System.out.print("Incorrect password! Try again.\n> ");
             }
         } while (!input.equals("admin"));
 
@@ -117,9 +117,8 @@ public class HostConsole {
             this.serverSocketObjectIn.close();
             this.serverSocketDataOut.close();
             this.requestSocket.close();
-
         } catch (IOException e) {
-            System.out.println("HostConsole.close(): Error closing sockets: " + e);
+            System.err.println("\n! HostConsole.close(): Error closing sockets:\n" + e);
             throw e;
         }
     }
@@ -164,20 +163,19 @@ public class HostConsole {
                         break;
 
                     case UPLOAD_RENTAL_FILE:
-                        System.out.print("Enter file path for the .json file that contains the rental information.\n> ");
-                        String filePath = userInput.nextLine().trim();
+                        System.out.print("Enter name of the .json file that contains the rental information.\n> ");
+                        String filePath = BackendUtils.inputsPath + userInput.nextLine().trim();
 
                         // Read JSON file
                         JSONObject newRental = BackendUtils.readFile(filePath);
                         if (newRental == null) {
-                            System.err.println("HostConsole.main(): Error reading JSON File");
+                            System.err.println("\n! HostConsole.main(): Error reading JSON File.");
                             break;
                         }
 
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.NEW_RENTAL.name(), newRental.toString());
-                        System.out.println(request);
                         BackendUtils.clientToServer(outputStream, request.toString());
 
                         break;
@@ -186,7 +184,7 @@ public class HostConsole {
                         // Print rentals list
                         rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
                         if (rentals == null) {
-                            System.err.println("HostConsole.main(): Error getting Rentals list.");
+                            System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
                             break;
                         }
 
@@ -206,14 +204,16 @@ public class HostConsole {
                     case VIEW_ALL_BOOKINGS:
                         rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
                         if (rentals == null) {
-                            System.err.println("HostConsole.main(): Error getting Rentals list.");
+                            System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
                             break;
                         }
 
                         for (Rental r : rentals) {
                             System.out.printf("%n[Rental: %s (%s)]%n%n", r.getRoomName(), r.getLocation());
                             for (Booking b : r.getBookings()) {
-                                System.out.printf("- %s%n", printBookingInfo(b));
+                                if (!b.hasPassed()) {
+                                    System.out.printf("- %s%n", printBookingInfo(b));
+                                }
                             }
                         }
                         System.out.println("<-------- [End Of List] -------->");
@@ -231,7 +231,7 @@ public class HostConsole {
                         // Receive response
                         ArrayList<BookingsByLocation> bookingsByLocation = (ArrayList<BookingsByLocation>) BackendUtils.serverToClient(inputStream);
                         if (bookingsByLocation == null) {
-                            System.err.println("HostConsole.main(): Could not receive host's rentals from Server.");
+                            System.err.println("\n! HostConsole.main(): Could not receive host's rentals from Server.");
                             break;
                         }
 
@@ -246,7 +246,7 @@ public class HostConsole {
                     case VIEW_RENTALS:
                         rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
                         if (rentals == null) {
-                            System.err.println("HostConsole.main(): Error getting Rentals list.");
+                            System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
                             break;
                         }
                         break;
@@ -255,11 +255,9 @@ public class HostConsole {
                         break;
                 }
             }
-
         } catch (IOException | JSONException e) {
-            System.out.println("HostConsole.main(): Error: " + e);
+            System.err.println("\n! HostConsole.main(): Error:\n" + e);
             e.printStackTrace();
-
         } finally {
             if (hostConsole.getRequestSocket() != null) {
                 try {

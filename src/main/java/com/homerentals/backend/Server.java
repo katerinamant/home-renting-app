@@ -28,8 +28,6 @@ public class Server {
     private static int mapId;
     private static int bookingId;
 
-    private final static String inputsPath = "com/homerentals/inputs/";
-
     public static int getNextRentalId() {
         return numberOfRentals++;
     }
@@ -87,7 +85,7 @@ public class Server {
             // Receive response
             return workerSocketInput.readUTF();
         } catch (IOException e) {
-            System.err.printf("Server.writeToWorkerSocketAndWaitForResponse(): Failed to set up Socket to Worker: %d%n%s%n", port, e);
+            System.err.printf("\n! Server.writeToWorkerSocketAndWaitForResponse(): Failed to set up Socket to Worker: %d%n%s%n", port, e);
             return null;
         }
     }
@@ -99,7 +97,7 @@ public class Server {
             workerSocketOutput.writeUTF(msg);
             workerSocketOutput.flush();
         } catch (IOException e) {
-            System.err.println("Server.writeToWorkerSocket(): Failed to write to Worker: " + port);
+            System.err.println("\n! Server.writeToWorkerSocket(): Failed to write to Worker: " + port);
             throw e;
         }
     }
@@ -108,7 +106,7 @@ public class Server {
         try {
             writeToWorkerSocket(msg, port);
         } catch (IOException e) {
-            System.err.println("Server.sendMessageToWorker(): Failed to write to Worker:" + port);
+            System.err.println("\n! Server.sendMessageToWorker(): Failed to write to Worker: " + port);
         }
     }
 
@@ -167,13 +165,13 @@ public class Server {
         guestAccountDAO.save(guestAccount);
 
         // Add cozy_rental_crete.json
-        setUpRental(inputsPath + "cozy_rental_crete.json", 0, "01/01/2023", "31/12/2023");
+        setUpRental(BackendUtils.inputsPath + "cozy_rental_crete.json", 0, "01/01/2023", "31/12/2023");
 
         // Add lux_rental_crete.json
-        setUpRental(inputsPath + "lux_rental_crete.json", 1, "01/10/2023", "02/10/2023");
+        setUpRental(BackendUtils.inputsPath + "lux_rental_crete.json", 1, "01/10/2023", "02/10/2023");
 
         // Add best_spitarwn_zante.json
-        setUpRental(inputsPath + "best_spitarwn_zante.json", 2, "01/10/2023", "28/12/2023");
+        setUpRental(BackendUtils.inputsPath + "best_spitarwn_zante.json", 2, "01/10/2023", "28/12/2023");
     }
 
     public static void main(String[] args) {
@@ -200,7 +198,7 @@ public class Server {
 
             // Start thread that listens to Reducer
             Socket reducerSocket = serverSocket.accept();
-            System.out.printf("> Reducer:%s connected.%n", reducerSocket.getRemoteSocketAddress());
+            System.out.printf("\n> Reducer:%s connected.%n", reducerSocket.getRemoteSocketAddress());
             ReducerHandler reducerHandler = new ReducerHandler(reducerSocket);
             new Thread(reducerHandler).start();
 
@@ -209,13 +207,12 @@ public class Server {
             // Handle client requests
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("> New client connected: " + clientSocket.getInetAddress().getHostAddress());
+                System.out.println("\n> New client connected: " + clientSocket.getInetAddress().getHostAddress());
                 ClientHandler clientThread = new ClientHandler(clientSocket);
                 new Thread(clientThread).start();
             }
-
         } catch (IOException | RuntimeException | InterruptedException e) {
-            System.out.println("MASTER MAIN: IO Error: " + e);
+            System.err.println("\n! Server.main(0): Error:\n" + e);
             e.printStackTrace();
         }
     }

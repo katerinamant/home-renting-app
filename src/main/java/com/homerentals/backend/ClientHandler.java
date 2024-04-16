@@ -19,7 +19,7 @@ class ClientHandler implements Runnable {
             this.clientSocketOut = new ObjectOutputStream(clientSocket.getOutputStream());
             this.clientSocketIn = new DataInputStream(clientSocket.getInputStream());
         } catch (IOException e) {
-            System.err.println("ClientHandler(): Error setting up streams: " + e);
+            System.err.println("\n! ClientHandler(): Error setting up streams:\n" + e);
             throw e;
         }
     }
@@ -28,7 +28,7 @@ class ClientHandler implements Runnable {
         try {
             return this.clientSocketIn.readUTF();
         } catch (IOException e) {
-            System.out.println("ClientHandler.readClientSocketInput(): Error reading Client Socket input: " + e);
+            System.err.println("\n! ClientHandler.readClientSocketInput(): Error reading Client Socket input:\n" + e);
             return null;
         }
     }
@@ -38,7 +38,7 @@ class ClientHandler implements Runnable {
             clientSocketOut.writeObject(obj);
             clientSocketOut.flush();
         } catch (IOException e) {
-            System.err.println("ClientHandler.sendClientSocketOutput(): Error sending Client Socket output: " + e);
+            System.err.println("\n! ClientHandler.sendClientSocketOutput(): Error sending Client Socket output:\n" + e);
             throw e;
         }
     }
@@ -79,10 +79,10 @@ class ClientHandler implements Runnable {
             while (running) {
                 input = this.readClientSocketInput();
                 if (input == null) {
-                    System.err.println("ClientHandler.run(): Error reading Client Socket input");
+                    System.err.println("\n! ClientHandler.run(): Error reading Client Socket input");
                     break;
                 }
-                System.out.println(input);
+                System.out.println("\n> Received: " + input);
 
                 // Handle JSON input
                 JSONObject inputJson = new JSONObject(input);
@@ -126,7 +126,7 @@ class ClientHandler implements Runnable {
                         // Get info from Server.GuestAccountDAO
                         String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
                         ArrayList<BookingReference> bookings = Server.getGuestBookings(email);
-                        System.out.println("Sending to client: " + bookings);
+                        System.out.println("\n> Sending to client: " + bookings);
 
                         // Send booking references to client
                         this.sendClientSocketOutput(bookings);
@@ -146,7 +146,7 @@ class ClientHandler implements Runnable {
                         responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
                         status = responseBody.getString(BackendUtils.BODY_FIELD_STATUS);
                         if (status.equals("OK")) {
-                            System.out.println("Rating was successful");
+                            System.out.println("\n> Rating was successful.");
                             // If the rating was successful
                             // remove booking from guest's list
                             String bookingId = responseBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
@@ -175,25 +175,24 @@ class ClientHandler implements Runnable {
 
                     // Miscellaneous Requests
                     case CLOSE_CONNECTION:
-                        System.out.println("ClientHandler.run(): Closing connection with client.");
+                        System.out.println("\n> ClientHandler.run(): Closing connection with client.");
                         running = false;
                         break;
 
                     default:
-                        System.err.println("ClientHandler.run(): Request type not recognized.");
+                        System.err.println("\n! ClientHandler.run(): Request type not recognized.");
                         break;
                 }
             }
         } catch (JSONException e) {
-            System.err.println("ClientHandler.run(): Error: " + e);
-            e.printStackTrace();
+            System.err.println("\n! ClientHandler.run(): JSON Exception:\n" + e);
         } catch (InterruptedException e) {
-            System.err.println("ClientHandler.run(): Could not retrieve result of MapReduce: " + e);
+            System.err.println("\n! ClientHandler.run(): Could not retrieve result of MapReduce:\n" + e);
         } catch (IOException e) {
-            System.err.println("ClientHandler.run(): Could not send MapReduce results to client: " + e);
+            System.err.println("\n! ClientHandler.run(): Could not send MapReduce results to client:\n" + e);
         } finally {
             try {
-                System.out.println("Closing thread");
+                System.out.println("\n> Closing thread...");
                 this.clientSocketIn.close();
                 this.clientSocketOut.close();
             } catch (IOException e) {

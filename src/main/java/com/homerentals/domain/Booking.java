@@ -74,4 +74,9 @@ public class Booking implements Serializable {
         return (this.startDate.isBefore(startDate) && this.endDate.isAfter(startDate) && this.endDate.isBefore(endDate)) ||
                 (this.startDate.isAfter(startDate) && this.startDate.isBefore(endDate) && this.endDate.isAfter(endDate));
     }
+
+    public boolean hasPassed() {
+        LocalDate today = LocalDate.now();
+        return this.endDate.isBefore(today);
+    }
 }

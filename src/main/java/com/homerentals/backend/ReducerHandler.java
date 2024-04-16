@@ -15,7 +15,7 @@ public class ReducerHandler implements Runnable {
         try {
             this.reducerSocketIn = new ObjectInputStream(reducerSocket.getInputStream());
         } catch (IOException e) {
-            System.err.println("ReducerHandler(): Error setting up streams: " + e);
+            System.err.println("\n! ReducerHandler(): Error setting up streams:\n" + e);
             throw e;
         }
     }
@@ -24,7 +24,7 @@ public class ReducerHandler implements Runnable {
         try {
             return (MapResult) this.reducerSocketIn.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("ReducerHandler.readReducerSocketInput(): Error reading Reducer Socket input: " + e);
+            System.err.println("\n! ReducerHandler.readReducerSocketInput(): Error reading Reducer Socket input:\n" + e);
             return null;
         }
     }
@@ -36,10 +36,10 @@ public class ReducerHandler implements Runnable {
         while (true) {
             mapResult = this.readReducerSocketInput();
             if (mapResult == null) {
-                System.err.println("ReducerHandler.run(): Error reading mapResult from Reducer.");
+                System.err.println("\n! ReducerHandler.run(): Error reading mapResult from Reducer.");
                 break;
             }
-            System.out.println("ReducerHandler.run(): Received result with mapId = " + mapResult.getMapId());
+            System.out.println("\n> ReducerHandler.run(): Received result with mapId = " + mapResult.getMapId());
 
             // Put results in Server.mapReduceResults
             // and notify waiting ClientHandler threads
@@ -49,7 +49,7 @@ public class ReducerHandler implements Runnable {
             }
         }
         try {
-            System.out.println("Closing thread");
+            System.out.println("\n> Closing thread...");
             this.reducerSocketIn.close();
         } catch (IOException e) {
             e.printStackTrace();

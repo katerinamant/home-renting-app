@@ -21,7 +21,7 @@ public class Worker {
             reducerSocketOutput.writeObject(results);
             reducerSocketOutput.flush();
         } catch (IOException e) {
-            System.err.println("Worker.writeToReducerSocket(): Failed to write to Reducer:" + BackendUtils.REDUCER_PORT);
+            System.err.println("\n! Worker.writeToReducerSocket(): Failed to write to Reducer: " + BackendUtils.REDUCER_PORT);
             throw e;
         }
     }
@@ -44,7 +44,7 @@ public class Worker {
                 new Thread(requestThread).start();
             }
         } catch (IOException e) {
-            System.out.println("WORKER MAIN: Error: " + e);
+            System.err.println("\n! Worker.main(): Error:\n" + e);
             e.printStackTrace();
         }
     }
