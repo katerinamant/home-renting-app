@@ -28,6 +28,8 @@ public class Server {
     private static int mapId;
     private static int bookingId;
 
+    private final static String inputsPath = "com/homerentals/inputs/";
+
     public static int getNextRentalId() {
         return numberOfRentals++;
     }
@@ -165,13 +167,13 @@ public class Server {
         guestAccountDAO.save(guestAccount);
 
         // Add cozy_rental_crete.json
-        Server.setUpRental("com/homerentals/inputs/cozy_rental_crete.json", 0, "01/01/2023", "31/12/2023");
+        setUpRental(inputsPath + "cozy_rental_crete.json", 0, "01/01/2023", "31/12/2023");
 
         // Add lux_rental_crete.json
-        Server.setUpRental("com/homerentals/inputs/lux_rental_crete.json", 1, "01/10/2023", "02/10/2023");
+        setUpRental(inputsPath + "lux_rental_crete.json", 1, "01/10/2023", "02/10/2023");
 
         // Add best_spitarwn_zante.json
-        Server.setUpRental("com/homerentals/inputs/best_spitarwn_zante.json", 2, "01/10/2023", "28/12/2023");
+        setUpRental(inputsPath + "best_spitarwn_zante.json", 2, "01/10/2023", "28/12/2023");
     }
 
     public static void main(String[] args) {
