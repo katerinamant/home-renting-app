@@ -358,8 +358,4 @@ public class BackendUtils {
 
         return rentals.get(rentalIndex);
     }
-
-    // TODO: write to worker/reducer socket
-
-    // TODO: read client/worker socket
 }

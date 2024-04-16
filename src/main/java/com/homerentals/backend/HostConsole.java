@@ -1,5 +1,7 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
+import com.homerentals.domain.DomainUtils;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,10 +19,11 @@ public class HostConsole {
 
     private enum MENU_OPTIONS {
         EXIT("Exit", "0"),
-        UPLOAD_RENTAL_FILE("Upload new rental file", "1"),
-        UPDATE_RENTAL_AVAILABILITY("Update rental availability", "2"),
-        VIEW_RENTAL_BOOKINGS("View rental bookings", "3"),
-        VIEW_RENTALS("View my rentals", "4");
+        UPDATE_RENTAL_AVAILABILITY("Update rental availability", "1"),
+        VIEW_ALL_BOOKINGS("View all bookings", "2"),
+        VIEW_AMOUNT_OF_BOOKINGS_PER_LOCATION("View amount of bookings per location", "3"),
+        UPLOAD_RENTAL_FILE("Upload new rental file", "4"),
+        VIEW_RENTALS("View my rentals", "5");
 
         private final String menuText;
         private final String menuNumber;
@@ -121,6 +124,10 @@ public class HostConsole {
         }
     }
 
+    public static String printBookingInfo(Booking booking) {
+        return String.format("Hosting user %s for [%s-%s]", booking.getGuestEmail(), DomainUtils.dateFormatter.format(booking.getStartDate()), DomainUtils.dateFormatter.format(booking.getEndDate()));
+    }
+
     public static void main(String[] args) {
         HostConsole hostConsole = new HostConsole();
 
@@ -196,7 +203,23 @@ public class HostConsole {
                         BackendUtils.handleServerResponse(hostConsole.getInputStream(), "Change successful!", "Change unsuccessful.\nCheck rental bookings and try again.");
                         break;
 
-                    case VIEW_RENTAL_BOOKINGS:
+                    case VIEW_ALL_BOOKINGS:
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
+                        if (rentals == null) {
+                            System.err.println("HostConsole.main(): Error getting Rentals list.");
+                            break;
+                        }
+
+                        for (Rental r : rentals) {
+                            System.out.printf("%n[Rental: %s (%s)]%n%n", r.getRoomName(), r.getLocation());
+                            for (Booking b : r.getBookings()) {
+                                System.out.printf("- %s%n", printBookingInfo(b));
+                            }
+                        }
+                        System.out.println("<-------- [End Of List] -------->");
+                        break;
+
+                    case VIEW_AMOUNT_OF_BOOKINGS_PER_LOCATION:
                         // Get start and end days to show bookings
                         requestBody = BackendUtils.getInputDatesAsJsonObject("view bookings");
 
@@ -215,7 +238,7 @@ public class HostConsole {
                         // Display booking count per location
                         System.out.printf("%n[%s's Bookings Per Location]%n%n", username);
                         for (BookingsByLocation byLocation : bookingsByLocation) {
-                            System.out.printf("- %s: %d%n%s%n%n", byLocation.getLocation(), byLocation.getBookingIds().size(), byLocation.getBookingIds());
+                            System.out.printf("- %s: %d%n%n", byLocation.getLocation(), byLocation.getBookingIds().size());
                         }
                         System.out.println("<-------- [End Of List] -------->");
                         break;

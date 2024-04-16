@@ -85,8 +85,7 @@ public class GuestConsole {
         // TODO: Add DAO lookup for user
 
         String email = "";
-        System.out.print("\tWelcome back!\n" +
-                "Enter email\n> ");
+        System.out.print("\tWelcome back!\nEnter email\n> ");
         do {
             email = userInput.nextLine().trim();
             if (!email.equals("guest@example.com")) {
@@ -160,11 +159,10 @@ public class GuestConsole {
 
         String[] userInfo = guestConsole.connectUser();
         String email = userInfo[0];
-        String password = userInfo[1];
 
         try {
             // Establish a connection
-            Socket requestSocket = null;
+            Socket requestSocket;
             System.out.println("Connecting to server...");
             requestSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
             guestConsole.setRequestSocket(requestSocket);

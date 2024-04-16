@@ -11,15 +11,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 class ClientHandler implements Runnable {
-    private final Socket clientSocket;
     private DataInputStream clientSocketIn = null;
     private ObjectOutputStream clientSocketOut = null;
 
     ClientHandler(Socket clientSocket) throws IOException {
-        this.clientSocket = clientSocket;
         try {
-            this.clientSocketOut = new ObjectOutputStream(this.clientSocket.getOutputStream());
-            this.clientSocketIn = new DataInputStream(this.clientSocket.getInputStream());
+            this.clientSocketOut = new ObjectOutputStream(clientSocket.getOutputStream());
+            this.clientSocketIn = new DataInputStream(clientSocket.getInputStream());
         } catch (IOException e) {
             System.err.println("ClientHandler(): Error setting up streams: " + e);
             throw e;
