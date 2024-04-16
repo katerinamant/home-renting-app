@@ -7,7 +7,6 @@ import org.junit.Test;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class AvailabilitySearchTest {
     Rental rental;
@@ -26,6 +25,8 @@ public class AvailabilitySearchTest {
         String bookingEndDate = "01/01/2025";
         LocalDate startDate = LocalDate.parse(bookingStartDate, df);
         LocalDate endDate = LocalDate.parse(bookingEndDate, df);
+
+        rental.makeAvailable(startDate, endDate);
 
         Assert.assertTrue(rental.getAvailability(startDate, endDate));
         rental.toggleAvailability(startDate, endDate);
@@ -62,7 +63,7 @@ public class AvailabilitySearchTest {
         Assert.assertFalse(availability.containsKey(2026));
         Assert.assertFalse(rental.getAvailability(startDate, endDate));
 
-        rental.toggleAvailability(endDate, endDate);
+        rental.makeAvailable(startDate, endDate);
         Assert.assertTrue(availability.containsKey(2026));
         Assert.assertTrue(rental.getAvailability(startDate, endDate));
     }
