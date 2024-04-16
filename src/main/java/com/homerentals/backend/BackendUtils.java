@@ -219,8 +219,9 @@ public class BackendUtils {
      * Used in ClientHandler for NEW_BOOKING request
      * and Server.setUp().
      * If the booking was successful, it adds it to the guest's list.
+     *
      * @return if the communication with the worker was unsuccessful, returns null.
-                else, returns the JSONObject of the response body
+     * else, returns the JSONObject of the response body
      */
     protected static JSONObject executeNewBookingRequest(JSONObject body, String header) {
         int requestId = body.getInt(BODY_FIELD_REQUEST_ID);
@@ -233,7 +234,7 @@ public class BackendUtils {
         // Forward new request to worker that contains this rental
         int rentalId = body.getInt(BODY_FIELD_RENTAL_ID);
         int workerPort = Server.ports.get(Server.hash(rentalId));
-        String response =  Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
+        String response = Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
         if (response == null) {
             return null;
         }

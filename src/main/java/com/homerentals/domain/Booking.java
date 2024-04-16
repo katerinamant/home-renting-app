@@ -2,7 +2,6 @@ package com.homerentals.domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Booking implements Serializable {
     private final String bookingId;
@@ -52,7 +51,7 @@ public class Booking implements Serializable {
 
     public boolean occursDuring(LocalDate startDate, LocalDate endDate) {
         if (this.startDate.isEqual(startDate) || this.endDate.isEqual(endDate) ||
-                this.startDate.isEqual(endDate) || this.endDate.isEqual(startDate)){
+                this.startDate.isEqual(endDate) || this.endDate.isEqual(startDate)) {
             // Start date or end date matches
             // that of the time period
             return true;

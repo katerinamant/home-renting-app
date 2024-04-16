@@ -5,7 +5,10 @@ import com.homerentals.domain.*;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -74,7 +77,7 @@ public class Server {
     protected static String sendMessageToWorkerAndWaitForResponse(String msg, int port) {
         try (Socket workerSocket = new Socket("localhost", port);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream());
-             DataInputStream workerSocketInput = new DataInputStream(workerSocket.getInputStream());
+             DataInputStream workerSocketInput = new DataInputStream(workerSocket.getInputStream())
         ) {
             workerSocketOutput.writeUTF(msg);
             workerSocketOutput.flush();

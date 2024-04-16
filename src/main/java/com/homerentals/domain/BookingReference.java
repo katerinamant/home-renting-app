@@ -2,7 +2,6 @@ package com.homerentals.domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class BookingReference implements Serializable {
     private final String bookingId;
