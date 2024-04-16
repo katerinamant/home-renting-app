@@ -1,6 +1,6 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
+import com.homerentals.domain.BookingReference;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 class ClientHandler implements Runnable {
@@ -93,7 +94,8 @@ class ClientHandler implements Runnable {
                 Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
                 MapResult mapResult;
-                String response;
+                String response, status;
+                JSONObject responseJson, responseBody;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
@@ -105,34 +107,55 @@ class ClientHandler implements Runnable {
                         break;
 
                     case NEW_BOOKING:
-                        response = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
-
-                        // Handle JSON input
-                        JSONObject responseJson = new JSONObject(response);
-                        JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
-                        String status = inputBody.getString(BackendUtils.BODY_FIELD_STATUS);
-                        if (status.equals("OK")) {
-                            String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
-                            String bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
-                            int rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
-                            Server.addBookingToGuest(email, bookingId, rentalId);
+                        responseBody = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+                        if (responseBody == null) {
+                            // Communication with the worker was unsuccessful
+                            break;
                         }
-                        this.sendClientSocketOutput(response);
+
+                        // Communication with the worker was successful.
+                        // If the booking was successful,
+                        // it was added to the guest's list
+                        // in the executeNewBookingRequest() function.
+
+                        // Send simplified response to client
+                        JSONObject simplifiedResponseBody = new JSONObject();
+                        simplifiedResponseBody.put(BackendUtils.BODY_FIELD_STATUS, responseBody.getString(BackendUtils.BODY_FIELD_STATUS));
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), simplifiedResponseBody.toString(), responseBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID));
+                        this.sendClientSocketOutput(responseJson.toString());
                         break;
 
                     case GET_BOOKINGS_WITH_NO_RATINGS:
-                        // Get result from Server.GuestAccountDAO
+                        // Get info from Server.GuestAccountDAO
                         String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
-                        String password = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
-                        // ArrayList<Booking> bookings = Server.getGuestBookings(email, password);
-                        // this.sendClientSocketOutput(bookings);
+                        ArrayList<BookingReference> bookings = Server.getGuestBookings(email);
+                        System.out.println("Sending to client: " + bookings);
+
+                        // Send booking references to client
+                        this.sendClientSocketOutput(bookings);
                         break;
 
                     case NEW_RATING:
                         // Forward request, as it is,
                         // to worker that contains this rental
                         int workerPort = Server.ports.get(Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
-                        Server.sendMessageToWorker(input, workerPort);
+                        response = Server.sendMessageToWorkerAndWaitForResponse(input, workerPort);
+                        if (response == null) {
+                            break;
+                        }
+
+                        // Handle JSON response
+                        responseJson = new JSONObject(response);
+                        responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+                        status = responseBody.getString(BackendUtils.BODY_FIELD_STATUS);
+                        if (status.equals("OK")) {
+                            System.out.println("Rating was successful");
+                            // If the rating was successful
+                            // remove booking from guest's list
+                            String bookingId = responseBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
+                            String guestEmail = responseBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                            Server.rateGuestsBooking(guestEmail, bookingId);
+                        }
                         break;
 
                     // Host Requests

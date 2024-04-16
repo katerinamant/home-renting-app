@@ -1,6 +1,6 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
+import com.homerentals.domain.BookingReference;
 import com.homerentals.domain.Rental;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +20,7 @@ public class GuestConsole {
         EXIT("Exit", "0"),
         UPLOAD_FILTERS_FILE("Upload new filters file", "1"),
         VIEW_ALL_RENTALS("View all rentals", "2"),
-        RATE_RENTAL("Rate a rental", "3");
+        RATE_STAY("Rate your stay", "3");
 
         private final String menuText;
         private final String menuNumber;
@@ -211,7 +211,7 @@ public class GuestConsole {
                         System.out.println(request);
                         BackendUtils.clientToServer(outputStream, request.toString());
 
-                        // Receive responseString
+                        // Receive response
                         rentals = (ArrayList<Rental>) BackendUtils.serverToClient(inputStream);
                         if (rentals == null) {
                             System.err.println("GuestConsole.main(): Could not receive rentals from Server.");
@@ -224,7 +224,6 @@ public class GuestConsole {
                         } catch (IOException e) {
                             System.err.println("GuestConsole.main(): Error booking rental: " + e);
                         }
-
                         break;
 
                     case VIEW_ALL_RENTALS:
@@ -241,23 +240,22 @@ public class GuestConsole {
                         }
                         break;
 
-                    case RATE_RENTAL:
+                    case RATE_STAY:
                         // Get all booking with no ratings
                         requestBody = new JSONObject();
                         requestBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
-                        requestBody.put(BackendUtils.BODY_FIELD_GUEST_PASSWORD, password);
                         request = BackendUtils.createRequest(Requests.GET_BOOKINGS_WITH_NO_RATINGS.name(), requestBody.toString());
                         BackendUtils.clientToServer(outputStream, request.toString());
 
                         // Receive response
-                        ArrayList<Booking> bookings = (ArrayList<Booking>) BackendUtils.serverToClient(inputStream);
+                        ArrayList<BookingReference> bookings = (ArrayList<BookingReference>) BackendUtils.serverToClient(inputStream);
                         if (bookings == null) {
                             System.err.println("GuestConsole.main(): Could not receive bookings from Server.");
                             break;
                         }
-                        System.out.println("\n[Previous Bookings]\n");
+                        System.out.println("\n[Previous Stays]\n");
                         for (int i = 0; i < bookings.size(); i++) {
-                            System.out.printf("[%d] %s%n", i, bookings.get(i).getRentalId());
+                            System.out.printf("[%d] %s%n", i, bookings.get(i));
                         }
                         System.out.println("<-------- [End Of List] -------->");
 
@@ -267,7 +265,9 @@ public class GuestConsole {
 
                         // Create NEW_RATING request body
                         requestBody = new JSONObject();
-                        System.out.print("\nChoose booking\n> ");
+                        requestBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
+
+                        System.out.print("\nChoose stay to rate\n> ");
                         int bookingIndex = -1;
                         do {
                             try {
@@ -279,7 +279,8 @@ public class GuestConsole {
                                 System.out.print("Invalid input. Try again\n> ");
                             }
                         } while (bookingIndex < 0 || bookingIndex >= bookings.size());
-                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, bookings.get(bookingIndex).getRental().getId());
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, bookings.get(bookingIndex).getRentalId());
+                        requestBody.put(BackendUtils.BODY_FIELD_BOOKING_ID, bookings.get(bookingIndex).getBookingId());
 
                         System.out.print("\nRate your stay [1-5]\n> ");
                         int rating = -1;

@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,7 @@ public class Server {
     // TODO: Replace System.out.println() with logger in log file.
     protected final static ArrayList<Integer> ports = new ArrayList<>();
     protected final static HashMap<Integer, MapResult> mapReduceResults = new HashMap<>();
-    private static final GuestAccountDAO guestAccountDAO = new GuestAccountDAO();
+    private final static GuestAccountDAO guestAccountDAO = new GuestAccountDAO();
 
     private static int numberOfRentals;
     private static int numberOfRequests;
@@ -46,13 +47,28 @@ public class Server {
         return (int) Math.floor(numOfWorkers * ((rentalId * A) % 1));
     }
 
-    protected static void addBookingToGuest(String email, String bookingId, int rentalId) {
+    protected static ArrayList<BookingReference> getGuestBookings(String email) {
+        GuestAccount guestAccount = guestAccountDAO.find(email);
+        if (guestAccount == null) {
+            return null;
+        }
+        return guestAccount.getUnratedBookings();
+    }
+
+    protected static void addBookingToGuest(String email, String bookingId, int rentalId, String rentalName, String rentalLocation, LocalDate startDate, LocalDate endDate) {
         GuestAccount guestAccount = guestAccountDAO.find(email);
         if (guestAccount == null) {
             return;
         }
+        guestAccount.addBooking(bookingId, rentalId, rentalName, rentalLocation, startDate, endDate);
+    }
 
-        guestAccount.addBooking(bookingId, rentalId);
+    protected static void rateGuestsBooking(String email, String bookingId) {
+        GuestAccount guestAccount = guestAccountDAO.find(email);
+        if (guestAccount == null) {
+            return;
+        }
+        guestAccount.rateBooking(bookingId);
     }
 
     protected static String sendMessageToWorkerAndWaitForResponse(String msg, int port) {
@@ -107,13 +123,22 @@ public class Server {
         }
         Thread.sleep(1000);
 
-        // Make available for 2024
+        // Make available for 2023
         JSONObject body = new JSONObject();
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2023");
+        body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2023");
+        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
+        JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
+        BackendUtils.executeUpdateAvailability(request.toString(), body);
+        Thread.sleep(1000);
+        // Make available for 2024
+        body = new JSONObject();
         body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
         body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
-        JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
+        request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
         BackendUtils.executeUpdateAvailability(request.toString(), body);
         Thread.sleep(1000);
 
@@ -123,6 +148,7 @@ public class Server {
         body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
         body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
         body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
+        body.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, "guest@example.com");
         BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
         Thread.sleep(1000);
     }
@@ -136,13 +162,13 @@ public class Server {
         guestAccountDAO.save(guestAccount);
 
         // Add cozy_rental_crete.json
-        Server.setUpRental("com/homerentals/inputs/cozy_rental_crete.json", 0, "01/01/2024", "31/12/2024");
+        Server.setUpRental("com/homerentals/inputs/cozy_rental_crete.json", 0, "01/01/2023", "31/12/2023");
 
         // Add lux_rental_crete.json
-        Server.setUpRental("com/homerentals/inputs/lux_rental_crete.json", 1, "01/10/2024", "02/10/2024");
+        Server.setUpRental("com/homerentals/inputs/lux_rental_crete.json", 1, "01/10/2023", "02/10/2023");
 
         // Add best_spitarwn_zante.json
-        Server.setUpRental("com/homerentals/inputs/best_spitarwn_zante.json", 2, "01/10/2024", "28/12/2024");
+        Server.setUpRental("com/homerentals/inputs/best_spitarwn_zante.json", 2, "01/10/2023", "28/12/2023");
     }
 
     public static void main(String[] args) {

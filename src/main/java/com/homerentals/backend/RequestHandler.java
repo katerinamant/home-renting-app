@@ -152,6 +152,8 @@ class RequestHandler implements Runnable {
                     }
                     startDate = dates[0];
                     endDate = dates[1];
+                    String startDateString = BackendUtils.dateFormatter.format(startDate);
+                    String endDateString = BackendUtils.dateFormatter.format(endDate);
 
                     rental = Worker.idToRental.get(rentalId);
                     if (rental == null) {
@@ -164,8 +166,6 @@ class RequestHandler implements Runnable {
                         System.out.println("lock");
                         if (rental.getAvailability(startDate, endDate)) {
                             // Execute booking
-                            String startDateString = BackendUtils.dateFormatter.format(startDate);
-                            String endDateString = BackendUtils.dateFormatter.format(endDate);
                             Booking booking = new Booking(bookingId, rentalId, email, startDateString, endDateString, rental.getNightlyRate());
                             rental.addBooking(booking);
                             successfulBooking = true;
@@ -177,10 +177,16 @@ class RequestHandler implements Runnable {
                     // Send response to Server
                     responseBody = new JSONObject();
                     if (successfulBooking) {
+                        // Add fields necessary to associate
+                        // booking with GuestAccount
                         responseBody.put(BackendUtils.BODY_FIELD_STATUS,"OK");
                         responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
                         responseBody.put(BackendUtils.BODY_FIELD_BOOKING_ID, bookingId);
                         responseBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
+                        responseBody.put(BackendUtils.BODY_FIELD_RENTAL_NAME, rental.getRoomName());
+                        responseBody.put(BackendUtils.BODY_FIELD_RENTAL_LOCATION, rental.getLocation());
+                        responseBody.put(BackendUtils.BODY_FIELD_START_DATE, startDateString);
+                        responseBody.put(BackendUtils.BODY_FIELD_END_DATE, endDateString);
                     } else {
                         responseBody.put(BackendUtils.BODY_FIELD_STATUS,"ERROR");
                     }
@@ -191,10 +197,14 @@ class RequestHandler implements Runnable {
 
                 case NEW_RATING:
                     // Parse JSON Object
+                    requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     rental = Worker.idToRental.get(rentalId);
                     if (rental == null) {
                         System.err.printf("RequestHandler.run(): Rental with ID %d not found%n", rentalId);
+                        // Send response to Server
+                        responseBody = new JSONObject();
+                        responseBody.put(BackendUtils.BODY_FIELD_STATUS,"ERROR");
                         break;
                     }
 
@@ -203,10 +213,20 @@ class RequestHandler implements Runnable {
                         System.out.println("lock");
                         System.out.println(rental.getStars());
                         rental.addRating(rating);
-                        // TODO: Remove booking from guest's list
                     }
                     System.out.println("done");
                     System.out.println(rental.getStars());
+
+                    // Send response to Server.
+                    // Add fields necessary to mark
+                    // booking as rated in the guest's account
+                    responseBody = new JSONObject();
+                    responseBody.put(BackendUtils.BODY_FIELD_STATUS,"OK");
+                    responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL));
+                    responseBody.put(BackendUtils.BODY_FIELD_BOOKING_ID, inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID));
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
+                    System.out.printf("Sending response for requestId [%d]: %s%n", requestId, response);
+                    this.sendServerSocketOutput(response.toString());
                     break;
 
                 // Host Requests

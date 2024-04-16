@@ -40,7 +40,8 @@ public class BackendUtils {
     public static final String BODY_FIELD_END_DATE = "endDate";
     public static final String BODY_FIELD_BOOKING_ID = "bookingId";
     public static final String BODY_FIELD_GUEST_EMAIL = "guestEmail";
-    public static final String BODY_FIELD_GUEST_PASSWORD = "guestPassword";
+    public static final String BODY_FIELD_RENTAL_NAME = "rentalName";
+    public static final String BODY_FIELD_RENTAL_LOCATION = "rentalLocation";
     public static final String BODY_FIELD_RATING = "rating";
 
     public static final String BODY_FIELD_STATUS = "status";
@@ -131,6 +132,10 @@ public class BackendUtils {
     }
 
     /**
+     * Prints prompts for start and end date inputs.
+     * Also checks if the time period is valid
+     * (the start date is before the end date).
+     *
      * @return JSONObject : {"startDate", "endDate"}
      */
     protected static JSONObject getInputDatesAsJsonObject(String msg) {
@@ -210,11 +215,14 @@ public class BackendUtils {
         return Server.sendMessageToWorkerAndWaitForResponse(input, workerPort);
     }
 
-    /*
-    Used in ClientHandler for NEW_BOOKING request
-    and Server.setUp()
+    /**
+     * Used in ClientHandler for NEW_BOOKING request
+     * and Server.setUp().
+     * If the booking was successful, it adds it to the guest's list.
+     * @return if the communication with the worker was unsuccessful, returns null.
+                else, returns the JSONObject of the response body
      */
-    protected static String executeNewBookingRequest(JSONObject body, String header) {
+    protected static JSONObject executeNewBookingRequest(JSONObject body, String header) {
         int requestId = body.getInt(BODY_FIELD_REQUEST_ID);
 
         // Add new bookingId to requestBody
@@ -225,7 +233,29 @@ public class BackendUtils {
         // Forward new request to worker that contains this rental
         int rentalId = body.getInt(BODY_FIELD_RENTAL_ID);
         int workerPort = Server.ports.get(Server.hash(rentalId));
-        return Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
+        String response =  Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
+        if (response == null) {
+            return null;
+        }
+
+        // Handle JSON response
+        JSONObject responseJson = new JSONObject(response);
+        JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+        String status = responseBody.getString(BackendUtils.BODY_FIELD_STATUS);
+        if (status.equals("OK")) {
+            String email = responseBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+            bookingId = responseBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
+            rentalId = responseBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+            String rentalName = responseBody.getString(BackendUtils.BODY_FIELD_RENTAL_NAME);
+            String rentalLocation = responseBody.getString(BackendUtils.BODY_FIELD_RENTAL_LOCATION);
+            String startDateString = responseBody.getString(BackendUtils.BODY_FIELD_START_DATE);
+            String endDateString = responseBody.getString(BackendUtils.BODY_FIELD_END_DATE);
+            LocalDate startDate = LocalDate.parse(startDateString, BackendUtils.dateFormatter);
+            LocalDate endDate = LocalDate.parse(endDateString, BackendUtils.dateFormatter);
+
+            Server.addBookingToGuest(email, bookingId, rentalId, rentalName, rentalLocation, startDate, endDate);
+        }
+        return responseBody;
     }
 
     /*
