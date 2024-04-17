@@ -117,7 +117,7 @@ public class Server {
     }
 
     private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {
-        JSONObject rentalJson = BackendUtils.readFile(path);
+        JSONObject rentalJson = BackendUtils.readFile(path, true);
         if (rentalJson != null) {
             rentalJson.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
             BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());

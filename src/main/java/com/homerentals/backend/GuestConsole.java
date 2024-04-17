@@ -195,7 +195,7 @@ public class GuestConsole {
                         String filePath = BackendUtils.filtersPath + userInput.nextLine().trim();
 
                         // Read JSON file
-                        JSONObject filters = BackendUtils.readFile(filePath);
+                        JSONObject filters = BackendUtils.readFile(filePath, false);
                         if (filters == null) {
                             System.err.println("\n! GuestConsole.main(): Error reading JSON File.");
                             break;

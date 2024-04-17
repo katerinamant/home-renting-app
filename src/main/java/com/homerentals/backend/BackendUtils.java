@@ -98,17 +98,17 @@ public class BackendUtils {
         return response;
     }
 
-    public static JSONObject readFile(String path) {
+    public static JSONObject readFile(String path, boolean print) {
         // Read JSON file
         try {
             InputStream is = Files.newInputStream(Paths.get(path));
             String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
-            System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
+            if (print) System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
             return new JSONObject(jsonTxt);
         } catch (IOException | JSONException e) {
             // Could not find file or
             // File is not valid JSON Object
-            System.err.println("\n! Client.readFile(): Error reading JSON File:\n" + e);
+            System.err.println("\n! BackendUtils.readFile(): Error reading JSON File:\n" + e);
             return null;
         }
     }

@@ -124,7 +124,7 @@ public class HostConsole {
     }
 
     public static String printBookingInfo(Booking booking) {
-        return String.format("Hosting user %s for [%s-%s]", booking.getGuestEmail(), DomainUtils.dateFormatter.format(booking.getStartDate()), DomainUtils.dateFormatter.format(booking.getEndDate()));
+        return String.format("Hosting user %s for [%s - %s]", booking.getGuestEmail(), DomainUtils.dateFormatter.format(booking.getStartDate()), DomainUtils.dateFormatter.format(booking.getEndDate()));
     }
 
     public static void main(String[] args) {
@@ -167,7 +167,7 @@ public class HostConsole {
                         String filePath = BackendUtils.inputsPath + userInput.nextLine().trim();
 
                         // Read JSON file
-                        JSONObject newRental = BackendUtils.readFile(filePath);
+                        JSONObject newRental = BackendUtils.readFile(filePath, false);
                         if (newRental == null) {
                             System.err.println("\n! HostConsole.main(): Error reading JSON File.");
                             break;

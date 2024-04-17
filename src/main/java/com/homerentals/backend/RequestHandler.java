@@ -210,7 +210,7 @@ class RequestHandler implements Runnable {
                     int rating = inputBody.getInt(BackendUtils.BODY_FIELD_RATING);
                     synchronized (rental) {
                         System.out.println("\n> Lock rental #" + rentalId + " for new rating.");
-                        System.out.println(rental.getStars());
+                        System.out.println("\n> Previous rating: " + rental.getStars());
                         rental.addRating(rating);
                     }
                     System.out.println("\n> Rating complete.");
@@ -270,7 +270,6 @@ class RequestHandler implements Runnable {
                     boolean successfulChange;
                     synchronized (rental) {
                         System.out.println("\n> Lock rental #" + rentalId + " for update availability.");
-                        System.out.println(rental.getAvailability(startDate, endDate));
                         successfulChange = rental.makeAvailable(startDate, endDate);
                     }
                     System.out.println(successfulChange ? "\n> Update was successful." : "\n> Update was unsuccessful.");
