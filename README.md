@@ -38,4 +38,4 @@
 
 ## Authors
 
-Created by [Alex Papadopoulos](https:/github.com/alexisthedev) and [Katerina Mantaraki](https:/github.com/katerinamant) for 🎓
+Created by [Alex Papadopoulos](https://github.com/alexisthedev) and [Katerina Mantaraki](https://github.com/katerinamant) for 🎓
