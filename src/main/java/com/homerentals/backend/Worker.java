@@ -15,7 +15,7 @@ public class Worker {
     protected final static HashMap<Integer, Rental> idToRental = new HashMap<>();
 
     public static void writeToReducerSocket(MapResult results) throws IOException {
-        try (Socket reducerSocket = new Socket("localhost", BackendUtils.REDUCER_PORT);
+        try (Socket reducerSocket = new Socket(BackendUtils.REDUCER_ADDRESS, BackendUtils.REDUCER_PORT);
              ObjectOutputStream reducerSocketOutput = new ObjectOutputStream(reducerSocket.getOutputStream())
         ) {
             reducerSocketOutput.writeObject(results);

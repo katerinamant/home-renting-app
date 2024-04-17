@@ -164,7 +164,7 @@ public class GuestConsole {
             // Establish a connection
             Socket requestSocket;
             System.out.println("Connecting to server...");
-            requestSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
+            requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
             guestConsole.setRequestSocket(requestSocket);
             DataOutputStream outputStream = guestConsole.getOutputStream();
             ObjectInputStream inputStream = guestConsole.getInputStream();

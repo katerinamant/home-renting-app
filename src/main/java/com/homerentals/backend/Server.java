@@ -75,7 +75,7 @@ public class Server {
     }
 
     protected static String sendMessageToWorkerAndWaitForResponse(String msg, int port) {
-        try (Socket workerSocket = new Socket("localhost", port);
+        try (Socket workerSocket = new Socket(BackendUtils.WORKER_ADDRESS, port);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream());
              DataInputStream workerSocketInput = new DataInputStream(workerSocket.getInputStream())
         ) {
@@ -91,7 +91,7 @@ public class Server {
     }
 
     private static void writeToWorkerSocket(String msg, int port) throws IOException {
-        try (Socket workerSocket = new Socket("localhost", port);
+        try (Socket workerSocket = new Socket(BackendUtils.WORKER_ADDRESS, port);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream())
         ) {
             workerSocketOutput.writeUTF(msg);

@@ -41,7 +41,7 @@ public class Reducer {
         int numOfWorkers = Integer.parseInt(args[0]);
 
         // Connect to server
-        try (Socket serverSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
+        try (Socket serverSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
              ObjectOutputStream serverSocketOutput = new ObjectOutputStream(serverSocket.getOutputStream())
         ) {
             // Set up reducer socket

@@ -136,7 +136,7 @@ public class HostConsole {
             // Establish a connection
             Socket requestSocket = null;
             System.out.println("Connecting to server...");
-            requestSocket = new Socket("localhost", BackendUtils.SERVER_PORT);
+            requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
             hostConsole.setRequestSocket(requestSocket);
             DataOutputStream outputStream = hostConsole.getOutputStream();
             ObjectInputStream inputStream = hostConsole.getInputStream();
