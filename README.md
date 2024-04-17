@@ -13,29 +13,29 @@
 - <u>**For Windows**</u>:
   1. `cd src/main/java`
      <br>
-  2. Compile the files `javac -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com/homerentals/**/*.java`
+  2. Compile the files `javac -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com/homerentals/**/*.java`
      <br>
   3. Reserve worker ports:
-     `java -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com.homerentals.backend.PortManager <NUMBER_OF_WORKERS> com/homerentals/backend/ports.list`
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.PortManager <NUMBER_OF_WORKERS> com/homerentals/backend/ports.list`
      <br>
   4. Start the workers.
      Run the below for as many workers as you defined above. The port should be one of the automatically generated ports inside `src/main/java/com/homerentals/backend/ports.list`:
-     `java -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com.homerentals.backend.Worker <PORT>`
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Worker <PORT>`
      <br>
   5. Start the server:
-     `java -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com.homerentals.backend.Server com/homerentals/backend/ports.list`
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Server com/homerentals/backend/ports.list`
      <br>
   6. Start the reducer intance:
-     `java -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com.homerentals.backend.Reducer <NUMBER_OF_WORKERS>`
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Reducer <NUMBER_OF_WORKERS>`
      <br>
   7. The backend is up and running. You can connect to it by either a dummy guest console with the credentials `guest@example.com:guest`<br>
-     `java -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com.homerentals.backend.GuestConsole`
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.GuestConsole`
      <br>or as the host via the host console with the credentials `admin:admin`<br>
-     `java -cp ../../../lib/commons-io-2.15.1.jar:../../../lib/json-20240303.jar:. com.homerentals.backend.`
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.`
      <br>_(credentials in `username:password` format)_.
      <br>
   8. Success! You are now connected.
 
 ## Authors
 
-Created by [Alex Papadopoulos](github.com/alexisthedev) and [Katerina Mantaraki](github.com/katerinamant) for 🎓
+Created by [Alex Papadopoulos](https:/github.com/alexisthedev) and [Katerina Mantaraki](https:/github.com/katerinamant) for 🎓
