@@ -14,6 +14,9 @@ class ClientHandler implements Runnable {
     private DataInputStream clientSocketIn = null;
     private ObjectOutputStream clientSocketOut = null;
 
+    // Used for synchronizing server getNextId requests
+    protected final static Object syncObj = new Object();
+
     ClientHandler(Socket clientSocket) throws IOException {
         try {
             this.clientSocketOut = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -46,7 +49,10 @@ class ClientHandler implements Runnable {
     private MapResult performMapReduce(Requests header, JSONObject body) throws InterruptedException {
         int requestId = body.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
         // Create MapReduce Request
-        int mapId = Server.getNextMapId();
+        int mapId;
+        synchronized (ClientHandler.syncObj) {
+            mapId = Server.getNextMapId();
+        }
         body.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
         JSONObject request = BackendUtils.createRequest(header.toString(), body.toString(), requestId);
 
