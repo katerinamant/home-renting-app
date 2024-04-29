@@ -58,7 +58,7 @@ class ClientHandler implements Runnable {
         JSONObject request = BackendUtils.createRequest(header.toString(), body.toString());
 
         // Send request to all workers
-        Server.sendMessageToWorkers(request.toString(), Server.ports);
+        Server.broadcastMessageToWorkers(request.toString());
 
         // Check Server.mapReduceResults for Reducer response
         MapResult mapResult = null;
@@ -145,8 +145,8 @@ class ClientHandler implements Runnable {
                     case NEW_RATING:
                         // Forward request, as it is,
                         // to worker that contains this rental
-                        int workerPort = Server.ports.get(Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID)));
-                        response = Server.sendMessageToWorkerAndWaitForResponse(input, workerPort);
+                        int workerId = Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID));
+                        response = Server.sendMessageToWorkerAndWaitForResponse(input, workerId);
                         if (response == null) {
                             break;
                         }

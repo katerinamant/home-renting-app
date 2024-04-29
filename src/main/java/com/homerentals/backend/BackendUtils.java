@@ -178,8 +178,8 @@ public class BackendUtils {
         JSONObject request = createRequest(header, body.toString());
 
         // Forward new request to worker that will contain this rental
-        int workerPort = Server.ports.get(Server.hash(rentalId));
-        Server.sendMessageToWorker(request.toString(), workerPort);
+        int workerId = Server.hash(rentalId);
+        Server.sendMessageToWorker(request.toString(), workerId);
     }
 
     /*
@@ -189,8 +189,8 @@ public class BackendUtils {
     public static String executeUpdateAvailability(String input, JSONObject body) {
         // Forward request, as it is,
         // to worker that contains this rental
-        int workerPort = Server.ports.get(Server.hash(body.getInt(BODY_FIELD_RENTAL_ID)));
-        return Server.sendMessageToWorkerAndWaitForResponse(input, workerPort);
+        int workerId = Server.hash(body.getInt(BODY_FIELD_RENTAL_ID));
+        return Server.sendMessageToWorkerAndWaitForResponse(input, workerId);
     }
 
     /**
@@ -209,8 +209,8 @@ public class BackendUtils {
 
         // Forward new request to worker that contains this rental
         int rentalId = body.getInt(BODY_FIELD_RENTAL_ID);
-        int workerPort = Server.ports.get(Server.hash(rentalId));
-        String response = Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
+        int workerId = Server.hash(rentalId);
+        String response = Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerId);
         if (response == null) {
             return null;
         }
