@@ -15,7 +15,9 @@ class ClientHandler implements Runnable {
     private ObjectOutputStream clientSocketOut = null;
 
     // Used for synchronizing server getNextId requests
-    protected final static Object syncObj = new Object();
+    protected final static Object mapIdSyncObj = new Object();
+    protected final static Object rentalIdSyncObj = new Object();
+    protected final static Object bookingIdSyncObj = new Object();
 
     ClientHandler(Socket clientSocket) throws IOException {
         try {
@@ -50,7 +52,7 @@ class ClientHandler implements Runnable {
         int requestId = body.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
         // Create MapReduce Request
         int mapId;
-        synchronized (ClientHandler.syncObj) {
+        synchronized (ClientHandler.mapIdSyncObj) {
             mapId = Server.getNextMapId();
         }
         body.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
@@ -110,7 +112,10 @@ class ClientHandler implements Runnable {
                         break;
 
                     case NEW_BOOKING:
-                        responseBody = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+                        synchronized (ClientHandler.bookingIdSyncObj) {
+                            responseBody = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
+                        }
+
                         if (responseBody == null) {
                             // Communication with the worker was unsuccessful
                             break;
@@ -163,7 +168,9 @@ class ClientHandler implements Runnable {
 
                     // Host Requests
                     case NEW_RENTAL:
-                        BackendUtils.executeNewRentalRequest(inputBody, inputHeader.name());
+                        synchronized (ClientHandler.rentalIdSyncObj) {
+                            BackendUtils.executeNewRentalRequest(inputBody, inputHeader.name());
+                        }
                         break;
 
                     case UPDATE_AVAILABILITY:
