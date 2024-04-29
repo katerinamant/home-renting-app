@@ -71,7 +71,7 @@ public class BackendUtils {
         response.put(MESSAGE_TYPE, MESSAGE_TYPE_RESPONSE);
         response.put(MESSAGE_HEADER, header);
         if (body.isEmpty()) body = "{}";
-        response.put(MESSAGE_BODY,body);
+        response.put(MESSAGE_BODY, body);
         return response;
     }
 
@@ -80,7 +80,8 @@ public class BackendUtils {
         try {
             InputStream is = Files.newInputStream(Paths.get(path));
             String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
-            if (print) System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
+            if (print)
+                System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
             return new JSONObject(jsonTxt);
         } catch (IOException | JSONException e) {
             // Could not find file or

@@ -32,10 +32,6 @@ public class Server {
         return numberOfRentals++;
     }
 
-    public static int getNextRequestId() {
-        return numberOfRequests++;
-    }
-
     public static int getNextMapId() {
         return mapId++;
     }
