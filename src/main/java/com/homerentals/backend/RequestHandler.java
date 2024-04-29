@@ -96,7 +96,7 @@ class RequestHandler implements Runnable {
             JSONObject responseBody, response;
             LocalDate[] dates;
             LocalDate startDate, endDate;
-            int rentalId, requestId, mapId;
+            int rentalId, mapId;
             String bookingId;
             Mapper mapper = new Mapper(Worker.rentals);
             switch (inputHeader) {
@@ -140,7 +140,6 @@ class RequestHandler implements Runnable {
 
                 case NEW_BOOKING:
                     // Parse JSON Object
-                    requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     bookingId = inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID);
                     String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
@@ -189,14 +188,13 @@ class RequestHandler implements Runnable {
                     } else {
                         responseBody.put(BackendUtils.BODY_FIELD_STATUS, "ERROR");
                     }
-                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
-                    System.out.printf("\n> Sending response for requestId [%d]: %s%n", requestId, response);
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                    System.out.printf("\n> Sending response : %s%n", response);
                     this.sendServerSocketOutput(response.toString());
                     break;
 
                 case NEW_RATING:
                     // Parse JSON Object
-                    requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     rental = Worker.idToRental.get(rentalId);
                     if (rental == null) {
@@ -223,8 +221,8 @@ class RequestHandler implements Runnable {
                     responseBody.put(BackendUtils.BODY_FIELD_STATUS, "OK");
                     responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL));
                     responseBody.put(BackendUtils.BODY_FIELD_BOOKING_ID, inputBody.getString(BackendUtils.BODY_FIELD_BOOKING_ID));
-                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
-                    System.out.printf("\n> Sending response for requestId [%d]: %s%n", requestId, response);
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                    System.out.printf("\n> Sending response: %s%n", response);
                     this.sendServerSocketOutput(response.toString());
                     break;
 
@@ -250,7 +248,6 @@ class RequestHandler implements Runnable {
 
                 case UPDATE_AVAILABILITY:
                     // Parse JSON object
-                    requestId = inputBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
                     rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
                     rental = Worker.idToRental.get(rentalId);
                     if (rental == null) {
@@ -278,8 +275,8 @@ class RequestHandler implements Runnable {
                     // Send response to Server
                     responseBody = new JSONObject();
                     responseBody.put(BackendUtils.BODY_FIELD_STATUS, successfulChange ? "OK" : "ERROR");
-                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString(), requestId);
-                    System.out.printf("\n> Sending response for requestId [%d]: %s%n", requestId, response);
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                    System.out.printf("\n> Sending response: %s%n", response);
                     this.sendServerSocketOutput(response.toString());
                     break;
 

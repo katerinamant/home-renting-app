@@ -49,14 +49,13 @@ class ClientHandler implements Runnable {
     }
 
     private MapResult performMapReduce(Requests header, JSONObject body) throws InterruptedException {
-        int requestId = body.getInt(BackendUtils.BODY_FIELD_REQUEST_ID);
         // Create MapReduce Request
         int mapId;
         synchronized (ClientHandler.mapIdSyncObj) {
             mapId = Server.getNextMapId();
         }
         body.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
-        JSONObject request = BackendUtils.createRequest(header.toString(), body.toString(), requestId);
+        JSONObject request = BackendUtils.createRequest(header.toString(), body.toString());
 
         // Send request to all workers
         Server.sendMessageToWorkers(request.toString(), Server.ports);
@@ -129,7 +128,7 @@ class ClientHandler implements Runnable {
                         // Send simplified response to client
                         JSONObject simplifiedResponseBody = new JSONObject();
                         simplifiedResponseBody.put(BackendUtils.BODY_FIELD_STATUS, responseBody.getString(BackendUtils.BODY_FIELD_STATUS));
-                        responseJson = BackendUtils.createResponse(inputHeader.name(), simplifiedResponseBody.toString(), responseBody.getInt(BackendUtils.BODY_FIELD_REQUEST_ID));
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), simplifiedResponseBody.toString());
                         this.sendClientSocketOutput(responseJson.toString());
                         break;
 

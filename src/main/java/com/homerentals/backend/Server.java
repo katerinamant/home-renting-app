@@ -119,7 +119,6 @@ public class Server {
     private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {
         JSONObject rentalJson = BackendUtils.readFile(path, true);
         if (rentalJson != null) {
-            rentalJson.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
             BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
         } else {
             return;
@@ -131,7 +130,6 @@ public class Server {
         body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2023");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2023");
-        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
         BackendUtils.executeUpdateAvailability(request.toString(), body);
         Thread.sleep(1000);
@@ -140,7 +138,6 @@ public class Server {
         body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
-        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
         BackendUtils.executeUpdateAvailability(request.toString(), body);
         Thread.sleep(1000);
@@ -150,7 +147,6 @@ public class Server {
         body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
         body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
         body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
-        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         body.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, "guest@example.com");
         BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
         Thread.sleep(1000);
