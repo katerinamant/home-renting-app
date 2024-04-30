@@ -43,9 +43,6 @@ java/build/**
 
 # App Specific
 
-# Generated ports
-ports.list
-
 # Logs
 logs/
 *.log
