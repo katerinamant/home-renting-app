@@ -46,9 +46,9 @@ public class BackendUtils {
 
     public static final String BODY_FIELD_STATUS = "status";
 
+    // TODO use these via a config file
     public static final String SERVER_ADDRESS = "localhost";
     public static final String REDUCER_ADDRESS = "localhost";
-    public static final String WORKER_ADDRESS = "localhost";
 
     public static final int SERVER_PORT = 8080;
     public static final int REDUCER_PORT = 4040;
