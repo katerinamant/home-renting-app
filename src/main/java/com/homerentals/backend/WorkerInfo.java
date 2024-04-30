@@ -23,8 +23,8 @@ public class WorkerInfo {
         return address;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setAddress(SocketAddress address) {
+        this.address = address.toString().split(":")[0].substring(1);
     }
 
     @Override
