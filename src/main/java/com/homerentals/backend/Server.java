@@ -2,38 +2,30 @@ package com.homerentals.backend;
 
 import com.homerentals.dao.GuestAccountDAO;
 import com.homerentals.domain.*;
-import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.net.SocketAddress;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class Server {
     // TODO: Replace System.out.println() with logger in log file.
-    protected final static ArrayList<Integer> ports = new ArrayList<>();
+    protected final static ArrayList<WorkerInfo> workers = new ArrayList<>();
     protected final static HashMap<Integer, MapResult> mapReduceResults = new HashMap<>();
     private final static GuestAccountDAO guestAccountDAO = new GuestAccountDAO();
 
     private static int numberOfRentals;
-    private static int numberOfRequests;
     private static int mapId;
     private static int bookingId;
 
     public static int getNextRentalId() {
         return numberOfRentals++;
-    }
-
-    public static int getNextRequestId() {
-        return numberOfRequests++;
     }
 
     public static int getNextMapId() {
@@ -45,7 +37,7 @@ public class Server {
     }
 
     protected static int hash(int rentalId) {
-        int numOfWorkers = ports.size();
+        int numOfWorkers = workers.size();
         float A = 0.357840f;
         return (int) Math.floor(numOfWorkers * ((rentalId * A) % 1));
     }
@@ -74,8 +66,12 @@ public class Server {
         guestAccount.rateBooking(bookingId);
     }
 
-    protected static String sendMessageToWorkerAndWaitForResponse(String msg, int port) {
-        try (Socket workerSocket = new Socket(BackendUtils.WORKER_ADDRESS, port);
+    protected static String sendMessageToWorkerAndWaitForResponse(String msg, int workerId) {
+        WorkerInfo workerInfo = workers.get(workerId);
+        String workerAddress = workerInfo.getAddress();
+        int workerPort = Integer.parseInt(workerInfo.getPort());
+
+        try (Socket workerSocket = new Socket(workerAddress, workerPort);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream());
              DataInputStream workerSocketInput = new DataInputStream(workerSocket.getInputStream())
         ) {
@@ -85,41 +81,44 @@ public class Server {
             // Receive response
             return workerSocketInput.readUTF();
         } catch (IOException e) {
-            System.err.printf("\n! Server.writeToWorkerSocketAndWaitForResponse(): Failed to set up Socket to Worker: %d%n%s%n", port, e);
+            System.err.printf("\n! Server.writeToWorkerSocketAndWaitForResponse(): Failed to set up Socket to Worker: %s%n%s%n", workerInfo, e);
             return null;
         }
     }
 
-    private static void writeToWorkerSocket(String msg, int port) throws IOException {
-        try (Socket workerSocket = new Socket(BackendUtils.WORKER_ADDRESS, port);
+    private static void writeToWorkerSocket(String msg, int workerId) throws IOException {
+        WorkerInfo workerInfo = workers.get(workerId);
+        String workerAddress = workerInfo.getAddress();
+        int workerPort = Integer.parseInt(workerInfo.getPort());
+
+        try (Socket workerSocket = new Socket(workerAddress, workerPort);
              DataOutputStream workerSocketOutput = new DataOutputStream(workerSocket.getOutputStream())
         ) {
             workerSocketOutput.writeUTF(msg);
             workerSocketOutput.flush();
         } catch (IOException e) {
-            System.err.println("\n! Server.writeToWorkerSocket(): Failed to write to Worker: " + port);
+            System.err.println("\n! Server.writeToWorkerSocket(): Failed to write to Worker: " + workerInfo);
             throw e;
         }
     }
 
-    protected static void sendMessageToWorker(String msg, int port) {
+    protected static void sendMessageToWorker(String msg, int workerId) {
         try {
-            writeToWorkerSocket(msg, port);
+            writeToWorkerSocket(msg, workerId);
         } catch (IOException e) {
-            System.err.println("\n! Server.sendMessageToWorker(): Failed to write to Worker: " + port);
+            System.err.println("\n! Server.sendMessageToWorker(): Failed to write to Worker: " + workerId);
         }
     }
 
-    protected static void sendMessageToWorkers(String msg, ArrayList<Integer> ports) {
-        for (int p : ports) {
-            sendMessageToWorker(msg, p);
+    protected static void broadcastMessageToWorkers(String msg) {
+        for (int w=0; w < workers.size(); w++) {
+            sendMessageToWorker(msg, w);
         }
     }
 
-    private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {
+    private static void setUpRental(String path, int rentalId, String bookingStartDate, String bookingEndDate) throws InterruptedException {
         JSONObject rentalJson = BackendUtils.readFile(path, true);
         if (rentalJson != null) {
-            rentalJson.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
             BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
         } else {
             return;
@@ -128,29 +127,26 @@ public class Server {
 
         // Make available for 2023
         JSONObject body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2023");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2023");
-        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
         BackendUtils.executeUpdateAvailability(request.toString(), body);
         Thread.sleep(1000);
         // Make available for 2024
         body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
-        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
         BackendUtils.executeUpdateAvailability(request.toString(), body);
         Thread.sleep(1000);
 
         // Add new Booking
         body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
         body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
         body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
-        body.put(BackendUtils.BODY_FIELD_REQUEST_ID, -1);
         body.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, "guest@example.com");
         BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
         Thread.sleep(1000);
@@ -176,29 +172,37 @@ public class Server {
 
     public static void main(String[] args) {
         if (args.length != 1) {
-            System.err.println("Usage: java Server <port_list_file>");
+            System.err.println("Usage: java Server <amount_of_workers>");
             System.exit(1);
         }
-
-        // Get worker ports from file
-        String filePath = args[0];
-        ports.clear();
-
-        try (FileInputStream inputStream = new FileInputStream(filePath)) {
-            List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
-            for (String line : lines) {
-                ports.add(Integer.parseInt(line.trim()));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        int amountOfWorkers = 0;
+        try {
+            amountOfWorkers = Integer.parseInt(args[0]);
+        } catch (NumberFormatException e) {
+            System.err.println("\n! Server.main(): Invalid argument given for amount of workers.\n" + e);
+            System.exit(0);
         }
+        workers.clear();
 
         try (ServerSocket serverSocket = new ServerSocket(BackendUtils.SERVER_PORT, 10)) {
             serverSocket.setReuseAddress(true);
 
+            // Listen to incoming worker connections
+            for (int i = 0; i < amountOfWorkers; i++) {
+                    Socket workerSocket = serverSocket.accept();
+                    SocketAddress workerAddress = workerSocket.getRemoteSocketAddress();
+                    System.out.printf("\n> Worker:%s connected.%n", workerAddress);
+                    try (DataInputStream workerSocketIn = new DataInputStream(workerSocket.getInputStream())) {
+                        String workerPort = workerSocketIn.readUTF();
+                        workers.add(new WorkerInfo(workerAddress, workerPort));
+                    } catch (IOException e) {
+                        System.err.println("\n! Server.main(): Failed to read port from Worker: " + workerAddress);
+                    }
+            }
+
             // Start thread that listens to Reducer
             Socket reducerSocket = serverSocket.accept();
-            System.out.printf("\n> Reducer:%s connected.%n", reducerSocket.getRemoteSocketAddress());
+            System.out.printf("\n> Reducer:%s connected.%n", reducerSocket.getInetAddress().toString());
             ReducerHandler reducerHandler = new ReducerHandler(reducerSocket);
             new Thread(reducerHandler).start();
 
@@ -212,7 +216,7 @@ public class Server {
                 new Thread(clientThread).start();
             }
         } catch (IOException | RuntimeException | InterruptedException e) {
-            System.err.println("\n! Server.main(0): Error:\n" + e);
+            System.err.println("\n! Server.main(): Error:\n" + e);
             e.printStackTrace();
         }
     }

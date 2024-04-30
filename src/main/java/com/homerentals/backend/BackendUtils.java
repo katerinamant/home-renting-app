@@ -33,7 +33,6 @@ public class BackendUtils {
     public static final String MESSAGE_TYPE_REQUEST = "request";
     public static final String MESSAGE_TYPE_RESPONSE = "response";
 
-    public static final String BODY_FIELD_REQUEST_ID = "requestId";
     public static final String BODY_FIELD_FILTERS = "filters";
     public static final String BODY_FIELD_MAP_ID = "mapId";
     public static final String BODY_FIELD_RENTAL_ID = "rentalId";
@@ -47,54 +46,32 @@ public class BackendUtils {
 
     public static final String BODY_FIELD_STATUS = "status";
 
+    // TODO use these via a config file
     public static final String SERVER_ADDRESS = "localhost";
     public static final String REDUCER_ADDRESS = "localhost";
-    public static final String WORKER_ADDRESS = "localhost";
 
     public static final int SERVER_PORT = 8080;
     public static final int REDUCER_PORT = 4040;
 
 
     /*
-    Creates new request and adds new requestId
+    Creates new request
      */
     public static JSONObject createRequest(String header, String body) {
         JSONObject request = new JSONObject();
         request.put(MESSAGE_TYPE, MESSAGE_TYPE_REQUEST);
-        request.put(MESSAGE_HEADER, header);
-
-        // Add request id to request body
-        if (body.isEmpty()) body = "{}";
-        JSONObject bodyJson = new JSONObject(body);
-        bodyJson.put(BODY_FIELD_REQUEST_ID, Server.getNextRequestId());
-
-        request.put(MESSAGE_BODY, bodyJson.toString());
-        return request;
-    }
-
-    /*
-    Used to forward a request,
-    already containing a requestId
-     */
-    public static JSONObject createRequest(String header, String body, int requestId) {
-        JSONObject request = new JSONObject();
-        request.put(MESSAGE_TYPE, MESSAGE_TYPE_RESPONSE);
         request.put(MESSAGE_HEADER, header);
         if (body.isEmpty()) body = "{}";
         request.put(MESSAGE_BODY, body);
         return request;
     }
 
-    public static JSONObject createResponse(String header, String body, int requestId) {
+    public static JSONObject createResponse(String header, String body) {
         JSONObject response = new JSONObject();
         response.put(MESSAGE_TYPE, MESSAGE_TYPE_RESPONSE);
         response.put(MESSAGE_HEADER, header);
-
-        // Add request id to request body
-        JSONObject bodyJson = new JSONObject(body);
-        bodyJson.put(BODY_FIELD_REQUEST_ID, requestId);
-
-        response.put(MESSAGE_BODY, bodyJson.toString());
+        if (body.isEmpty()) body = "{}";
+        response.put(MESSAGE_BODY, body);
         return response;
     }
 
@@ -103,7 +80,8 @@ public class BackendUtils {
         try {
             InputStream is = Files.newInputStream(Paths.get(path));
             String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
-            if (print) System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
+            if (print)
+                System.out.printf("%n> BackendUtils.readFile(%s):%n%s%n%n", path, jsonTxt);
             return new JSONObject(jsonTxt);
         } catch (IOException | JSONException e) {
             // Could not find file or
@@ -194,16 +172,14 @@ public class BackendUtils {
     and Server.setUp()
      */
     protected static void executeNewRentalRequest(JSONObject body, String header) {
-        int requestId = body.getInt(BODY_FIELD_REQUEST_ID);
-
         // Add new rentalId to requestBody
         int rentalId = Server.getNextRentalId();
         body.put(BODY_FIELD_RENTAL_ID, rentalId);
-        JSONObject request = createRequest(header, body.toString(), requestId);
+        JSONObject request = createRequest(header, body.toString());
 
         // Forward new request to worker that will contain this rental
-        int workerPort = Server.ports.get(Server.hash(rentalId));
-        Server.sendMessageToWorker(request.toString(), workerPort);
+        int workerId = Server.hash(rentalId);
+        Server.sendMessageToWorker(request.toString(), workerId);
     }
 
     /*
@@ -213,8 +189,8 @@ public class BackendUtils {
     public static String executeUpdateAvailability(String input, JSONObject body) {
         // Forward request, as it is,
         // to worker that contains this rental
-        int workerPort = Server.ports.get(Server.hash(body.getInt(BODY_FIELD_RENTAL_ID)));
-        return Server.sendMessageToWorkerAndWaitForResponse(input, workerPort);
+        int workerId = Server.hash(body.getInt(BODY_FIELD_RENTAL_ID));
+        return Server.sendMessageToWorkerAndWaitForResponse(input, workerId);
     }
 
     /**
@@ -226,17 +202,15 @@ public class BackendUtils {
      * else, returns the JSONObject of the response body
      */
     protected static JSONObject executeNewBookingRequest(JSONObject body, String header) {
-        int requestId = body.getInt(BODY_FIELD_REQUEST_ID);
-
         // Add new bookingId to requestBody
         String bookingId = Server.getNextBookingId();
         body.put(BODY_FIELD_BOOKING_ID, bookingId);
-        JSONObject request = createRequest(header, body.toString(), requestId);
+        JSONObject request = createRequest(header, body.toString());
 
         // Forward new request to worker that contains this rental
         int rentalId = body.getInt(BODY_FIELD_RENTAL_ID);
-        int workerPort = Server.ports.get(Server.hash(rentalId));
-        String response = Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerPort);
+        int workerId = Server.hash(rentalId);
+        String response = Server.sendMessageToWorkerAndWaitForResponse(request.toString(), workerId);
         if (response == null) {
             return null;
         }

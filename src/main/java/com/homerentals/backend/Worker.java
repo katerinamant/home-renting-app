@@ -2,6 +2,7 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -36,6 +37,13 @@ public class Worker {
 
         try (ServerSocket workerSocket = new ServerSocket(port, 10)) {
             workerSocket.setReuseAddress(true);
+
+            // Provide Server connection information
+            try (Socket serverSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT)) {
+                DataOutputStream serverSocketOutput = new DataOutputStream(serverSocket.getOutputStream());
+                serverSocketOutput.writeUTF(String.valueOf(port));
+                serverSocketOutput.flush();
+            }
 
             // Accept Master connection
             while (true) {
