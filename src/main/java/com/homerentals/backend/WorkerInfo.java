@@ -1,11 +1,13 @@
 package com.homerentals.backend;
 
+import java.net.SocketAddress;
+
 public class WorkerInfo {
     private String address;
     private String port;
 
-    public WorkerInfo(String address, String port) {
-        this.address = address;
+    public WorkerInfo(SocketAddress address, String port) {
+        this.address = address.toString().split(":")[0].substring(1);
         this.port = port;
     }
 

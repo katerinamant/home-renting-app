@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,7 +116,7 @@ public class Server {
         }
     }
 
-    private static void setUpRental(String path, int id, String bookingStartDate, String bookingEndDate) throws InterruptedException {
+    private static void setUpRental(String path, int rentalId, String bookingStartDate, String bookingEndDate) throws InterruptedException {
         JSONObject rentalJson = BackendUtils.readFile(path, true);
         if (rentalJson != null) {
             BackendUtils.executeNewRentalRequest(rentalJson, Requests.NEW_RENTAL.name());
@@ -126,7 +127,7 @@ public class Server {
 
         // Make available for 2023
         JSONObject body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2023");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2023");
         JSONObject request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
@@ -134,7 +135,7 @@ public class Server {
         Thread.sleep(1000);
         // Make available for 2024
         body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
         body.put(BackendUtils.BODY_FIELD_START_DATE, "01/01/2024");
         body.put(BackendUtils.BODY_FIELD_END_DATE, "31/12/2024");
         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), body.toString());
@@ -143,7 +144,7 @@ public class Server {
 
         // Add new Booking
         body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, id);
+        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
         body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
         body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
         body.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, "guest@example.com");
@@ -178,7 +179,7 @@ public class Server {
         try {
             amountOfWorkers = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
-            System.err.println("\n! Server.main(0): Invalid argument given for amount of workers.\n" + e);
+            System.err.println("\n! Server.main(): Invalid argument given for amount of workers.\n" + e);
             System.exit(0);
         }
         workers.clear();
@@ -188,14 +189,15 @@ public class Server {
 
             // Listen to incoming worker connections
             for (int i = 0; i < amountOfWorkers; i++) {
-                try (Socket workerSocket = serverSocket.accept()) {
-                    String workerAddress = workerSocket.getInetAddress().toString();
+                    Socket workerSocket = serverSocket.accept();
+                    SocketAddress workerAddress = workerSocket.getRemoteSocketAddress();
                     System.out.printf("\n> Worker:%s connected.%n", workerAddress);
-                    DataInputStream workerSocketIn = new DataInputStream(workerSocket.getInputStream());
-
-                    String workerPort = workerSocketIn.readUTF();
-                    workers.add(new WorkerInfo(workerAddress, workerPort));
-                }
+                    try (DataInputStream workerSocketIn = new DataInputStream(workerSocket.getInputStream())) {
+                        String workerPort = workerSocketIn.readUTF();
+                        workers.add(new WorkerInfo(workerAddress, workerPort));
+                    } catch (IOException e) {
+                        System.err.println("\n! Server.main(): Failed to read port from Worker: " + workerAddress);
+                    }
             }
 
             // Start thread that listens to Reducer
@@ -214,7 +216,7 @@ public class Server {
                 new Thread(clientThread).start();
             }
         } catch (IOException | RuntimeException | InterruptedException e) {
-            System.err.println("\n! Server.main(0): Error:\n" + e);
+            System.err.println("\n! Server.main(): Error:\n" + e);
             e.printStackTrace();
         }
     }
