@@ -1,9 +1,0 @@
-{
-  "roomName": "Farm House",
-  "location": "Rhodes",
-  "nightlyRate": 250,
-  "capacity": 15,
-  "numOfRatings": 5,
-  "sumOfRatings": 15,
-  "imagePath": "demo_image.png"
-}
