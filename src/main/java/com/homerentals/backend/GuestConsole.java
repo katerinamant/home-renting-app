@@ -83,7 +83,7 @@ public class GuestConsole {
     private String[] connectUser() {
         // TODO: Add DAO lookup for user
 
-        String email = "";
+        String email;
         System.out.print("\tWelcome back!\nEnter email\n> ");
         do {
             email = userInput.nextLine().trim();
@@ -92,7 +92,7 @@ public class GuestConsole {
             }
         } while (!email.equals("guest@example.com"));
 
-        String password = "";
+        String password;
         System.out.print("Enter password\n> ");
         do {
             password = userInput.nextLine().trim();
@@ -234,7 +234,7 @@ public class GuestConsole {
                         break;
 
                     case VIEW_ALL_RENTALS:
-                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, null, true);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
                         if (rentals == null) {
                             System.err.println("\n! GuestConsole.main(): Error getting Rentals list.");
                             break;

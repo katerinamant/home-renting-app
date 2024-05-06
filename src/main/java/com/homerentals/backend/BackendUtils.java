@@ -290,7 +290,7 @@ public class BackendUtils {
     Executes MapReduce request for all rentals
     from HostConsole / GuestConsole
      */
-    protected static ArrayList<JSONObject> getAllRentals(DataOutputStream dataOutputStream, DataInputStream objectInputStream, String username, boolean print) throws IOException {
+    protected static ArrayList<JSONObject> getAllRentals(DataOutputStream dataOutputStream, DataInputStream objectInputStream, String username) throws IOException {
         // Create and send request
         JSONObject filters = new JSONObject();
         JSONObject body = new JSONObject();
@@ -311,25 +311,21 @@ public class BackendUtils {
         }
 
         // Handle JSONArray of rentals
+        if (username != null) {
+            System.out.printf("%n[%s's Rentals List]%n%n", username);
+        } else {
+            System.out.println("\n[Rentals List]\n");
+        }
         JSONObject responseJson = new JSONObject(response);
         JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
         JSONArray rentalsJsonArray = responseBody.getJSONArray(BODY_FIELD_RENTALS);
         ArrayList<JSONObject> rentals = new ArrayList<>();
-        if (print) {
-            if (username != null) {
-                System.out.printf("%n[%s's Rentals List]%n%n", username);
-            } else {
-                System.out.println("\n[Rentals List]\n");
-            }
-        }
         for (int i = 0; i < rentalsJsonArray.length(); i++) {
             JSONObject rental = rentalsJsonArray.getJSONObject(i);
-            if (print) {
-                System.out.printf("[%d] %s%n", i, rental.get(BODY_FIELD_RENTAL_STRING));
-            }
+            System.out.printf("[%d] %s%n", i, rental.get(BODY_FIELD_RENTAL_STRING));
             rentals.add(rental);
         }
-        if (print) System.out.println("<-------- [End Of List] -------->");
+        System.out.println("<-------- [End Of List] -------->");
 
         return rentals;
     }

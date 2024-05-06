@@ -64,7 +64,7 @@ class ClientHandler implements Runnable {
         Server.broadcastMessageToWorkers(request.toString());
 
         // Check Server.mapReduceResults for Reducer response
-        MapResult mapResult = null;
+        MapResult mapResult;
         synchronized (ReducerHandler.syncObj) {
             while (!Server.mapReduceResults.containsKey(mapId)) {
                 ReducerHandler.syncObj.wait();
@@ -83,7 +83,7 @@ class ClientHandler implements Runnable {
     @Override
     public void run() {
         // Read data sent from client
-        String input = null;
+        String input;
         boolean running = true;
         try {
             while (running) {

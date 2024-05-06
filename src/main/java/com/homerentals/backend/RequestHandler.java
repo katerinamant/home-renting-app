@@ -15,15 +15,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 class RequestHandler implements Runnable {
-    private final Socket serverSocket;
     private DataInputStream serverSocketIn = null;
     private DataOutputStream serverSocketOut = null;
 
     protected RequestHandler(Socket serverSocket) throws IOException {
-        this.serverSocket = serverSocket;
         try {
-            this.serverSocketOut = new DataOutputStream(this.serverSocket.getOutputStream());
-            this.serverSocketIn = new DataInputStream(this.serverSocket.getInputStream());
+            this.serverSocketOut = new DataOutputStream(serverSocket.getOutputStream());
+            this.serverSocketIn = new DataInputStream(serverSocket.getInputStream());
         } catch (IOException e) {
             System.err.println("\n! RequestHandler(): Error setting up streams:\n" + e);
             throw e;
@@ -114,7 +112,7 @@ class RequestHandler implements Runnable {
 
     @Override
     public void run() {
-        String input = null;
+        String input;
         try {
             input = this.readServerSocketInput();
             if (input == null) {
