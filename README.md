@@ -18,14 +18,14 @@
   3. Reserve worker ports:
      `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.PortManager <NUMBER_OF_WORKERS> com/homerentals/backend/ports.list`
      <br>
-  4. Start the workers.
+  4. Start the server:
+     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Server com/homerentals/backend/ports.list`
+     <br>
+  5. Start the workers.
      Run the below for as many workers as you defined above. The port should be one of the automatically generated ports inside `src/main/java/com/homerentals/backend/ports.list`:
      `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Worker <PORT>`
      <br>
-  5. Start the server:
-     `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Server com/homerentals/backend/ports.list`
-     <br>
-  6. Start the reducer intance:
+  6. Start the reducer instance:
      `java -cp ../../../lib/commons-io-2.15.1.jar;../../../lib/json-20240303.jar;. com.homerentals.backend.Reducer <NUMBER_OF_WORKERS>`
      <br>
   7. The backend is up and running. You can connect to it by either a dummy guest console with the credentials `guest@example.com:guest`<br>
