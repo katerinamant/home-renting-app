@@ -111,7 +111,7 @@ public class Server {
     }
 
     protected static void broadcastMessageToWorkers(String msg) {
-        for (int w=0; w < workers.size(); w++) {
+        for (int w = 0; w < workers.size(); w++) {
             sendMessageToWorker(msg, w);
         }
     }
@@ -189,15 +189,15 @@ public class Server {
 
             // Listen to incoming worker connections
             for (int i = 0; i < amountOfWorkers; i++) {
-                    Socket workerSocket = serverSocket.accept();
-                    SocketAddress workerAddress = workerSocket.getRemoteSocketAddress();
-                    System.out.printf("\n> Worker:%s connected.%n", workerAddress);
-                    try (DataInputStream workerSocketIn = new DataInputStream(workerSocket.getInputStream())) {
-                        String workerPort = workerSocketIn.readUTF();
-                        workers.add(new WorkerInfo(workerAddress, workerPort));
-                    } catch (IOException e) {
-                        System.err.println("\n! Server.main(): Failed to read port from Worker: " + workerAddress);
-                    }
+                Socket workerSocket = serverSocket.accept();
+                SocketAddress workerAddress = workerSocket.getRemoteSocketAddress();
+                System.out.printf("\n> Worker:%s connected.%n", workerAddress);
+                try (DataInputStream workerSocketIn = new DataInputStream(workerSocket.getInputStream())) {
+                    String workerPort = workerSocketIn.readUTF();
+                    workers.add(new WorkerInfo(workerAddress, workerPort));
+                } catch (IOException e) {
+                    System.err.println("\n! Server.main(): Failed to read port from Worker: " + workerAddress);
+                }
             }
 
             // Start thread that listens to Reducer

@@ -31,6 +31,6 @@ public class BookingsByLocation implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("- %s: %d%n%n", this.location,this.bookingIds.size());
+        return String.format("- %s: %d%n%n", this.location, this.bookingIds.size());
     }
 }

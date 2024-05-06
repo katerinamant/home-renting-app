@@ -1,16 +1,12 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.BookingReference;
-import com.homerentals.domain.Rental;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.xml.crypto.Data;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -224,7 +220,7 @@ public class GuestConsole {
                         responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
                         JSONArray rentalsJsonArray = responseBody.getJSONArray(BackendUtils.BODY_FIELD_RENTALS);
                         rentals = new ArrayList<>();
-                        for (int i=0; i < rentalsJsonArray.length(); i++) {
+                        for (int i = 0; i < rentalsJsonArray.length(); i++) {
                             JSONObject rental = rentalsJsonArray.getJSONObject(i);
                             rentals.add(rental);
                         }

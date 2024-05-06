@@ -1,7 +1,5 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
-import com.homerentals.domain.DomainUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -221,12 +219,12 @@ public class HostConsole {
                         JSONArray rentalsWithBookings = responseBody.getJSONArray(BackendUtils.BODY_FIELD_RENTALS_WITH_BOOKINGS);
                         JSONObject rentalInfoAndBookings;
                         JSONArray bookingInfoOfThisRental;
-                        for (int i=0; i < rentalsWithBookings.length(); i++) {
+                        for (int i = 0; i < rentalsWithBookings.length(); i++) {
                             rentalInfoAndBookings = rentalsWithBookings.getJSONObject(i);
                             System.out.printf("%n[Rental: %s]%n%n", rentalInfoAndBookings.get(BackendUtils.BODY_FIELD_RENTAL_STRING));
 
                             bookingInfoOfThisRental = rentalInfoAndBookings.getJSONArray(BackendUtils.BODY_FIELD_BOOKINGS);
-                            for (int j=0; j < bookingInfoOfThisRental.length(); j++) {
+                            for (int j = 0; j < bookingInfoOfThisRental.length(); j++) {
                                 JSONObject bookingString = bookingInfoOfThisRental.getJSONObject(j);
                                 System.out.printf("- %s%n", bookingString.get(BackendUtils.BODY_FIELD_BOOKING_STRING));
                             }
@@ -254,7 +252,7 @@ public class HostConsole {
                         responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
                         JSONArray bookingsByLocation = responseBody.getJSONArray(BackendUtils.BODY_FIELD_BOOKINGS_BY_LOCATION);
                         System.out.printf("%n[%s's Bookings By Location]%n%n", username);
-                        for (int i=0; i < bookingsByLocation.length(); i++) {
+                        for (int i = 0; i < bookingsByLocation.length(); i++) {
                             JSONObject byLocation = bookingsByLocation.getJSONObject(i);
                             System.out.print(byLocation.get(BackendUtils.BODY_FIELD_BY_LOCATION));
                         }

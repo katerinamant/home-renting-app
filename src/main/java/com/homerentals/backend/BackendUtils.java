@@ -6,8 +6,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.xml.crypto.Data;
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,8 +22,8 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class BackendUtils {
-    public static final String inputsPath = "src/main/java/com/homerentals/inputs/";
-    public static final String filtersPath = "src/main/java/com/homerentals/inputs/filters/";
+    public static final String inputsPath = "com/homerentals/inputs/";
+    public static final String filtersPath = "com/homerentals/inputs/filters/";
 
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
 
@@ -320,7 +322,7 @@ public class BackendUtils {
                 System.out.println("\n[Rentals List]\n");
             }
         }
-        for (int i=0; i < rentalsJsonArray.length(); i++) {
+        for (int i = 0; i < rentalsJsonArray.length(); i++) {
             JSONObject rental = rentalsJsonArray.getJSONObject(i);
             if (print) {
                 System.out.printf("[%d] %s%n", i, rental.get(BODY_FIELD_RENTAL_STRING));
