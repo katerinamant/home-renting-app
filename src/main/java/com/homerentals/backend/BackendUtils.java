@@ -281,7 +281,7 @@ public class BackendUtils {
     Executes MapReduce request for all rentals
     from HostConsole / GuestConsole
      */
-    protected static ArrayList<Rental> getAllRentals(DataOutputStream dataOutputStream, ObjectInputStream objectInputStream, String username) throws IOException {
+    protected static ArrayList<Rental> getAllRentals(DataOutputStream dataOutputStream, ObjectInputStream objectInputStream, String username, boolean print) throws IOException {
         // Create and send request
         JSONObject filters = new JSONObject();
         JSONObject body = new JSONObject();
@@ -301,15 +301,17 @@ public class BackendUtils {
             return null;
         }
 
-        if (username != null) {
-            System.out.printf("%n[%s's Rentals List]%n%n", username);
-        } else {
-            System.out.println("\n[Rentals List]\n");
+        if(print) {
+            if (username != null) {
+                System.out.printf("%n[%s's Rentals List]%n%n", username);
+            } else {
+                System.out.println("\n[Rentals List]\n");
+            }
+            for (int i = 0; i < rentals.size(); i++) {
+                System.out.printf("[%d] %s%n", i, rentals.get(i));
+            }
+            System.out.println("<-------- [End Of List] -------->");
         }
-        for (int i = 0; i < rentals.size(); i++) {
-            System.out.printf("[%d] %s%n", i, rentals.get(i));
-        }
-        System.out.println("<-------- [End Of List] -------->");
         return rentals;
     }
 

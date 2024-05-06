@@ -224,7 +224,7 @@ public class GuestConsole {
                         break;
 
                     case VIEW_ALL_RENTALS:
-                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, null);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, null, true);
                         if (rentals == null) {
                             System.err.println("\n! GuestConsole.main(): Error getting Rentals list.");
                             break;

@@ -182,7 +182,7 @@ public class HostConsole {
 
                     case UPDATE_RENTAL_AVAILABILITY:
                         // Print rentals list
-                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username, true);
                         if (rentals == null) {
                             System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
                             break;
@@ -202,7 +202,7 @@ public class HostConsole {
                         break;
 
                     case VIEW_ALL_BOOKINGS:
-                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username, false);
                         if (rentals == null) {
                             System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
                             break;
@@ -244,7 +244,7 @@ public class HostConsole {
                         break;
 
                     case VIEW_RENTALS:
-                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username);
+                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username, true);
                         if (rentals == null) {
                             System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
                             break;
