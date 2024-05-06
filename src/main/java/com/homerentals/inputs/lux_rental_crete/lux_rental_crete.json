@@ -4,6 +4,5 @@
   "nightlyRate": 120,
   "capacity": 4,
   "numOfRatings": 5,
-  "sumOfRatings": 25,
-  "imagePath": "demo_image.png"
+  "sumOfRatings": 25
 }

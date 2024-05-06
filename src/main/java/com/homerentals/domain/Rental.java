@@ -17,8 +17,6 @@ public class Rental implements Serializable {
 
     private final HashMap<Integer, CalendarYear> availability;
 
-    private final String imagePath;
-
     public Rental(
             HostAccount hostAccount,
             String roomName,
@@ -27,7 +25,6 @@ public class Rental implements Serializable {
             int capacity,
             int numOfRatings,
             int sumOfRatings,
-            String imagePath,
             int id
     ) {
         this.hostAccount = hostAccount;
@@ -36,7 +33,6 @@ public class Rental implements Serializable {
         this.nightlyRate = nightlyRate;
         this.capacity = capacity;
         this.ratings = new RatingsAggregator(numOfRatings, sumOfRatings);
-        this.imagePath = imagePath;
         this.id = id;
         this.bookings = new ArrayList<>();
         this.availability = new HashMap<>();
@@ -80,10 +76,6 @@ public class Rental implements Serializable {
 
     public HashMap<Integer, CalendarYear> getAvailabilityMap() {
         return availability;
-    }
-
-    public String getImagePath() {
-        return this.imagePath;
     }
 
     public ArrayList<Booking> getBookings() {

@@ -160,14 +160,14 @@ public class Server {
         GuestAccount guestAccount = new GuestAccount(email, password, "Guest", "Guest", phoneNumber);
         guestAccountDAO.save(guestAccount);
 
-        // Add cozy_rental_crete.json
-        setUpRental(BackendUtils.inputsPath + "cozy_rental_crete.json", 0, "01/01/2023", "31/12/2023");
+        // Add cozy_rental_crete
+        setUpRental(BackendUtils.inputsPath + "cozy_rental_crete/cozy_rental_crete", 0, "01/01/2023", "31/12/2023");
 
-        // Add lux_rental_crete.json
-        setUpRental(BackendUtils.inputsPath + "lux_rental_crete.json", 1, "01/10/2023", "02/10/2023");
+        // Add lux_rental_crete
+        setUpRental(BackendUtils.inputsPath + "lux_rental_crete/lux_rental_crete", 1, "01/10/2023", "02/10/2023");
 
-        // Add best_spitarwn_zante.json
-        setUpRental(BackendUtils.inputsPath + "best_spitarwn_zante.json", 2, "01/10/2023", "28/12/2023");
+        // Add best_spitarwn_zante
+        setUpRental(BackendUtils.inputsPath + "best_spitarwn_zante/best_spitarwn_zante", 2, "01/10/2023", "28/12/2023");
     }
 
     public static void main(String[] args) {

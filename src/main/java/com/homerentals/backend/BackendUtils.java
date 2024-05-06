@@ -5,10 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -76,6 +73,7 @@ public class BackendUtils {
     }
 
     public static JSONObject readFile(String path, boolean print) {
+        path += ".json";
         // Read JSON file
         try {
             InputStream is = Files.newInputStream(Paths.get(path));
@@ -100,10 +98,9 @@ public class BackendUtils {
             int numOfPersons = input.getInt("capacity");
             int numOfRatings = input.getInt("numOfRatings");
             int sumOfRatings = input.getInt("sumOfRatings");
-            String imagePath = input.getString("imagePath");
             int rentalId = input.getInt("rentalId");
             return new Rental(null, roomName, location, pricePerNight,
-                    numOfPersons, numOfRatings, sumOfRatings, imagePath, rentalId);
+                    numOfPersons, numOfRatings, sumOfRatings, rentalId);
         } catch (JSONException e) {
             // String is not valid JSON object
             System.err.println("\n! RequestHandler.jsonToRentalObject(): Error creating Rental object from JSON:\n" + e);

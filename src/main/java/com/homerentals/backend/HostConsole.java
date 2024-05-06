@@ -163,8 +163,9 @@ public class HostConsole {
                         break;
 
                     case UPLOAD_RENTAL_FILE:
-                        System.out.print("Enter name of the .json file that contains the rental information.\n> ");
-                        String filePath = BackendUtils.inputsPath + userInput.nextLine().trim();
+                        System.out.print("Enter name of the directory containing the rental information.\n> ");
+                        String directory = userInput.nextLine().trim();
+                        String filePath = BackendUtils.inputsPath + directory + "/" + directory;
 
                         // Read JSON file
                         JSONObject newRental = BackendUtils.readFile(filePath, false);
@@ -177,7 +178,6 @@ public class HostConsole {
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.NEW_RENTAL.name(), newRental.toString());
                         BackendUtils.clientToServer(outputStream, request.toString());
-
                         break;
 
                     case UPDATE_RENTAL_AVAILABILITY:
