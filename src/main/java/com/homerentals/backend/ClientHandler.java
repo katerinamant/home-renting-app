@@ -17,11 +17,6 @@ class ClientHandler implements Runnable {
     private DataInputStream clientSocketIn = null;
     private DataOutputStream clientSocketOut = null;
 
-    // Used for synchronizing server getNextId requests
-    protected final static Object mapIdSyncObj = new Object();
-    protected final static Object rentalIdSyncObj = new Object();
-    protected final static Object bookingIdSyncObj = new Object();
-
     ClientHandler(Socket clientSocket) throws IOException {
         try {
             this.clientSocketOut = new DataOutputStream(clientSocket.getOutputStream());
@@ -54,7 +49,7 @@ class ClientHandler implements Runnable {
     private MapResult performMapReduce(Requests header, JSONObject body) throws InterruptedException {
         // Create MapReduce Request
         int mapId;
-        synchronized (ClientHandler.mapIdSyncObj) {
+        synchronized (Server.mapIdSyncObj) {
             mapId = Server.getNextMapId();
         }
         body.put(BackendUtils.BODY_FIELD_MAP_ID, mapId);
@@ -126,9 +121,7 @@ class ClientHandler implements Runnable {
                         break;
 
                     case NEW_BOOKING:
-                        synchronized (ClientHandler.bookingIdSyncObj) {
-                            responseBody = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
-                        }
+                        responseBody = BackendUtils.executeNewBookingRequest(inputBody, inputHeader.name());
 
                         if (responseBody == null) {
                             // Communication with the worker was unsuccessful
@@ -198,9 +191,7 @@ class ClientHandler implements Runnable {
 
                     // Host Requests
                     case NEW_RENTAL:
-                        synchronized (ClientHandler.rentalIdSyncObj) {
-                            BackendUtils.executeNewRentalRequest(inputBody, inputHeader.name());
-                        }
+                        BackendUtils.executeNewRentalRequest(inputBody, inputHeader.name());
                         break;
 
                     case UPDATE_AVAILABILITY:

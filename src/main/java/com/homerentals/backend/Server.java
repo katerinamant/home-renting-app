@@ -24,6 +24,11 @@ public class Server {
     private static int mapId;
     private static int bookingId;
 
+    // Used for synchronizing server getNextId requests
+    protected final static Object mapIdSyncObj = new Object();
+    protected final static Object rentalIdSyncObj = new Object();
+    protected final static Object bookingIdSyncObj = new Object();
+
     public static int getNextRentalId() {
         return numberOfRentals++;
     }

@@ -179,7 +179,10 @@ public class BackendUtils {
      */
     protected static void executeNewRentalRequest(JSONObject body, String header) {
         // Add new rentalId to requestBody
-        int rentalId = Server.getNextRentalId();
+        int rentalId;
+        synchronized (Server.rentalIdSyncObj) {
+            rentalId = Server.getNextRentalId();
+        }
         body.put(BODY_FIELD_RENTAL_ID, rentalId);
         JSONObject request = createRequest(header, body.toString());
 
@@ -209,7 +212,10 @@ public class BackendUtils {
      */
     protected static JSONObject executeNewBookingRequest(JSONObject body, String header) {
         // Add new bookingId to requestBody
-        String bookingId = Server.getNextBookingId();
+        String bookingId;
+        synchronized (Server.bookingIdSyncObj) {
+            bookingId = Server.getNextBookingId();
+        }
         body.put(BODY_FIELD_BOOKING_ID, bookingId);
         JSONObject request = createRequest(header, body.toString());
 
