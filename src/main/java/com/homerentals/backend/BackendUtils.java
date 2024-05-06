@@ -133,7 +133,6 @@ public class BackendUtils {
                     invalidDateInput = false;
                 } catch (DateTimeParseException e) {
                     System.out.print("Invalid input! Try again.\n> ");
-                    invalidDateInput = true;
                 }
             }
             result.put(BODY_FIELD_START_DATE, input);
@@ -149,7 +148,6 @@ public class BackendUtils {
 
                 } catch (DateTimeParseException e) {
                     System.out.print("Invalid input! Try again.\n> ");
-                    invalidDateInput = true;
                 }
             }
 

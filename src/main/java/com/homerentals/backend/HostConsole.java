@@ -88,7 +88,7 @@ public class HostConsole {
     private String connectUser() {
         // TODO: Add DAO lookup for user
 
-        String username = "";
+        String username;
         System.out.print("\tWelcome back!\n" +
                 "Enter username\n> ");
         do {
@@ -98,7 +98,7 @@ public class HostConsole {
             }
         } while (!username.equals("admin"));
 
-        String input = "";
+        String input;
         System.out.print("Enter password\n> ");
         do {
             input = userInput.nextLine().trim();
