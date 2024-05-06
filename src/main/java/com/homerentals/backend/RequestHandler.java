@@ -75,6 +75,43 @@ class RequestHandler implements Runnable {
         }
     }
 
+    private void handleMapReduceRequest(JSONObject body, Mapper mapper) {
+        // Parse JSON Message
+        int mapId = body.getInt(BackendUtils.BODY_FIELD_MAP_ID);
+        JSONObject jsonFilters = body.getJSONObject(BackendUtils.BODY_FIELD_FILTERS);
+
+        System.out.println("\n> Received filters in JSON: " + jsonFilters + " for mapId #" + mapId);
+
+        // Create filters hashmap
+        HashMap<String, String> filters = new HashMap<>();
+
+        if (jsonFilters.isEmpty()) {
+            for (Filters f : Filters.values()) {
+                String filterName = f.name();
+                filters.put(filterName, "");
+                System.out.printf("Storing filter: [%s = %s]%n", filterName, "");
+            }
+        } else {
+            // Iterate over each filter in Filters enum
+            for (Filters f : Filters.values()) {
+                String filterName = f.name();
+                if (jsonFilters.has(filterName)) {
+                    String filterValue = jsonFilters.getString(filterName);
+                    filters.put(filterName, filterValue);
+                    System.out.printf("Storing filter: [%s = %s]%n", filterName, filterValue);
+                }
+            }
+        }
+
+        System.out.println("> Created filters map: " + filters);
+
+        // Perform mapping
+        ArrayList<Rental> mappedRentals = mapper.mapRentalsToFilters(filters);
+
+        // Send to reducer
+        this.sendMappingToReducer(mapId, mappedRentals, null);
+    }
+
     @Override
     public void run() {
         String input = null;
@@ -102,40 +139,7 @@ class RequestHandler implements Runnable {
             switch (inputHeader) {
                 // Guest Requests
                 case GET_RENTALS:
-                    // Parse JSON Message
-                    mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
-                    JSONObject jsonFilters = inputBody.getJSONObject(BackendUtils.BODY_FIELD_FILTERS);
-
-                    System.out.println("\n> Received filters in JSON: " + jsonFilters + " for mapId #" + mapId);
-
-                    // Create filters hashmap
-                    HashMap<String, String> filters = new HashMap<>();
-
-                    if (jsonFilters.isEmpty()) {
-                        for (Filters f : Filters.values()) {
-                            String filterName = f.name();
-                            filters.put(filterName, "");
-                            System.out.printf("Storing filter: [%s = %s]%n", filterName, "");
-                        }
-                    } else {
-                        // Iterate over each filter in Filters enum
-                        for (Filters f : Filters.values()) {
-                            String filterName = f.name();
-                            if (jsonFilters.has(filterName)) {
-                                String filterValue = jsonFilters.getString(filterName);
-                                filters.put(filterName, filterValue);
-                                System.out.printf("Storing filter: [%s = %s]%n", filterName, filterValue);
-                            }
-                        }
-                    }
-
-                    System.out.println("> Created filters map: " + filters);
-
-                    // Perform mapping
-                    ArrayList<Rental> mappedRentals = mapper.mapRentalsToFilters(filters);
-
-                    // Send to reducer
-                    this.sendMappingToReducer(mapId, mappedRentals, null);
+                    this.handleMapReduceRequest(inputBody, mapper);
                     break;
 
                 case NEW_BOOKING:
@@ -242,7 +246,7 @@ class RequestHandler implements Runnable {
                         Worker.idToRental.put(rental.getId(), rental);
                     }
                     System.out.println("\n> New rental complete.");
-                    System.out.println("\n> Rentlas list after: " + Worker.rentals);
+                    System.out.println("\n> Rentals list after: " + Worker.rentals);
 
                     break;
 
@@ -280,7 +284,11 @@ class RequestHandler implements Runnable {
                     this.sendServerSocketOutput(response.toString());
                     break;
 
-                case GET_BOOKINGS:
+                case GET_ALL_BOOKINGS:
+                    this.handleMapReduceRequest(inputBody, mapper);
+                    break;
+
+                case GET_BOOKINGS_BY_LOCATION:
                     // Parse JSON Message
                     mapId = inputBody.getInt(BackendUtils.BODY_FIELD_MAP_ID);
                     dates = this.parseJsonDates(inputBody);

@@ -57,4 +57,9 @@ public class Booking implements Serializable {
         LocalDate today = LocalDate.now();
         return this.endDate.isBefore(today);
     }
+
+    @Override
+    public String toString() {
+        return String.format("Hosting user %s for [%s - %s]", this.guestEmail, DomainUtils.dateFormatter.format(this.startDate), DomainUtils.dateFormatter.format(this.endDate));
+    }
 }

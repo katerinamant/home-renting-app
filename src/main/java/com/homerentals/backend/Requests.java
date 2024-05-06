@@ -4,7 +4,8 @@ public enum Requests {
     // Host Requests
     NEW_RENTAL,
     UPDATE_AVAILABILITY,
-    GET_BOOKINGS,
+    GET_ALL_BOOKINGS,
+    GET_BOOKINGS_BY_LOCATION,
 
     // Guest Requests
     GET_RENTALS,

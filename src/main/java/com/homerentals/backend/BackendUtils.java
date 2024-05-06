@@ -2,9 +2,11 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Rental;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,8 +20,8 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class BackendUtils {
-    public static final String inputsPath = "com/homerentals/inputs/";
-    public static final String filtersPath = "com/homerentals/inputs/filters/";
+    public static final String inputsPath = "src/main/java/com/homerentals/inputs/";
+    public static final String filtersPath = "src/main/java/com/homerentals/inputs/filters/";
 
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
 
@@ -42,6 +44,13 @@ public class BackendUtils {
     public static final String BODY_FIELD_RATING = "rating";
 
     public static final String BODY_FIELD_STATUS = "status";
+    public static final String BODY_FIELD_RENTALS = "rentals";
+    public static final String BODY_FIELD_RENTAL_STRING = "rentalString";
+    public static final String BODY_FIELD_BOOKINGS = "bookings";
+    public static final String BODY_FIELD_BOOKING_STRING = "bookingString";
+    public static final String BODY_FIELD_RENTALS_WITH_BOOKINGS = "rentalsWithBookings";
+    public static final String BODY_FIELD_BOOKINGS_BY_LOCATION = "bookingsByLocation";
+    public static final String BODY_FIELD_BY_LOCATION = "byLocation";
 
     // TODO use these via a config file
     public static final String SERVER_ADDRESS = "localhost";
@@ -248,18 +257,18 @@ public class BackendUtils {
     Used by HostConsole and GuestConsole clients
     to receive responses from Server
      */
-    protected static Object serverToClient(ObjectInputStream stream) {
+    protected static String serverToClient(DataInputStream stream) {
         try {
-            return stream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+            return stream.readUTF();
+        } catch (IOException e) {
             System.err.println("\n! BackendUtils.serverToClient(): Could not read object from server input stream:\n" + e);
             return null;
         }
     }
 
-    protected static void handleServerResponse(ObjectInputStream stream, String successfulMsg, String unsuccessfulMsg) throws IOException {
+    protected static void handleServerResponse(DataInputStream stream, String successfulMsg, String unsuccessfulMsg) throws IOException {
         // Receive responseString
-        String responseString = (String) BackendUtils.serverToClient(stream);
+        String responseString = BackendUtils.serverToClient(stream);
         if (responseString == null) {
             System.err.println("\n! BackendUtils.handleServerResponse(): Could not receive responseString from Server.");
             return;
@@ -279,7 +288,7 @@ public class BackendUtils {
     Executes MapReduce request for all rentals
     from HostConsole / GuestConsole
      */
-    protected static ArrayList<Rental> getAllRentals(DataOutputStream dataOutputStream, ObjectInputStream objectInputStream, String username, boolean print) throws IOException {
+    protected static ArrayList<JSONObject> getAllRentals(DataOutputStream dataOutputStream, DataInputStream objectInputStream, String username, boolean print) throws IOException {
         // Create and send request
         JSONObject filters = new JSONObject();
         JSONObject body = new JSONObject();
@@ -293,27 +302,37 @@ public class BackendUtils {
         }
 
         // Receive response
-        ArrayList<Rental> rentals = (ArrayList<Rental>) serverToClient(objectInputStream);
-        if (rentals == null) {
+        String response = serverToClient(objectInputStream);
+        if (response == null) {
             System.err.println("\n! BackendUtils.getAllRentals(): Could not receive host's rentals from Server.");
             return null;
         }
 
-        if(print) {
+        // Handle JSONArray of rentals
+        JSONObject responseJson = new JSONObject(response);
+        JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+        JSONArray rentalsJsonArray = responseBody.getJSONArray(BODY_FIELD_RENTALS);
+        ArrayList<JSONObject> rentals = new ArrayList<>();
+        if (print) {
             if (username != null) {
                 System.out.printf("%n[%s's Rentals List]%n%n", username);
             } else {
                 System.out.println("\n[Rentals List]\n");
             }
-            for (int i = 0; i < rentals.size(); i++) {
-                System.out.printf("[%d] %s%n", i, rentals.get(i));
-            }
-            System.out.println("<-------- [End Of List] -------->");
         }
+        for (int i=0; i < rentalsJsonArray.length(); i++) {
+            JSONObject rental = rentalsJsonArray.getJSONObject(i);
+            if (print) {
+                System.out.printf("[%d] %s%n", i, rental.get(BODY_FIELD_RENTAL_STRING));
+            }
+            rentals.add(rental);
+        }
+        if (print) System.out.println("<-------- [End Of List] -------->");
+
         return rentals;
     }
 
-    protected static Rental chooseRentalFromList(ArrayList<Rental> rentals) {
+    protected static int chooseRentalFromList(ArrayList<JSONObject> rentals) {
         Scanner userInput = new Scanner(System.in);
 
         System.out.print("\nChoose rental\n> ");
@@ -329,6 +348,6 @@ public class BackendUtils {
             }
         } while (rentalIndex < 0 || rentalIndex >= rentals.size());
 
-        return rentals.get(rentalIndex);
+        return rentals.get(rentalIndex).getInt(BODY_FIELD_RENTAL_ID);
     }
 }

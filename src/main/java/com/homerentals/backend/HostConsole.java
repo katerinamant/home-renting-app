@@ -2,13 +2,13 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Booking;
 import com.homerentals.domain.DomainUtils;
-import com.homerentals.domain.Rental;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -58,8 +58,8 @@ public class HostConsole {
 
     private Socket requestSocket = null;
 
-    private DataOutputStream serverSocketDataOut = null;
-    private ObjectInputStream serverSocketObjectIn = null;
+    private DataOutputStream serverSocketOutput = null;
+    private DataInputStream serverSocketInput = null;
     private static final Scanner userInput = new Scanner(System.in);
 
     public Socket getRequestSocket() {
@@ -69,8 +69,8 @@ public class HostConsole {
     public void setRequestSocket(Socket requestSocket) throws IOException {
         this.requestSocket = requestSocket;
         try {
-            this.serverSocketDataOut = new DataOutputStream(this.requestSocket.getOutputStream());
-            this.serverSocketObjectIn = new ObjectInputStream(this.requestSocket.getInputStream());
+            this.serverSocketOutput = new DataOutputStream(this.requestSocket.getOutputStream());
+            this.serverSocketInput = new DataInputStream(this.requestSocket.getInputStream());
         } catch (IOException e) {
             System.err.println("\n! HostConsole.setRequestSocket(): Error setting outputs:\n" + e);
             throw e;
@@ -78,11 +78,11 @@ public class HostConsole {
     }
 
     public DataOutputStream getOutputStream() {
-        return serverSocketDataOut;
+        return serverSocketOutput;
     }
 
-    public ObjectInputStream getInputStream() {
-        return serverSocketObjectIn;
+    public DataInputStream getInputStream() {
+        return this.serverSocketInput;
     }
 
     private String connectUser() {
@@ -113,18 +113,14 @@ public class HostConsole {
     private void close() throws IOException {
         try {
             JSONObject request = BackendUtils.createRequest(Requests.CLOSE_CONNECTION.name(), "");
-            BackendUtils.clientToServer(serverSocketDataOut, request.toString());
-            this.serverSocketObjectIn.close();
-            this.serverSocketDataOut.close();
+            BackendUtils.clientToServer(serverSocketOutput, request.toString());
+            this.serverSocketInput.close();
+            this.serverSocketOutput.close();
             this.requestSocket.close();
         } catch (IOException e) {
             System.err.println("\n! HostConsole.close(): Error closing sockets:\n" + e);
             throw e;
         }
-    }
-
-    public static String printBookingInfo(Booking booking) {
-        return String.format("Hosting user %s for [%s - %s]", booking.getGuestEmail(), DomainUtils.dateFormatter.format(booking.getStartDate()), DomainUtils.dateFormatter.format(booking.getEndDate()));
     }
 
     public static void main(String[] args) {
@@ -139,10 +135,11 @@ public class HostConsole {
             requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
             hostConsole.setRequestSocket(requestSocket);
             DataOutputStream outputStream = hostConsole.getOutputStream();
-            ObjectInputStream inputStream = hostConsole.getInputStream();
+            DataInputStream inputStream = hostConsole.getInputStream();
 
-            JSONObject request, requestBody;
-            ArrayList<Rental> rentals;
+            JSONObject request, requestBody, responseJson, responseBody;
+            ArrayList<JSONObject> rentals;
+            String response;
             boolean done = false;
             while (!done) {
                 System.out.println("\n\n\t[MENU]");
@@ -188,35 +185,52 @@ public class HostConsole {
                             break;
                         }
 
-                        Rental rental = BackendUtils.chooseRentalFromList(rentals);
+                        int rentalId = BackendUtils.chooseRentalFromList(rentals);
                         // Get start and end days to mark available
                         requestBody = BackendUtils.getInputDatesAsJsonObject("mark available");
-                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
 
                         // Write to socket
                         System.out.println("Writing to server...");
                         request = BackendUtils.createRequest(Requests.UPDATE_AVAILABILITY.name(), requestBody.toString());
                         BackendUtils.clientToServer(outputStream, request.toString());
 
-                        BackendUtils.handleServerResponse(hostConsole.getInputStream(), "Change successful!", "Change unsuccessful.\nCheck rental bookings and try again.");
+                        BackendUtils.handleServerResponse(inputStream, "Change successful!", "Change unsuccessful.\nCheck rental bookings and try again.");
                         break;
 
                     case VIEW_ALL_BOOKINGS:
-                        rentals = BackendUtils.getAllRentals(outputStream, inputStream, username, false);
-                        if (rentals == null) {
-                            System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
+                        // Create and send request
+                        // Filters is needed for MapReduce within the server.
+                        // It is empty so we can get all rentals.
+                        JSONObject filters = new JSONObject();
+                        JSONObject body = new JSONObject();
+                        body.put(BackendUtils.BODY_FIELD_FILTERS, filters);
+                        request = BackendUtils.createRequest(Requests.GET_ALL_BOOKINGS.name(), body.toString());
+                        BackendUtils.clientToServer(outputStream, request.toString());
+
+                        // Receive response
+                        response = BackendUtils.serverToClient(inputStream);
+                        if (response == null) {
+                            System.err.println("\n! HostConsole.main(): Could not receive response from Server.");
                             break;
                         }
 
-                        for (Rental r : rentals) {
-                            System.out.printf("%n[Rental: %s (%s)]%n%n", r.getRoomName(), r.getLocation());
-                            for (Booking b : r.getBookings()) {
-                                if (!b.hasPassed()) {
-                                    System.out.printf("- %s%n", printBookingInfo(b));
-                                }
+                        // Handle JSONArray of bookings per rental
+                        responseJson = new JSONObject(response);
+                        responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+                        JSONArray rentalsWithBookings = responseBody.getJSONArray(BackendUtils.BODY_FIELD_RENTALS_WITH_BOOKINGS);
+                        JSONObject rentalInfoAndBookings;
+                        JSONArray bookingInfoOfThisRental;
+                        for (int i=0; i < rentalsWithBookings.length(); i++) {
+                            rentalInfoAndBookings = rentalsWithBookings.getJSONObject(i);
+                            System.out.printf("%n[Rental: %s]%n%n", rentalInfoAndBookings.get(BackendUtils.BODY_FIELD_RENTAL_STRING));
+
+                            bookingInfoOfThisRental = rentalInfoAndBookings.getJSONArray(BackendUtils.BODY_FIELD_BOOKINGS);
+                            for (int j=0; j < bookingInfoOfThisRental.length(); j++) {
+                                JSONObject bookingString = bookingInfoOfThisRental.getJSONObject(j);
+                                System.out.printf("- %s%n", bookingString.get(BackendUtils.BODY_FIELD_BOOKING_STRING));
                             }
                         }
-                        System.out.println("<-------- [End Of List] -------->");
                         break;
 
                     case VIEW_AMOUNT_OF_BOOKINGS_PER_LOCATION:
@@ -225,20 +239,24 @@ public class HostConsole {
 
                         // Write to socket
                         System.out.println("Writing to server...");
-                        request = BackendUtils.createRequest(Requests.GET_BOOKINGS.name(), requestBody.toString());
+                        request = BackendUtils.createRequest(Requests.GET_BOOKINGS_BY_LOCATION.name(), requestBody.toString());
                         BackendUtils.clientToServer(outputStream, request.toString());
 
                         // Receive response
-                        ArrayList<BookingsByLocation> bookingsByLocation = (ArrayList<BookingsByLocation>) BackendUtils.serverToClient(inputStream);
-                        if (bookingsByLocation == null) {
+                        response = BackendUtils.serverToClient(inputStream);
+                        if (response == null) {
                             System.err.println("\n! HostConsole.main(): Could not receive host's rentals from Server.");
                             break;
                         }
 
-                        // Display booking count per location
-                        System.out.printf("%n[%s's Bookings Per Location]%n%n", username);
-                        for (BookingsByLocation byLocation : bookingsByLocation) {
-                            System.out.printf("- %s: %d%n%n", byLocation.getLocation(), byLocation.getBookingIds().size());
+                        // Handle JSONArray of bookings by location
+                        responseJson = new JSONObject(response);
+                        responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+                        JSONArray bookingsByLocation = responseBody.getJSONArray(BackendUtils.BODY_FIELD_BOOKINGS_BY_LOCATION);
+                        System.out.printf("%n[%s's Bookings By Location]%n%n", username);
+                        for (int i=0; i < bookingsByLocation.length(); i++) {
+                            JSONObject byLocation = bookingsByLocation.getJSONObject(i);
+                            System.out.print(byLocation.get(BackendUtils.BODY_FIELD_BY_LOCATION));
                         }
                         System.out.println("<-------- [End Of List] -------->");
                         break;
@@ -247,7 +265,6 @@ public class HostConsole {
                         rentals = BackendUtils.getAllRentals(outputStream, inputStream, username, true);
                         if (rentals == null) {
                             System.err.println("\n! HostConsole.main(): Error getting Rentals list.");
-                            break;
                         }
                         break;
 

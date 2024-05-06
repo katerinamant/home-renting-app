@@ -28,4 +28,9 @@ public class BookingsByLocation implements Serializable {
     public ArrayList<String> getBookingIds() {
         return new ArrayList<>(bookingIds);
     }
+
+    @Override
+    public String toString() {
+        return String.format("- %s: %d%n%n", this.location,this.bookingIds.size());
+    }
 }

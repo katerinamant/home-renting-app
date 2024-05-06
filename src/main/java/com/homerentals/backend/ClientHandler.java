@@ -1,18 +1,21 @@
 package com.homerentals.backend;
 
+import com.homerentals.domain.Booking;
 import com.homerentals.domain.BookingReference;
+import com.homerentals.domain.Rental;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
 class ClientHandler implements Runnable {
     private DataInputStream clientSocketIn = null;
-    private ObjectOutputStream clientSocketOut = null;
+    private DataOutputStream clientSocketOut = null;
 
     // Used for synchronizing server getNextId requests
     protected final static Object mapIdSyncObj = new Object();
@@ -21,7 +24,7 @@ class ClientHandler implements Runnable {
 
     ClientHandler(Socket clientSocket) throws IOException {
         try {
-            this.clientSocketOut = new ObjectOutputStream(clientSocket.getOutputStream());
+            this.clientSocketOut = new DataOutputStream(clientSocket.getOutputStream());
             this.clientSocketIn = new DataInputStream(clientSocket.getInputStream());
         } catch (IOException e) {
             System.err.println("\n! ClientHandler(): Error setting up streams:\n" + e);
@@ -38,9 +41,9 @@ class ClientHandler implements Runnable {
         }
     }
 
-    private void sendClientSocketOutput(Object obj) throws IOException {
+    private void sendClientSocketOutput(String msg) throws IOException {
         try {
-            clientSocketOut.writeObject(obj);
+            clientSocketOut.writeUTF(msg);
             clientSocketOut.flush();
         } catch (IOException e) {
             System.err.println("\n! ClientHandler.sendClientSocketOutput(): Error sending Client Socket output:\n" + e);
@@ -99,15 +102,27 @@ class ClientHandler implements Runnable {
 
                 MapResult mapResult;
                 String response, status;
-                JSONObject responseJson, responseBody;
+                JSONObject responseJson, responseBody, bookingInfo;
                 switch (inputHeader) {
                     // Guest Requests
                     case GET_RENTALS:
                         // MapReduce
                         mapResult = this.performMapReduce(inputHeader, inputBody);
 
+                        // Create JSON response
+                        responseBody = new JSONObject();
+                        JSONArray rentals = new JSONArray();
+                        JSONObject rentalInfo;
+                        for (Rental rental : mapResult.getRentals()) {
+                            rentalInfo = new JSONObject();
+                            rentalInfo.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
+                            rentalInfo.put(BackendUtils.BODY_FIELD_RENTAL_STRING, rental.toString());
+                            rentals.put(rentalInfo);
+                        }
+                        responseBody.put(BackendUtils.BODY_FIELD_RENTALS, rentals);
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
                         // Send rentals to client
-                        this.sendClientSocketOutput(mapResult.getRentals());
+                        this.sendClientSocketOutput(responseJson.toString());
                         break;
 
                     case NEW_BOOKING:
@@ -135,11 +150,27 @@ class ClientHandler implements Runnable {
                     case GET_BOOKINGS_WITH_NO_RATINGS:
                         // Get info from Server.GuestAccountDAO
                         String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
-                        ArrayList<BookingReference> bookings = Server.getGuestBookings(email);
-                        System.out.println("\n> Sending to client: " + bookings);
+                        ArrayList<BookingReference> bookingsArray = Server.getGuestBookings(email);
+                        if (bookingsArray == null) {
+                            System.err.println("\n! ClientHandle.run(): User " + email + " not found.");
+                            break;
+                        }
+                        System.out.println("\n> Sending to client: " + bookingsArray);
 
+                        // Create JSON response
+                        responseBody = new JSONObject();
+                        JSONArray bookings = new JSONArray();
+                        for (BookingReference bookingReference : bookingsArray) {
+                            bookingInfo = new JSONObject();
+                            bookingInfo.put(BackendUtils.BODY_FIELD_RENTAL_ID, bookingReference.getRentalId());
+                            bookingInfo.put(BackendUtils.BODY_FIELD_BOOKING_ID, bookingReference.getBookingId());
+                            bookingInfo.put(BackendUtils.BODY_FIELD_BOOKING_STRING, bookingReference.toString());
+                            bookings.put(bookingInfo);
+                        }
+                        responseBody.put(BackendUtils.BODY_FIELD_BOOKINGS, bookings);
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
                         // Send booking references to client
-                        this.sendClientSocketOutput(bookings);
+                        this.sendClientSocketOutput(responseJson.toString());
                         break;
 
                     case NEW_RATING:
@@ -177,12 +208,62 @@ class ClientHandler implements Runnable {
                         this.sendClientSocketOutput(response);
                         break;
 
-                    case GET_BOOKINGS:
+                    case GET_ALL_BOOKINGS:
+                        // Get all rentals
+                        mapResult = this.performMapReduce(inputHeader, inputBody);
+
+                        // Create JSON response
+                        // responseBody =
+                        // { bookings:
+                        //      [JSONArray of
+                        //          {   rentalString,
+                        //              [JSONArray of
+                        //                  {bookingString}
+                        //              ]
+                        //          }
+                        //       ]
+                        // }
+                        responseBody = new JSONObject();
+                        JSONArray rentalsWithBookings = new JSONArray();
+                        JSONObject rentalInfoAndBookings;
+                        JSONArray bookingInfoOfThisRental;
+                        for (Rental rental : mapResult.getRentals()) {
+                            rentalInfoAndBookings = new JSONObject();
+                            rentalInfoAndBookings.put(BackendUtils.BODY_FIELD_RENTAL_STRING, rental.toString());
+                            bookingInfoOfThisRental = new JSONArray();
+                            for (Booking booking : rental.getBookings()) {
+                                if (!booking.hasPassed()) {
+                                    bookingInfo = new JSONObject();
+                                    bookingInfo.put(BackendUtils.BODY_FIELD_BOOKING_STRING, booking.toString());
+                                    bookingInfoOfThisRental.put(bookingInfo);
+                                }
+                            }
+                            rentalInfoAndBookings.put(BackendUtils.BODY_FIELD_BOOKINGS, bookingInfoOfThisRental);
+                            rentalsWithBookings.put(rentalInfoAndBookings);
+                        }
+                        responseBody.put(BackendUtils.BODY_FIELD_RENTALS_WITH_BOOKINGS, rentalsWithBookings);
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                        // Send booking references to client
+                        this.sendClientSocketOutput(responseJson.toString());
+                        break;
+
+                    case GET_BOOKINGS_BY_LOCATION:
                         // MapReduce
                         mapResult = this.performMapReduce(inputHeader, inputBody);
 
+                        // Create JSON response
+                        responseBody = new JSONObject();
+                        JSONArray bookingsByLocation = new JSONArray();
+                        JSONObject location;
+                        for (BookingsByLocation byLocation : mapResult.getBookingsByLocation()) {
+                            location = new JSONObject();
+                            location.put(BackendUtils.BODY_FIELD_BY_LOCATION, byLocation.toString());
+                            bookingsByLocation.put(location);
+                        }
+                        responseBody.put(BackendUtils.BODY_FIELD_BOOKINGS_BY_LOCATION, bookingsByLocation);
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
                         // Send amount of bookings per location to client
-                        this.sendClientSocketOutput(mapResult.getBookingsByLocation());
+                        this.sendClientSocketOutput(responseJson.toString());
                         break;
 
                     // Miscellaneous Requests
