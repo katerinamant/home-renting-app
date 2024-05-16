@@ -84,8 +84,6 @@ public class HostConsole {
     }
 
     private String connectUser() {
-        // TODO: Add DAO lookup for user
-
         String username;
         System.out.print("\tWelcome back!\n" +
                 "Enter username\n> ");

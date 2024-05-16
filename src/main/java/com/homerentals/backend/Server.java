@@ -47,6 +47,10 @@ public class Server {
         return (int) Math.floor(numOfWorkers * ((rentalId * A) % 1));
     }
 
+    protected static boolean userExists(String email, String password) {
+        return guestAccountDAO.find(email, password) != null;
+    }
+
     protected static ArrayList<BookingReference> getGuestBookings(String email) {
         GuestAccount guestAccount = guestAccountDAO.find(email);
         if (guestAccount == null) {

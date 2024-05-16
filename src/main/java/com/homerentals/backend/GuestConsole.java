@@ -80,26 +80,46 @@ public class GuestConsole {
         return this.serverSocketInput;
     }
 
-    private String[] connectUser() {
-        // TODO: Add DAO lookup for user
+    private String[] connectUser() throws IOException {
+        // Establish a connection
+        Socket requestSocket;
+        System.out.println("Connecting to server...");
+        requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
+        this.setRequestSocket(requestSocket);
 
-        String email;
-        System.out.print("\tWelcome back!\nEnter email\n> ");
-        do {
+        System.out.println("\tWelcome back!");
+        String email, password;
+        while (true) {
+            JSONObject requestBody = new JSONObject();
+
+            System.out.print("Enter email\n> ");
             email = userInput.nextLine().trim();
-            if (!email.equals("guest@example.com")) {
-                System.out.print("User not found! Try again.\n> ");
-            }
-        } while (!email.equals("guest@example.com"));
-
-        String password;
-        System.out.print("Enter password\n> ");
-        do {
+            requestBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email);
+            System.out.print("Enter password\n> ");
             password = userInput.nextLine().trim();
-            if (!password.equals("guest")) {
-                System.out.print("Incorrect password! Try again.\n> ");
+            requestBody.put(BackendUtils.BODY_FIELD_GUEST_PASSWORD, password);
+
+            // Write to socket
+            System.out.println("Writing to server...");
+            JSONObject request = BackendUtils.createRequest(Requests.CHECK_CREDENTIALS.name(), requestBody.toString());
+            BackendUtils.clientToServer(this.serverSocketOutput, request.toString());
+
+            // Receive responseString
+            String responseString = BackendUtils.serverToClient(this.serverSocketInput);
+            if (responseString == null) {
+                System.err.println("\n! GuestConsole.connectUser(): Could not receive responseString from Server.");
+                throw new IOException();
             }
-        } while (!password.equals("guest"));
+            // Handle JSON input
+            JSONObject responseJson = new JSONObject(responseString);
+            JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
+            String status = responseBody.getString(BackendUtils.BODY_FIELD_STATUS);
+            if (status.equals("OK")) {
+                break;
+            } else {
+                System.out.println("Invalid credentials! Try again.");
+            }
+        }
 
         return new String[]{email, password};
     }
@@ -156,15 +176,10 @@ public class GuestConsole {
     public static void main(String[] args) {
         GuestConsole guestConsole = new GuestConsole();
 
-        String[] userInfo = guestConsole.connectUser();
-        String email = userInfo[0];
-
         try {
-            // Establish a connection
-            Socket requestSocket;
-            System.out.println("Connecting to server...");
-            requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
-            guestConsole.setRequestSocket(requestSocket);
+            String[] userInfo = guestConsole.connectUser();
+            String email = userInfo[0];
+
             DataOutputStream outputStream = guestConsole.getOutputStream();
             DataInputStream inputStream = guestConsole.getInputStream();
 

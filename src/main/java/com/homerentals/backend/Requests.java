@@ -8,6 +8,7 @@ public enum Requests {
     GET_BOOKINGS_BY_LOCATION,
 
     // Guest Requests
+    CHECK_CREDENTIALS,
     GET_RENTALS,
     NEW_BOOKING,
     NEW_RATING,

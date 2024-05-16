@@ -22,8 +22,8 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class BackendUtils {
-    public static final String inputsPath = "com/homerentals/inputs/";
-    public static final String filtersPath = "com/homerentals/inputs/filters/";
+    public static final String inputsPath = "src/main/java/com/homerentals/inputs/";
+    public static final String filtersPath = "src/main/java/com/homerentals/inputs/filters/";
 
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
 
@@ -41,6 +41,7 @@ public class BackendUtils {
     public static final String BODY_FIELD_END_DATE = "endDate";
     public static final String BODY_FIELD_BOOKING_ID = "bookingId";
     public static final String BODY_FIELD_GUEST_EMAIL = "guestEmail";
+    public static final String BODY_FIELD_GUEST_PASSWORD = "guestPassword";
     public static final String BODY_FIELD_RENTAL_NAME = "rentalName";
     public static final String BODY_FIELD_RENTAL_LOCATION = "rentalLocation";
     public static final String BODY_FIELD_RATING = "rating";

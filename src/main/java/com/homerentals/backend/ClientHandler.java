@@ -2,6 +2,7 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Booking;
 import com.homerentals.domain.BookingReference;
+import com.homerentals.domain.GuestAccount;
 import com.homerentals.domain.Rental;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -96,10 +97,21 @@ class ClientHandler implements Runnable {
                 Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
                 MapResult mapResult;
-                String response, status;
+                String email, response, status;
                 JSONObject responseJson, responseBody, bookingInfo;
                 switch (inputHeader) {
                     // Guest Requests
+                    case CHECK_CREDENTIALS:
+                        email =  inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        String password = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
+
+                        // Send response
+                        responseBody = new JSONObject();
+                        responseBody.put(BackendUtils.BODY_FIELD_STATUS, Server.userExists(email, password) ? "OK" : "ERROR");
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                        this.sendClientSocketOutput(responseJson.toString());
+                        break;
+
                     case GET_RENTALS:
                         // MapReduce
                         mapResult = this.performMapReduce(inputHeader, inputBody);
@@ -142,7 +154,7 @@ class ClientHandler implements Runnable {
 
                     case GET_BOOKINGS_WITH_NO_RATINGS:
                         // Get info from Server.GuestAccountDAO
-                        String email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
                         ArrayList<BookingReference> bookingsArray = Server.getGuestBookings(email);
                         if (bookingsArray == null) {
                             System.err.println("\n! ClientHandle.run(): User " + email + " not found.");
