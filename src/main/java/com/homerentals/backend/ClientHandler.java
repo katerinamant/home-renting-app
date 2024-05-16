@@ -2,7 +2,6 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Booking;
 import com.homerentals.domain.BookingReference;
-import com.homerentals.domain.GuestAccount;
 import com.homerentals.domain.Rental;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -102,7 +101,7 @@ class ClientHandler implements Runnable {
                 switch (inputHeader) {
                     // Guest Requests
                     case CHECK_CREDENTIALS:
-                        email =  inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
                         String password = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
 
                         // Send response
