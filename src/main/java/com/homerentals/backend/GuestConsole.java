@@ -80,12 +80,17 @@ public class GuestConsole {
         return this.serverSocketInput;
     }
 
-    private String[] connectUser() throws IOException {
+    private String[] connectUser() {
         // Establish a connection
         Socket requestSocket;
         System.out.println("Connecting to server...");
-        requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
-        this.setRequestSocket(requestSocket);
+        try {
+            requestSocket = new Socket(BackendUtils.SERVER_ADDRESS, BackendUtils.SERVER_PORT);
+            this.setRequestSocket(requestSocket);
+        } catch (IOException e) {
+            System.err.println("\n! GuestConsole.connectUser(): Error setting up socket:\n" + e);
+            return null;
+        }
 
         System.out.println("\tWelcome back!");
         String email, password;
@@ -102,13 +107,18 @@ public class GuestConsole {
             // Write to socket
             System.out.println("Writing to server...");
             JSONObject request = BackendUtils.createRequest(Requests.CHECK_CREDENTIALS.name(), requestBody.toString());
-            BackendUtils.clientToServer(this.serverSocketOutput, request.toString());
+            try {
+                BackendUtils.clientToServer(this.serverSocketOutput, request.toString());
+            } catch (IOException e) {
+                System.err.println("\n! GuestConsole.connectUser(): Error sending to server:\n" + e);
+                return null;
+            }
 
             // Receive responseString
             String responseString = BackendUtils.serverToClient(this.serverSocketInput);
             if (responseString == null) {
                 System.err.println("\n! GuestConsole.connectUser(): Could not receive responseString from Server.");
-                throw new IOException();
+                return null;
             }
             // Handle JSON input
             JSONObject responseJson = new JSONObject(responseString);
@@ -178,6 +188,10 @@ public class GuestConsole {
 
         try {
             String[] userInfo = guestConsole.connectUser();
+            if (userInfo == null) {
+                System.err.println("\n! GuestConsole.main(): Error connecting user.");
+                throw new IOException();
+            }
             String email = userInfo[0];
 
             DataOutputStream outputStream = guestConsole.getOutputStream();
