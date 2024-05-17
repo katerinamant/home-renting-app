@@ -118,12 +118,8 @@ class ClientHandler implements Runnable {
                         // Create JSON response
                         responseBody = new JSONObject();
                         JSONArray rentals = new JSONArray();
-                        JSONObject rentalInfo;
                         for (Rental rental : mapResult.getRentals()) {
-                            rentalInfo = new JSONObject();
-                            rentalInfo.put(BackendUtils.BODY_FIELD_RENTAL_ID, rental.getId());
-                            rentalInfo.put(BackendUtils.BODY_FIELD_RENTAL_STRING, rental.toString());
-                            rentals.put(rentalInfo);
+                            rentals.put(rental.toJSON());
                         }
                         responseBody.put(BackendUtils.BODY_FIELD_RENTALS, rentals);
                         responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());

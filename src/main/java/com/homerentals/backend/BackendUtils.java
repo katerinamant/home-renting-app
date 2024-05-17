@@ -36,19 +36,22 @@ public class BackendUtils {
 
     public static final String BODY_FIELD_FILTERS = "filters";
     public static final String BODY_FIELD_MAP_ID = "mapId";
-    public static final String BODY_FIELD_RENTAL_ID = "rentalId";
     public static final String BODY_FIELD_START_DATE = "startDate";
     public static final String BODY_FIELD_END_DATE = "endDate";
     public static final String BODY_FIELD_BOOKING_ID = "bookingId";
     public static final String BODY_FIELD_GUEST_EMAIL = "guestEmail";
     public static final String BODY_FIELD_GUEST_PASSWORD = "guestPassword";
+    public static final String BODY_FIELD_RENTALS = "rentals";
+    public static final String BODY_FIELD_RENTAL_ID = "rentalId";
     public static final String BODY_FIELD_RENTAL_NAME = "rentalName";
     public static final String BODY_FIELD_RENTAL_LOCATION = "rentalLocation";
+    public static final String BODY_FIELD_RENTAL_NIGHTLY_RATE = "rentalNightlyRate";
+    public static final String BODY_FIELD_RENTAL_CAPACITY = "rentalCapacity";
+    public static final String BODY_FIELD_RENTAL_STARS = "rentalStars";
+    public static final String BODY_FIELD_RENTAL_STRING = "rentalString";
     public static final String BODY_FIELD_RATING = "rating";
 
     public static final String BODY_FIELD_STATUS = "status";
-    public static final String BODY_FIELD_RENTALS = "rentals";
-    public static final String BODY_FIELD_RENTAL_STRING = "rentalString";
     public static final String BODY_FIELD_BOOKINGS = "bookings";
     public static final String BODY_FIELD_BOOKING_STRING = "bookingString";
     public static final String BODY_FIELD_RENTALS_WITH_BOOKINGS = "rentalsWithBookings";

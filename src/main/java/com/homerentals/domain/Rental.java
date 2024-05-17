@@ -1,5 +1,8 @@
 package com.homerentals.domain;
 
+import com.homerentals.backend.BackendUtils;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -136,6 +139,18 @@ public class Rental implements Serializable {
                 System.err.println("Rental.matchesFilter(): Filter type not recognized.");
                 return false;
         }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        json.put(BackendUtils.BODY_FIELD_RENTAL_ID, this.getId());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_NAME, this.getRoomName());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_LOCATION, this.getLocation());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_NIGHTLY_RATE, this.getNightlyRate());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_CAPACITY, this.getCapacity());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_STARS, this.getStars());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_STRING, this.toString());
+        return json;
     }
 
     public String toString() {
