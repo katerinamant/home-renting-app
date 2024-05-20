@@ -29,6 +29,18 @@ public class BookingReference implements Serializable {
         return this.rentalId;
     }
 
+    public String getRentalName() {
+        return this.rentalName;
+    }
+
+    public String getRentalLocation() {
+        return this.rentalLocation;
+    }
+
+    public String getDates() {
+        return String.format("[%s - %s]", DomainUtils.dateFormatter.format(this.startDate), DomainUtils.dateFormatter.format(this.endDate));
+    }
+
     public boolean hasPassed() {
         LocalDate today = LocalDate.now();
         return this.endDate.isBefore(today);

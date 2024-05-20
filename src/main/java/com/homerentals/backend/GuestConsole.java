@@ -297,7 +297,10 @@ public class GuestConsole {
                         System.out.println("\n[Previous Stays]\n");
                         for (int i = 0; i < bookings.length(); i++) {
                             JSONObject booking = bookings.getJSONObject(i);
-                            System.out.printf("[%d] %s%n", i, booking.get(BackendUtils.BODY_FIELD_BOOKING_STRING));
+                            String rentalName = booking.getString(BackendUtils.BODY_FIELD_RENTAL_NAME);
+                            String rentalLocation = booking.getString(BackendUtils.BODY_FIELD_RENTAL_LOCATION);
+                            String bookingDates = booking.getString(BackendUtils.BODY_FIELD_BOOKING_DATES_STRING);
+                            System.out.printf("[%d] Your stay at %s in %s %s%n", i, rentalName, rentalLocation, bookingDates);
                         }
                         System.out.println("<-------- [End Of List] -------->");
 
