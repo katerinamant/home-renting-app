@@ -52,6 +52,7 @@ public class BackendUtils {
     public static final String BODY_FIELD_RATING = "rating";
 
     public static final String BODY_FIELD_STATUS = "status";
+    public static final String BODY_FIELD_AVAILABILITY = "availability";
     public static final String BODY_FIELD_BOOKINGS = "bookings";
     public static final String BODY_FIELD_BOOKING_STRING = "bookingString";
     public static final String BODY_FIELD_BOOKING_DATES_STRING = "bookingDatesString";

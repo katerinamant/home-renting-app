@@ -132,12 +132,49 @@ class RequestHandler implements Runnable {
             LocalDate[] dates;
             LocalDate startDate, endDate;
             int rentalId, mapId;
-            String bookingId;
+            String bookingId, startDateString, endDateString;
             Mapper mapper = new Mapper(Worker.rentals);
             switch (inputHeader) {
                 // Guest Requests
                 case GET_RENTALS:
                     this.handleMapReduceRequest(inputBody, mapper);
+                    break;
+
+                case CHECK_AVAILABILITY:
+                    // Parse JSON Object
+                    rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                    dates = this.parseJsonDates(inputBody);
+                    if (dates == null) {
+                        System.err.println("\n! RequestHandler.run(): Error parsing dates.");
+                        break;
+                    }
+                    startDate = dates[0];
+                    endDate = dates[1];
+
+                    rental = Worker.idToRental.get(rentalId);
+                    if (rental == null) {
+                        System.err.printf("\n! RequestHandler.run(): Rental with ID %d not found.%n", rentalId);
+                        break;
+                    }
+
+                    boolean rentalIsAvailable;
+                    synchronized (rental) {
+                        System.out.println("\n> Lock rental #" + rentalId + " for check availability.");
+                        rentalIsAvailable = rental.getAvailability(startDate, endDate);
+                    }
+                    System.out.println(rentalIsAvailable ? "\n> Rental is available." : "\n> Rental is unavailable.");
+                    System.out.println("\n> Checking rental #" + rentalId + "'s availability: " + rental.getAvailability(startDate, endDate));
+
+                    // Send response to Server
+                    responseBody = new JSONObject();
+                    if (rentalIsAvailable) {
+                        responseBody.put(BackendUtils.BODY_FIELD_AVAILABILITY, "AVAILABLE");
+                    } else {
+                        responseBody.put(BackendUtils.BODY_FIELD_AVAILABILITY, "UNAVAILABLE");
+                    }
+                    response = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                    System.out.printf("\n> Sending response : %s%n", response);
+                    this.sendServerSocketOutput(response.toString());
                     break;
 
                 case NEW_BOOKING:
@@ -152,8 +189,8 @@ class RequestHandler implements Runnable {
                     }
                     startDate = dates[0];
                     endDate = dates[1];
-                    String startDateString = BackendUtils.dateFormatter.format(startDate);
-                    String endDateString = BackendUtils.dateFormatter.format(endDate);
+                    startDateString = BackendUtils.dateFormatter.format(startDate);
+                    endDateString = BackendUtils.dateFormatter.format(endDate);
 
                     rental = Worker.idToRental.get(rentalId);
                     if (rental == null) {

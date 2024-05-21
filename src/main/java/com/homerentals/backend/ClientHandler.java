@@ -97,6 +97,7 @@ class ClientHandler implements Runnable {
 
                 MapResult mapResult;
                 String email, response, status;
+                int workerId;
                 JSONObject responseJson, responseBody, bookingInfo;
                 switch (inputHeader) {
                     // Guest Requests
@@ -125,6 +126,19 @@ class ClientHandler implements Runnable {
                         responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
                         // Send rentals to client
                         this.sendClientSocketOutput(responseJson.toString());
+                        break;
+
+                    case CHECK_AVAILABILITY:
+                        // Forward request to worker that contains this rental
+                        int rentalId = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID);
+                        workerId = Server.hash(rentalId);
+                        response = Server.sendMessageToWorkerAndWaitForResponse(input, workerId);
+                        if (response == null) {
+                            break;
+                        }
+
+                        // Forward response to client
+                        this.sendClientSocketOutput(response);
                         break;
 
                     case NEW_BOOKING:
@@ -172,7 +186,7 @@ class ClientHandler implements Runnable {
                     case NEW_RATING:
                         // Forward request, as it is,
                         // to worker that contains this rental
-                        int workerId = Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID));
+                        workerId = Server.hash(inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_ID));
                         response = Server.sendMessageToWorkerAndWaitForResponse(input, workerId);
                         if (response == null) {
                             break;
