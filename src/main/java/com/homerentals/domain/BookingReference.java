@@ -1,5 +1,8 @@
 package com.homerentals.domain;
 
+import com.homerentals.backend.BackendUtils;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -52,6 +55,16 @@ public class BookingReference implements Serializable {
 
     public void rate() {
         this.hasRating = true;
+    }
+
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        json.put(BackendUtils.BODY_FIELD_RENTAL_ID, this.getRentalId());
+        json.put(BackendUtils.BODY_FIELD_BOOKING_ID, this.getBookingId());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_NAME, this.getRentalName());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_LOCATION, this.getRentalLocation());
+        json.put(BackendUtils.BODY_FIELD_BOOKING_DATES_STRING, this.getDates());
+        return json;
     }
 
     @Override
