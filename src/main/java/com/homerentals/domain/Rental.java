@@ -116,7 +116,7 @@ public class Rental implements Serializable {
 
         switch (Filters.valueOf(filter)) {
             case LOCATION:
-                return this.location.equals(value);
+                return this.location.equalsIgnoreCase(value);
 
             case TIME_PERIOD:
                 String[] split = value.split("-");
