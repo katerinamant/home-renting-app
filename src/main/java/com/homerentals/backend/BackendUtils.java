@@ -49,7 +49,10 @@ public class BackendUtils {
     public static final String BODY_FIELD_RENTAL_CAPACITY = "rentalCapacity";
     public static final String BODY_FIELD_RENTAL_STARS = "rentalStars";
     public static final String BODY_FIELD_RENTAL_STRING = "rentalString";
-    public static final String BODY_FIELD_RATING = "rating";
+    public static final String BODY_FIELD_RENTAL_IMAGE_URL = "rentalImageUrl";
+    public static final String BODY_FIELD_RENTAL_RATINGS_NUM = "rentalRatingsNum";
+    public static final String BODY_FIELD_RENTAL_RATINGS_SUM = "rentalSumOfRatings";
+    public static final String BODY_FIELD_RENTAL_RATING = "rentalRating";
 
     public static final String BODY_FIELD_STATUS = "status";
     public static final String BODY_FIELD_AVAILABILITY = "availability";
@@ -109,18 +112,19 @@ public class BackendUtils {
     public static Rental jsonToRentalObject(JSONObject input) {
         try {
             // Create Rental object from JSON
-            String roomName = input.getString("roomName");
-            String location = input.getString("location");
-            double pricePerNight = input.getDouble("nightlyRate");
-            int numOfPersons = input.getInt("capacity");
-            int numOfRatings = input.getInt("numOfRatings");
-            int sumOfRatings = input.getInt("sumOfRatings");
-            int rentalId = input.getInt("rentalId");
-            return new Rental(null, roomName, location, pricePerNight,
-                    numOfPersons, numOfRatings, sumOfRatings, rentalId);
+            String name = input.getString(BODY_FIELD_RENTAL_NAME);
+            String location = input.getString(BODY_FIELD_RENTAL_LOCATION);
+            double pricePerNight = input.getDouble(BODY_FIELD_RENTAL_NIGHTLY_RATE);
+            int numOfPersons = input.getInt(BODY_FIELD_RENTAL_CAPACITY);
+            int numOfRatings = input.getInt(BODY_FIELD_RENTAL_RATINGS_NUM);
+            int sumOfRatings = input.getInt(BODY_FIELD_RENTAL_RATINGS_SUM);
+            String imgUrl = input.getString(BODY_FIELD_RENTAL_IMAGE_URL);
+            int rentalId = input.getInt(BODY_FIELD_RENTAL_ID);
+            return new Rental(null, name, location, pricePerNight,
+                    numOfPersons, numOfRatings, sumOfRatings, imgUrl, rentalId);
         } catch (JSONException e) {
             // String is not valid JSON object
-            System.err.println("\n! RequestHandler.jsonToRentalObject(): Error creating Rental object from JSON:\n" + e);
+            System.err.println("\n! BackendUtils.jsonToRentalObject(): Error creating Rental object from JSON:\n" + e);
             return null;
         }
     }

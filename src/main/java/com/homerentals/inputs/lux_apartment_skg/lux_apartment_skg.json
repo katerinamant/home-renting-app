@@ -1,8 +1,9 @@
 {
-  "roomName": "Luxury Apartment",
-  "location": "Thessaloniki",
-  "nightlyRate": 150,
-  "capacity": 4,
-  "numOfRatings": 7,
-  "sumOfRatings": 20
+  "rentalName": "Luxury Apartment",
+  "rentalLocation": "Thessaloniki",
+  "rentalNightlyRate": 150,
+  "rentalCapacity": 4,
+  "rentalRatingsNum": 7,
+  "rentalSumOfRatings": 20,
+  "rentalImageUrl": "https://utfs.io/f/580ceeb6-1c23-4405-a1fe-3640cd975ece-33ttn6.png"
 }

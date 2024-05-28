@@ -1,8 +1,9 @@
 {
-  "roomName": "Cozy Rental",
-  "location": "Crete",
-  "nightlyRate": 70,
-  "capacity": 2,
-  "numOfRatings": 0,
-  "sumOfRatings": 0
+  "rentalName": "Cozy Rental",
+  "rentalLocation": "Crete",
+  "rentalNightlyRate": 70,
+  "rentalCapacity": 2,
+  "rentalRatingsNum": 0,
+  "rentalSumOfRatings": 0,
+  "rentalImageUrl": "https://utfs.io/f/97ecafef-bca3-4f56-83a2-195d684302ff-iai2v4.png"
 }

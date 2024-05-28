@@ -340,7 +340,7 @@ public class GuestConsole {
                                 System.out.print("Invalid input! Try again.\n> ");
                             }
                         } while (rating <= 0 || rating >= 6);
-                        requestBody.put(BackendUtils.BODY_FIELD_RATING, rating);
+                        requestBody.put(BackendUtils.BODY_FIELD_RENTAL_RATING, rating);
 
                         // Write to socket
                         System.out.println("Writing to server...");

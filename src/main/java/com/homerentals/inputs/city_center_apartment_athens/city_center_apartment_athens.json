@@ -1,8 +1,9 @@
 {
-  "roomName": "City Center Apartment",
-  "location": "Athens",
-  "nightlyRate": 85,
-  "capacity": 3,
-  "numOfRatings": 20,
-  "sumOfRatings": 65
+  "rentalName": "City Center Apartment",
+  "rentalLocation": "Athens",
+  "rentalNightlyRate": 85,
+  "rentalCapacity": 3,
+  "rentalRatingsNum": 20,
+  "rentalSumOfRatings": 65,
+  "rentalImageUrl": "https://utfs.io/f/3c1a0400-2921-41c3-a1a5-664018bc04bd-9w5u48.png"
 }

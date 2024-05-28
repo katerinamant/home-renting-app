@@ -1,8 +1,9 @@
 {
-  "roomName": "Luxury Rental",
-  "location": "Crete",
-  "nightlyRate": 120,
-  "capacity": 4,
-  "numOfRatings": 5,
-  "sumOfRatings": 25
+  "rentalName": "Luxury Rental",
+  "rentalLocation": "Crete",
+  "rentalNightlyRate": 120,
+  "rentalCapacity": 4,
+  "rentalRatingsNum": 5,
+  "rentalSumOfRatings": 25,
+  "rentalImageUrl": "https://utfs.io/f/aec0c4ab-e5f2-435b-a771-41fbd9dd0f12-j0glr0.png"
 }

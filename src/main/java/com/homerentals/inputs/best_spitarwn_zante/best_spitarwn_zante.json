@@ -1,8 +1,9 @@
 {
-  "roomName": "Best Spitarwn Of The Island",
-  "location": "Zante",
-  "nightlyRate": 5,
-  "capacity": 10,
-  "numOfRatings": 85,
-  "sumOfRatings": 85
+  "rentalName": "Best Spitarwn Of The Island",
+  "rentalLocation": "Zante",
+  "rentalNightlyRate": 5,
+  "rentalCapacity": 10,
+  "rentalRatingsNum": 85,
+  "rentalSumOfRatings": 85,
+  "rentalImageUrl": "https://utfs.io/f/e8516f44-8685-4b82-ace5-849e9e717a31-ftrk2k.png"
 }
