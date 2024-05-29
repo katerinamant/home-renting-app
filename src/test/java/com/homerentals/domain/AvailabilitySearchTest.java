@@ -15,7 +15,7 @@ public class AvailabilitySearchTest {
     @Before
     public void init() {
         rental = new Rental(null, "Rental", "Athens",
-                50.0, 2, 5, 20,  0);
+                50.0, 2, 5, 20,  "",0);
         df = DomainUtils.dateFormatter;
     }
 

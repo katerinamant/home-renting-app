@@ -52,7 +52,7 @@ public class BackendUtils {
     public static final String BODY_FIELD_RENTAL_IMAGE_URL = "rentalImageUrl";
     public static final String BODY_FIELD_RENTAL_RATINGS_NUM = "rentalRatingsNum";
     public static final String BODY_FIELD_RENTAL_RATINGS_SUM = "rentalSumOfRatings";
-    public static final String BODY_FIELD_RENTAL_RATING = "rentalRating";
+    public static final String BODY_FIELD_RATING = "rating";
 
     public static final String BODY_FIELD_STATUS = "status";
     public static final String BODY_FIELD_AVAILABILITY = "availability";

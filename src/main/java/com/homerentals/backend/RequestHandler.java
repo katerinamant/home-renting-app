@@ -244,7 +244,7 @@ class RequestHandler implements Runnable {
                         break;
                     }
 
-                    int rating = inputBody.getInt(BackendUtils.BODY_FIELD_RENTAL_RATING);
+                    int rating = inputBody.getInt(BackendUtils.BODY_FIELD_RATING);
                     synchronized (rental) {
                         System.out.println("\n> Lock rental #" + rentalId + " for new rating.");
                         System.out.println("\n> Previous rating: " + rental.getStars());
