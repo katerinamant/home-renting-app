@@ -1,8 +1,9 @@
 {
-  "roomName": "Cozy Summer House",
-  "location": "Santorini",
-  "nightlyRate": 92,
-  "capacity": 2,
-  "numOfRatings": 80,
-  "sumOfRatings": 270
+  "rentalName":  "Cozy Summer House",
+  "rentalLocation": "Santorini",
+  "rentalNightlyRate": 92,
+  "rentalCapacity": 2,
+  "rentalRatingsNum": 80,
+  "rentalSumOfRatings": 270,
+  "rentalImageUrl": "https://utfs.io/f/ed3ee4f1-8a5c-4909-b222-97b85a84b1f3-p3uqe6.png"
 }

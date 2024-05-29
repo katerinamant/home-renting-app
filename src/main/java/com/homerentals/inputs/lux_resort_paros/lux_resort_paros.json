@@ -1,9 +1,9 @@
 {
-  "roomName": "Luxury Summer Resort",
-  "location": "Paros",
-  "nightlyRate": 95,
-  "capacity": 4,
-  "numOfRatings": 40,
-  "sumOfRatings": 160,
-  "imagePath": "demo_image.png"
+  "rentalName": "Luxury Summer Resort",
+  "rentalLocation": "Paros",
+  "rentalNightlyRate": 95,
+  "rentalCapacity": 4,
+  "rentalRatingsNum": 40,
+  "rentalSumOfRatings": 160,
+  "rentalImageUrl": "https://utfs.io/f/94aa423d-9d3d-4586-b609-d44eefebcd63-liknp5.png"
 }

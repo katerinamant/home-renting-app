@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 public class Rental implements Serializable {
     private final int id;
+    private final String imgUrl;
     private final HostAccount hostAccount;
     private final String roomName;
     private final String location;
@@ -28,6 +29,7 @@ public class Rental implements Serializable {
             int capacity,
             int numOfRatings,
             int sumOfRatings,
+            String imgUrl,
             int id
     ) {
         this.hostAccount = hostAccount;
@@ -36,6 +38,7 @@ public class Rental implements Serializable {
         this.nightlyRate = nightlyRate;
         this.capacity = capacity;
         this.ratings = new RatingsAggregator(numOfRatings, sumOfRatings);
+        this.imgUrl = imgUrl;
         this.id = id;
         this.bookings = new ArrayList<>();
         this.availability = new HashMap<>();
@@ -44,6 +47,8 @@ public class Rental implements Serializable {
     public int getId() {
         return this.id;
     }
+
+    public String getImageURL() { return this.imgUrl; }
 
     public HostAccount getHostAccount() {
         return this.hostAccount;
@@ -150,6 +155,7 @@ public class Rental implements Serializable {
         json.put(BackendUtils.BODY_FIELD_RENTAL_CAPACITY, this.getCapacity());
         json.put(BackendUtils.BODY_FIELD_RENTAL_STARS, this.getStars());
         json.put(BackendUtils.BODY_FIELD_RENTAL_STRING, this.toString());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_IMAGE_URL, this.getImageURL());
         return json;
     }
 

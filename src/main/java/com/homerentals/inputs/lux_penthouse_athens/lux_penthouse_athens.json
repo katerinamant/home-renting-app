@@ -1,8 +1,9 @@
 {
-  "roomName": "Luxury Penthouse with view of the Acropolis",
-  "location": "Athens",
-  "nightlyRate": 200,
-  "capacity": 6,
-  "numOfRatings": 110,
-  "sumOfRatings": 480
+  "rentalName": "Luxury Penthouse with view of the Acropolis",
+  "rentalLocation": "Athens",
+  "rentalNightlyRate": 200,
+  "rentalCapacity": 6,
+  "rentalRatingsNum": 110,
+  "rentalSumOfRatings": 480,
+  "rentalImageUrl": "https://utfs.io/f/efa59fbe-64ca-4e73-9be9-180db3418426-jvi3bz.png"
 }
