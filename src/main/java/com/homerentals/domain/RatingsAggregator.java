@@ -15,6 +15,10 @@ public class RatingsAggregator implements Serializable {
         return (this.numOfRatings == 0) ? 0 : Math.floor((double) this.sumOfRatings / this.numOfRatings * 100) / 100;
     }
 
+    protected int getNumOfRatings() {
+        return this.numOfRatings;
+    }
+
     protected double getStars() {
         // Rounds the average
         // to the nearest half

@@ -156,6 +156,7 @@ public class Rental implements Serializable {
         json.put(BackendUtils.BODY_FIELD_RENTAL_STARS, this.getStars());
         json.put(BackendUtils.BODY_FIELD_RENTAL_STRING, this.toString());
         json.put(BackendUtils.BODY_FIELD_RENTAL_IMAGE_URL, this.getImageURL());
+        json.put(BackendUtils.BODY_FIELD_RENTAL_RATINGS_NUM, this.getReviewAggregator().getNumOfRatings());
         return json;
     }
 
