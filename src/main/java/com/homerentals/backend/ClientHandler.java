@@ -39,6 +39,7 @@ class ClientHandler implements Runnable {
 
     private void sendClientSocketOutput(String msg) throws IOException {
         try {
+            System.out.printf("\n> Sending response : %s%n", msg);
             clientSocketOut.writeUTF(msg);
             clientSocketOut.flush();
         } catch (IOException e) {
