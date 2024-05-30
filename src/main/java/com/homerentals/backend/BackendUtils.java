@@ -27,41 +27,54 @@ public class BackendUtils {
 
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
 
+    // Misc tags
     public static final String MESSAGE_TYPE = "type";
     public static final String MESSAGE_HEADER = "header";
     public static final String MESSAGE_BODY = "body";
-
     public static final String MESSAGE_TYPE_REQUEST = "request";
     public static final String MESSAGE_TYPE_RESPONSE = "response";
-
-    public static final String BODY_FIELD_FILTERS = "filters";
+    public static final String BODY_FIELD_STATUS = "status";
     public static final String BODY_FIELD_MAP_ID = "mapId";
-    public static final String BODY_FIELD_START_DATE = "startDate";
-    public static final String BODY_FIELD_END_DATE = "endDate";
-    public static final String BODY_FIELD_BOOKING_ID = "bookingId";
+
+    // User Sign-Up + Authentication
     public static final String BODY_FIELD_GUEST_EMAIL = "guestEmail";
     public static final String BODY_FIELD_GUEST_PASSWORD = "guestPassword";
+    public static final String BODY_FIELD_GUEST_FIRST_NAME = "guestFirstName";
+    public static final String BODY_FIELD_GUEST_LAST_NAME = "guestLastName";
+    public static final String BODY_FIELD_GUEST_PHONE_NUMBER = "guestPhoneNumber";
+
+    // Rental / Search
     public static final String BODY_FIELD_RENTALS = "rentals";
+    public static final String BODY_FIELD_FILTERS = "filters";
     public static final String BODY_FIELD_RENTAL_ID = "rentalId";
     public static final String BODY_FIELD_RENTAL_NAME = "rentalName";
     public static final String BODY_FIELD_RENTAL_LOCATION = "rentalLocation";
     public static final String BODY_FIELD_RENTAL_NIGHTLY_RATE = "rentalNightlyRate";
     public static final String BODY_FIELD_RENTAL_CAPACITY = "rentalCapacity";
     public static final String BODY_FIELD_RENTAL_STARS = "rentalStars";
-    public static final String BODY_FIELD_RENTAL_STRING = "rentalString";
-    public static final String BODY_FIELD_RENTAL_IMAGE_URL = "rentalImageUrl";
     public static final String BODY_FIELD_RENTAL_RATINGS_NUM = "rentalRatingsNum";
     public static final String BODY_FIELD_RENTAL_RATINGS_SUM = "rentalSumOfRatings";
-    public static final String BODY_FIELD_RATING = "rating";
+    public static final String BODY_FIELD_RENTAL_STRING = "rentalString";
+    public static final String BODY_FIELD_RENTAL_IMAGE_URL = "rentalImageUrl";
 
-    public static final String BODY_FIELD_STATUS = "status";
+    // Check availability / booking
     public static final String BODY_FIELD_AVAILABILITY = "availability";
-    public static final String BODY_FIELD_BOOKINGS = "bookings";
+    public static final String BODY_FIELD_START_DATE = "startDate";
+    public static final String BODY_FIELD_END_DATE = "endDate";
+
+    // Booking
+    public static final String BODY_FIELD_BOOKING_ID = "bookingId";
     public static final String BODY_FIELD_BOOKING_STRING = "bookingString";
-    public static final String BODY_FIELD_BOOKING_DATES_STRING = "bookingDatesString";
     public static final String BODY_FIELD_RENTALS_WITH_BOOKINGS = "rentalsWithBookings";
     public static final String BODY_FIELD_BOOKINGS_BY_LOCATION = "bookingsByLocation";
     public static final String BODY_FIELD_BY_LOCATION = "byLocation";
+
+    // Bookings with no ratings
+    public static final String BODY_FIELD_BOOKINGS = "bookings";
+    public static final String BODY_FIELD_BOOKING_DATES_STRING = "bookingDatesString";
+
+    // Rating
+    public static final String BODY_FIELD_RATING = "rating";
 
     // TODO use these via a config file
     public static final String SERVER_ADDRESS = "localhost";
