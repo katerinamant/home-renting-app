@@ -51,6 +51,10 @@ public class Server {
         return guestAccountDAO.find(email, password) != null;
     }
 
+    protected static GuestAccount getUser(String email) {
+        return guestAccountDAO.find(email);
+    }
+
     protected static ArrayList<BookingReference> getGuestBookings(String email) {
         GuestAccount guestAccount = guestAccountDAO.find(email);
         if (guestAccount == null) {

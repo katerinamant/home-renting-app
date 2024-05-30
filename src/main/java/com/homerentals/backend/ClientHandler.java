@@ -2,6 +2,7 @@ package com.homerentals.backend;
 
 import com.homerentals.domain.Booking;
 import com.homerentals.domain.BookingReference;
+import com.homerentals.domain.GuestAccount;
 import com.homerentals.domain.Rental;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,7 +108,15 @@ class ClientHandler implements Runnable {
 
                         // Send response
                         responseBody = new JSONObject();
-                        responseBody.put(BackendUtils.BODY_FIELD_STATUS, Server.userExists(email, password) ? "OK" : "ERROR");
+                        boolean userExists = Server.userExists(email, password);
+                        if (userExists) {
+                            responseBody.put(BackendUtils.BODY_FIELD_STATUS, "OK");
+                            GuestAccount guestAccount = Server.getUser(email);
+                            responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, guestAccount.getEmail());
+                            responseBody.put(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER, guestAccount.getPhoneNumber().getPhoneNumber());
+                        } else {
+                            responseBody.put(BackendUtils.BODY_FIELD_STATUS, "ERROR");
+                        }
                         responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
                         this.sendClientSocketOutput(responseJson.toString());
                         break;

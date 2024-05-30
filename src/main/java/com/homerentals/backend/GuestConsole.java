@@ -125,6 +125,9 @@ public class GuestConsole {
             JSONObject responseBody = new JSONObject(responseJson.getString(BackendUtils.MESSAGE_BODY));
             String status = responseBody.getString(BackendUtils.BODY_FIELD_STATUS);
             if (status.equals("OK")) {
+                System.out.println("Welcome Back!");
+                System.out.printf("Email: %s%n", responseBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL));
+                System.out.printf("Phone Number: %s%n", responseBody.getString(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER));
                 break;
             } else {
                 System.out.println("Invalid credentials! Try again.");
