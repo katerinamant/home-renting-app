@@ -148,6 +148,7 @@ class ClientHandler implements Runnable {
                         responseBody.put(BackendUtils.BODY_FIELD_STATUS, "OK");
                         responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email.toString());
                         responseBody.put(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER, phoneNumber.getPhoneNumber());
+                        responseBody.put(BackendUtils.BODY_FIELD_GUEST_FIRST_NAME, firstName);
                         responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
                         this.sendClientSocketOutput(responseJson.toString());
                         break;
@@ -164,6 +165,7 @@ class ClientHandler implements Runnable {
                             GuestAccount guestAccount = Server.getUser(emailString);
                             responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, guestAccount.getEmail().toString());
                             responseBody.put(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER, guestAccount.getPhoneNumber().getPhoneNumber());
+                            responseBody.put(BackendUtils.BODY_FIELD_GUEST_FIRST_NAME, guestAccount.getFirstName());
                         } else {
                             responseBody.put(BackendUtils.BODY_FIELD_STATUS, "ERROR");
                         }
