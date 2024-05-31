@@ -35,6 +35,7 @@ public class BackendUtils {
     public static final String MESSAGE_TYPE_RESPONSE = "response";
     public static final String BODY_FIELD_STATUS = "status";
     public static final String BODY_FIELD_MAP_ID = "mapId";
+    public static final String BODY_FIELD_ERROR = "error";
 
     // User Sign-Up + Authentication
     public static final String BODY_FIELD_GUEST_EMAIL = "guestEmail";

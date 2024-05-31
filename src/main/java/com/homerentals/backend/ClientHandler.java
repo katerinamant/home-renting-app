@@ -1,9 +1,6 @@
 package com.homerentals.backend;
 
-import com.homerentals.domain.Booking;
-import com.homerentals.domain.BookingReference;
-import com.homerentals.domain.GuestAccount;
-import com.homerentals.domain.Rental;
+import com.homerentals.domain.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,22 +95,74 @@ class ClientHandler implements Runnable {
                 Requests inputHeader = Requests.valueOf(inputJson.getString(BackendUtils.MESSAGE_HEADER));
 
                 MapResult mapResult;
-                String email, response, status;
+                String emailString, passwordString, response, status;
                 int workerId;
                 JSONObject responseJson, responseBody, bookingInfo;
                 switch (inputHeader) {
                     // Guest Requests
+                    case SIGN_UP:
+                        responseBody = new JSONObject();
+
+                        Email email;
+                        emailString = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        if (!Email.isValid(emailString) || Server.getUser(emailString) != null) {
+                            // Invalid email
+                            responseBody.put(BackendUtils.BODY_FIELD_ERROR, BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                            responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                            this.sendClientSocketOutput(responseJson.toString());
+                            break;
+                        } else {
+                            email = new Email(emailString);
+                        }
+
+                        Password password;
+                        passwordString = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
+                        if (!Password.isValid(passwordString)) {
+                            // Invalid password
+                            responseBody.put(BackendUtils.BODY_FIELD_ERROR, BackendUtils.BODY_FIELD_GUEST_PASSWORD);
+                            responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                            this.sendClientSocketOutput(responseJson.toString());
+                            break;
+                        } else {
+                            password = new Password(passwordString);
+                        }
+
+                        PhoneNumber phoneNumber;
+                        String phoneNumberString = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER);
+                        if (!PhoneNumber.isValid(phoneNumberString)) {
+                            // Invalid phone number
+                            responseBody.put(BackendUtils.BODY_FIELD_ERROR, BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER);
+                            responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                            this.sendClientSocketOutput(responseJson.toString());
+                            break;
+                        } else {
+                            phoneNumber = new PhoneNumber(phoneNumberString);
+                        }
+
+                        // Valid inputs
+                        String firstName = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_FIRST_NAME);
+                        String lastName = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_LAST_NAME);
+                        Server.addUser(email, password, firstName, lastName, phoneNumber);
+
+                        // Send "OK" response
+                        responseBody.put(BackendUtils.BODY_FIELD_STATUS, "OK");
+                        responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, email.toString());
+                        responseBody.put(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER, phoneNumber.getPhoneNumber());
+                        responseJson = BackendUtils.createResponse(inputHeader.name(), responseBody.toString());
+                        this.sendClientSocketOutput(responseJson.toString());
+                        break;
+
                     case CHECK_CREDENTIALS:
-                        email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
-                        String password = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
+                        emailString = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        passwordString = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_PASSWORD);
 
                         // Send response
                         responseBody = new JSONObject();
-                        boolean userExists = Server.userExists(email, password);
+                        boolean userExists = Server.userExists(emailString, passwordString);
                         if (userExists) {
                             responseBody.put(BackendUtils.BODY_FIELD_STATUS, "OK");
-                            GuestAccount guestAccount = Server.getUser(email);
-                            responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, guestAccount.getEmail());
+                            GuestAccount guestAccount = Server.getUser(emailString);
+                            responseBody.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, guestAccount.getEmail().toString());
                             responseBody.put(BackendUtils.BODY_FIELD_GUEST_PHONE_NUMBER, guestAccount.getPhoneNumber().getPhoneNumber());
                         } else {
                             responseBody.put(BackendUtils.BODY_FIELD_STATUS, "ERROR");
@@ -173,10 +222,10 @@ class ClientHandler implements Runnable {
 
                     case GET_BOOKINGS_WITH_NO_RATINGS:
                         // Get info from Server.GuestAccountDAO
-                        email = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
-                        ArrayList<BookingReference> bookingsArray = Server.getGuestBookings(email);
+                        emailString = inputBody.getString(BackendUtils.BODY_FIELD_GUEST_EMAIL);
+                        ArrayList<BookingReference> bookingsArray = Server.getGuestBookings(emailString);
                         if (bookingsArray == null) {
-                            System.err.println("\n! ClientHandle.run(): User " + email + " not found.");
+                            System.err.println("\n! ClientHandle.run(): User " + emailString + " not found.");
                             break;
                         }
                         System.out.println("\n> Sending to client: " + bookingsArray);
