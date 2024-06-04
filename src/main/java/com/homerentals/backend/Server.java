@@ -161,13 +161,15 @@ public class Server {
         Thread.sleep(1000);
 
         // Add new Booking
-        body = new JSONObject();
-        body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
-        body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
-        body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
-        body.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, "guest@example.com");
-        BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
-        Thread.sleep(1000);
+        if (bookingStartDate != null && bookingEndDate != null) {
+            body = new JSONObject();
+            body.put(BackendUtils.BODY_FIELD_RENTAL_ID, rentalId);
+            body.put(BackendUtils.BODY_FIELD_START_DATE, bookingStartDate);
+            body.put(BackendUtils.BODY_FIELD_END_DATE, bookingEndDate);
+            body.put(BackendUtils.BODY_FIELD_GUEST_EMAIL, "guest@example.com");
+            BackendUtils.executeNewBookingRequest(body, Requests.NEW_BOOKING.name());
+            Thread.sleep(1000);
+        }
     }
 
     private static void setUp() throws IOException, InterruptedException {
@@ -186,6 +188,24 @@ public class Server {
 
         // Add best_spitarwn_zante
         setUpRental(BackendUtils.inputsPath + "best_spitarwn_zante/best_spitarwn_zante", 2, "01/10/2023", "28/12/2023");
+
+        // Add city_center_apartment_athens
+        setUpRental(BackendUtils.inputsPath + "city_center_apartment_athens/city_center_apartment_athens", 3, null, null);
+
+        // Add lux_apartment_skg
+        setUpRental(BackendUtils.inputsPath + "lux_apartment_skg/lux_apartment_skg", 4, null, null);
+
+        // Add lux_penthouse_athens
+        setUpRental(BackendUtils.inputsPath + "lux_penthouse_athens/lux_penthouse_athens", 5, null, null);
+
+        // Add lux_resort_paros
+        setUpRental(BackendUtils.inputsPath + "lux_resort_paros/lux_resort_paros", 6, null, null);
+
+        // Add summer_house_paros
+        setUpRental(BackendUtils.inputsPath + "summer_house_paros/summer_house_paros", 7, null, null);
+
+        // Add summer_house_santorini
+        setUpRental(BackendUtils.inputsPath + "summer_house_santorini/summer_house_santorini", 8, null, null);
     }
 
     public static void main(String[] args) {
