@@ -1,5 +1,7 @@
 # A distributed application for home renting
 
+For the Android app see [lapis](https://github.com/katerinamant/lapis)
+
 ## Instructions
 
 ###### To compile and execute the files, make sure that you include the required .jar files under lib/ in the classpath.
